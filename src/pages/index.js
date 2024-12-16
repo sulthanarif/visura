@@ -7,7 +7,7 @@ export default function HomePage() {
 
     const handleFileSubmit = (event) => {
       event.preventDefault();
-      setUploadStatus('Uploading...');
+      // setUploadStatus('Uploading...');
       setResults(null);
       setCsvFileName(null);
     
