@@ -39,14 +39,14 @@ export default function HomePage() {
     };
     
     const handleDownloadCSV = () => {
-      // membuat link download pada browser
       const link = document.createElement('a');
-          link.href = `/src/output/${csvFileName}`;
-          link.download = csvFileName;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-    };
+      link.href = `/output/${csvFileName}`; // Path relatif ke public
+      link.download = csvFileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+  };
+  
 
     return (
         <div>

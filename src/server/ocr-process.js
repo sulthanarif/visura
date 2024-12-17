@@ -37,6 +37,7 @@ async function increaseDPI(inputPath, outputPath, dpi) {
         .toFile(outputPath);
 
     console.log(`[${inputPath}] DPI berhasil ditingkatkan menjadi ${dpi}.`);
+    
 }
 
 // Fungsi untuk rotate image

@@ -10,7 +10,8 @@ export const config = {
 };
 
 const tempDir = path.join(process.cwd(), "src/temp");
-const outputDir = path.join(process.cwd(), "src/output");
+const outputDir = path.join(process.cwd(), "public/output");
+
 const targetDPI = 800;
 
 export default async function handler(req, res) {
@@ -19,10 +20,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Ensure output folders exist
-        if (!fs.existsSync(tempDir)) {
-            await fs.promises.mkdir(tempDir, { recursive: true });
-        }
+        
         if (!fs.existsSync(outputDir)) {
             await fs.promises.mkdir(outputDir, { recursive: true });
         }
