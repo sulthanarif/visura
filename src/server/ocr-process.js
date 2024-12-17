@@ -2,7 +2,6 @@ const Tesseract = require("tesseract.js");
 const sharp = require("sharp");
 const fs = require("fs");
 const path = require("path");
-const xlsx = require('xlsx');
 const pdf2png = require("pdf2png");
 
 // Fungsi untuk convert PDF ke PNG
@@ -37,7 +36,6 @@ async function increaseDPI(inputPath, outputPath, dpi) {
         .toFile(outputPath);
 
     console.log(`[${inputPath}] DPI berhasil ditingkatkan menjadi ${dpi}.`);
-    
 }
 
 // Fungsi untuk rotate image
@@ -98,28 +96,20 @@ function correctRevisionOCR(text) {
 function validateAndFormatDate(text) {
     // Regex untuk format tanggal yang diharapkan (DDMMYYYY)
     const dateRegex = /^\d{8}$/;
-    
+
     const cleanedText = text.replace(/[^0-9]/g, '');
 
     if (dateRegex.test(cleanedText)) {
         // Mengembalikan tanggal yang sudah diformat jika valid
-        return cleanedText.slice(0, 2) + cleanedText.slice(2, 4) + cleanedText.slice(4,8);
+        return cleanedText.slice(0, 2) + cleanedText.slice(2, 4) + cleanedText.slice(4, 8);
     }
     return null; // Mengembalikan null jika format tanggal tidak valid
 }
 
 // Fungsi untuk generate nomor transmittal
 function generateTransmittalNumber() {
-    // const now = new Date();
-    // const year = now.getFullYear();
-    // const month = String(now.getMonth() + 1).padStart(2, '0');
-    // const day = String(now.getDate()).padStart(2, '0');
-    // const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-
-    // return `001 / ASBUILT/ KTB / MOJ - SMB 1 - 01 / ${year} / ${month}/${day}/${random}`;
     return `[]`;
 }
-
 
 // Koordinat crop untuk OCR
 const cropCoordinates = {
@@ -129,52 +119,53 @@ const cropCoordinates = {
     date: { x: 300, y: 1650, width: 700, height: 200 },
 };
 
-async function processPDF(pdfPath, tempDir, outputDir, targetDPI) {
-  
+async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilename) {
     try {
-            // 1. Convert PDF ke PNG
-            const pngPath = await pdfToPng(pdfPath, tempDir);
+        // 1. Convert PDF ke PNG
+        const pngPath = await pdfToPng(pdfPath, tempDir);
 
-            const baseName = path.parse(pngPath).name;
-            const highDpiImagePath = path.join(tempDir, `${baseName}-high-dpi.png`);
-            const rotatedImagePath = path.join(tempDir, `${baseName}-rotated.png`);
-            const croppedImagePath = path.join(tempDir, `${baseName}-cropped.png`);
+        const baseName = path.parse(pngPath).name;
+         const cutDir = path.join(tempDir, "cut");
+        if (!fs.existsSync(cutDir)) {
+             await fs.promises.mkdir(cutDir, { recursive: true });
+        }
+        const highDpiImagePath = path.join(cutDir, `${baseName}-high-dpi.png`);
+        const rotatedImagePath = path.join(cutDir, `${baseName}-rotated.png`);
+        const croppedImagePath = path.join(cutDir, `${baseName}-cropped.png`);
 
-            const jsonData = {
-                filename: baseName,
-                title: null,
-                revision: null,
-                drawingCode: null,
-                date: null
-            };
+        const jsonData = {
+           filename: originalFilename, // Menggunakan nama file asli
+            title: null,
+            revision: null,
+            drawingCode: null,
+             date: null,
+        };
 
-            // 2. Tingkatkan DPI
-            await increaseDPI(pngPath, highDpiImagePath, targetDPI);
+        // 2. Tingkatkan DPI
+        await increaseDPI(pngPath, highDpiImagePath, targetDPI);
 
-            // 3. Rotate image 90 derajat
-            await rotateImage(highDpiImagePath, rotatedImagePath, 90);
+        // 3. Rotate image 90 derajat
+        await rotateImage(highDpiImagePath, rotatedImagePath, 90);
 
-            // 4. Crop 20% di pojok kanan bawah
-            await cropBottomRight(rotatedImagePath, croppedImagePath);
+        // 4. Crop 20% di pojok kanan bawah
+        await cropBottomRight(rotatedImagePath, croppedImagePath);
 
-            // 5. Crop dan OCR untuk setiap bagian
-             for (const [key, coords] of Object.entries(cropCoordinates)) {
-                const sectionImagePath = path.join(outputDir, `${baseName}-${key}.png`);
-                await sharp(croppedImagePath)
-                  .extract({
+        // 5. Crop dan OCR untuk setiap bagian
+         for (const [key, coords] of Object.entries(cropCoordinates)) {
+            const sectionImagePath = path.join(cutDir, `${baseName}-${key}.png`);
+            await sharp(croppedImagePath)
+                .extract({
                     left: coords.x,
                     top: coords.y,
                     width: coords.width,
                     height: coords.height,
-                  })
-                  .toFile(sectionImagePath);
+                })
+                .toFile(sectionImagePath);
 
-                const { data: { text } } = await Tesseract.recognize(sectionImagePath, "eng", {
-                   logger: (m) => console.log(`[${baseName}-${key}]`, m),
-                  });
-
-
-                switch (key) {
+            const { data: { text } } = await Tesseract.recognize(sectionImagePath, "eng", {
+                logger: (m) => console.log(`[${baseName}-${key}]`, m),
+            });
+             switch (key) {
                    case 'revision':
                         jsonData[key] = correctRevisionOCR(text.trim());
                         break;
@@ -196,30 +187,31 @@ async function processPDF(pdfPath, tempDir, outputDir, targetDPI) {
                         break;
                 }
 
-                console.log(`[${baseName}] Teks ${key} berhasil diekstrak.`);
-                console.log(`[${baseName}] Hasil OCR ${key}: ${jsonData[key]}`);
-            }
-           
-            console.log(`[${baseName}] Data berhasil diproses.`);
-          return jsonData;
-        } catch (err) {
-            console.error(`[${pdfPath}] Terjadi kesalahan:`, err);
-            throw err
+
+            console.log(`[${baseName}] Teks ${key} berhasil diekstrak.`);
+            console.log(`[${baseName}] Hasil OCR ${key}: ${jsonData[key]}`);
         }
+
+
+        console.log(`[${baseName}] Data berhasil diproses.`);
+        return jsonData;
+    } catch (err) {
+        console.error(`[${pdfPath}] Terjadi kesalahan:`, err);
+        throw err;
+    }
 }
 
-async function generateDataFiles(allResults, outputDir){
+async function generateDataFiles(allResults, outputDir) {
     // Generate CSV data from template
-     const generateCSVData = (results) => {
-         const transmittalNumber = generateTransmittalNumber();
-          const projectName = "[]";
-          const now = new Date();
+    const generateCSVData = (results) => {
+        const transmittalNumber = generateTransmittalNumber();
+        const projectName = "[]";
+        const now = new Date();
         const dateDay = now.getDate();
-         const dateMonth = now.getMonth() + 1;
+        const dateMonth = now.getMonth() + 1;
         const dateYear = now.getFullYear();
 
-
-           let csvContent = `TRANSMITTAL,,,,,,,,,,
+        let csvContent = `TRANSMITTAL,,,,,,,,,,
 ,,,,,,,,,,
 No. Transmittal: ${transmittalNumber},,,,,,,,,,
 PROJECT: ,,,,,,,,,  Received :,[document name]
@@ -230,17 +222,16 @@ PACKAGE :,,,,,,,,,Year,${dateYear}
 No.,File Name,Drawing Name,Drawing Code,Format,Revision
 `;
 
-
-            const drawingDataRows = results.map((item, index) => {
-                 const drawingNumber = item.filename;
-                 const drawingName = item.title || "";
-                const drawingCode = item.drawingCode || "";
-                  const drawingRevision = item.revision;
-                return `${index + 1},${drawingNumber},${drawingName},${drawingCode},A2,${drawingRevision}`;
-             });
+        const drawingDataRows = results.map((item, index) => {
+            const drawingNumber = item.filename; // Menggunakan nama file asli
+            const drawingName = item.title || "";
+            const drawingCode = item.drawingCode || "";
+            const drawingRevision = item.revision;
+            return `${index + 1},${drawingNumber},${drawingName},${drawingCode},A2,${drawingRevision}`;
+        });
 
         csvContent += drawingDataRows.join('\n')
-     csvContent += `
+        csvContent += `
 ,,,,,,,,,,
 ,,,,,,,,,,
 ,,,,,,,,,,
@@ -294,19 +285,16 @@ Legends,,,,,,,,,,Reason for Issue
 ,D    ,:   Disk,,,,,T, : Tender,,
 Issued by: .....................,,,,,,,,,,`
 
-            return csvContent;
-        }
+        return csvContent;
+    }
 
-        // Simpan semua hasil ke file CSV
-          const csv = generateCSVData(allResults);
-        fs.writeFileSync(path.join(outputDir, "allData.csv"), csv, { encoding: 'utf-8' });
-        console.log("File CSV keseluruhan berhasil dibuat.");
-
-        // Simpan semua hasil ke file JSON
-    fs.writeFileSync(path.join(outputDir, "allData.json"), JSON.stringify(allResults, null, 4));
-    console.log("File JSON keseluruhan berhasil dibuat.");
+    // Simpan semua hasil ke file CSV
+    const csv = generateCSVData(allResults);
+    fs.writeFileSync(path.join(outputDir, "allData.csv"), csv, { encoding: 'utf-8' });
+    console.log("File CSV keseluruhan berhasil dibuat.");
 }
+
 module.exports = {
     processPDF,
-    generateDataFiles
-}
+    generateDataFiles,
+};

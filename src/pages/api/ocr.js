@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        
+
         if (!fs.existsSync(outputDir)) {
             await fs.promises.mkdir(outputDir, { recursive: true });
         }
@@ -39,21 +39,23 @@ export default async function handler(req, res) {
             const allResults = [];
 
             for (const file of pdfFiles) {
-                const pdfPath = file.filepath;
-                const result = await processPDF(pdfPath, tempDir, outputDir, targetDPI);
-                allResults.push(result);
+                 const pdfPath = file.filepath;
+                const originalFilename = file.originalFilename; // Ambil nama file asli
+                 const result = await processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilename);
+                 allResults.push(result);
+
 
                 //clean up temporary file
                 await fs.promises.unlink(pdfPath);
             }
 
-            const csvFileName = 'allData.csv'; // Nama file CSV tetap
+            const csvFileName = 'allData.csv';
             await generateDataFiles(allResults, outputDir);
-            
+
             res.status(200).json({
                 message: 'PDFs processed successfully',
                 data: allResults,
-                csvFileName: csvFileName, // Send CSV filename
+                csvFileName: csvFileName,
             });
         });
     } catch (error) {
