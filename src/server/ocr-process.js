@@ -16,6 +16,7 @@ async function pdfToPng(pdfPath, outputDir) {
             }
 
             console.log(`PDF berhasil dikonversi ke PNG: ${resp.data}`);
+            
             resolve(resp.data);
         });
     });
@@ -187,7 +188,7 @@ async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilena
                         break;
                 }
 
-
+                
             console.log(`[${baseName}] Teks ${key} berhasil diekstrak.`);
             console.log(`[${baseName}] Hasil OCR ${key}: ${jsonData[key]}`);
         }

@@ -6,37 +6,35 @@ export default function HomePage() {
     const [csvFileName, setCsvFileName] = useState(null); // State untuk nama file CSV
 
     const handleFileSubmit = (event) => {
-        event.preventDefault();
-        // setUploadStatus('Uploading...');
-        setResults(null);
-        setCsvFileName(null);
-
-        const formData = new FormData(event.target);
-
-        const fetchPromise = fetch('/api/ocr', {
-            method: 'POST',
-            body: formData,
-        });
-
-        setUploadStatus('Scanning...');
-
-        fetchPromise
-            .then(async (response) => {
-                if (response.ok) {
-                    const data = await response.json();
-                    setResults(data.data);
-                    setCsvFileName(data.csvFileName);
-                    setUploadStatus('Upload successful.');
-                } else {
-                    const errorData = await response.json();
-                    setUploadStatus(`Upload failed: ${errorData.message}`);
-                }
-            })
-            .catch((error) => {
-                console.error('Error during the upload:', error);
-                setUploadStatus('Upload failed: An unexpected error occurred.');
-            });
-    };
+      event.preventDefault();
+      setResults(null);
+      setCsvFileName(null);
+      setUploadStatus('Uploading...'); // Message for uploading
+  
+      const formData = new FormData(event.target);
+  
+      // Start the upload process
+      fetch('/api/ocr', {
+          method: 'POST',
+          body: formData,
+      })
+      .then(async (response) => {
+          if (response.ok) {
+              setUploadStatus('Scanning...'); // Message for scanning
+              const data = await response.json();
+              setResults(data.data);
+              setCsvFileName(data.csvFileName);
+              setUploadStatus('Upload and scanning successful.'); // Completion message
+          } else {
+              const errorData = await response.json();
+              setUploadStatus(`Upload failed: ${errorData.message}`);
+          }
+      })
+      .catch((error) => {
+          console.error('Error during the upload:', error);
+          setUploadStatus('Upload failed: An unexpected error occurred.');
+      });
+  };
 
     const handleDownloadCSV = () => {
         const link = document.createElement('a');
