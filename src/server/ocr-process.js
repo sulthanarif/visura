@@ -206,7 +206,7 @@ async function generateDataFiles(allResults, outputDir) {
     // Generate CSV data from template
     const generateCSVData = (results) => {
         const transmittalNumber = generateTransmittalNumber();
-        const projectName = "[]";
+        const projectName = "[project Name]";
         const now = new Date();
         const dateDay = now.getDate();
         const dateMonth = now.getMonth() + 1;
