@@ -2,12 +2,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 
-export default function HomePage() {
+
+export default function UploadPage() {
     const [uploadStatus, setUploadStatus] = useState('');
     const [results, setResults] = useState(null);
     const [csvFileName, setCsvFileName] = useState(null);
     const [cleanupStatus, setCleanupStatus] = useState('');
      const [isUploading, setIsUploading] = useState(false);
+     const [isScanning, setIsScaning] = useState(false)
       const router = useRouter(); // Inisialisasi router
 
     const handleFileSubmit = async (event) => {
@@ -15,7 +17,7 @@ export default function HomePage() {
         setResults(null);
         setCsvFileName(null);
         setCleanupStatus('');
-        setUploadStatus('Preparing Upload...');
+        setUploadStatus('Uploading to Server...');
          setIsUploading(true);
 
         const formData = new FormData(event.target);
@@ -30,6 +32,7 @@ export default function HomePage() {
            }
 
             setUploadStatus('Scanning...');
+            setIsScaning(true)
             const data = await response.json();
             setResults(data.data);
             setCsvFileName(data.csvFileName);
