@@ -19,92 +19,110 @@ function UploadBox() {
     const [cleanupStatus, setCleanupStatus] = useState('');
     const [isUploading, setIsUploading] = useState(false);
     const [isScanning, setIsScanning] = useState(false);
-   const [uploadQueueFiles, setUploadQueueFiles] = useState([]);
+     const [uploadQueueFiles, setUploadQueueFiles] = useState([]);
     useEffect(() => {
+        console.log('UploadBox useEffect: resetting state');
         resetState();
     }, []);
 
     const handleUploadAreaClick = () => {
+        console.log('handleUploadAreaClick: input click');
         fileInputRef.current.click();
     };
 
     const handleFileChange = (e) => {
+        console.log('handleFileChange: files changed');
         const newFiles = Array.from(e.target.files);
         handleAddFile(newFiles);
+        console.log('handleFileChange: Files added', files);
         setErrorMessage('');
     };
 
     const handleScanButton = async () => {
-         if (files.length === 0) {
+        console.log('handleScanButton: scan button clicked');
+        if (files.length === 0) {
             setErrorMessage('Tidak ada file yang diunggah');
-             return;
+            console.log('handleScanButton: no files selected');
+            return;
         }
          setShowQueue(true);
+         console.log('handleScanButton: setShowQueue true');
           setUploadQueueFiles(files);
+          console.log('handleScanButton: setUploadQueueFiles', files);
         try {
+             console.log('handleScanButton: try block start');
                 setResults(null);
                 setCsvFileName(null);
                 setCleanupStatus('');
                 setUploadStatus('Uploading to Server...');
                  setIsUploading(true);
                 const formData = new FormData();
-                 files.forEach(file => {
+                files.forEach(file => {
                     formData.append('pdfFile', file);
                 });
+                console.log('handleScanButton: formData prepared');
                 const response = await fetch('/api/ocr', {
                     method: 'POST',
                     body: formData,
                 });
                 if (!response.ok) {
+                    console.error('handleScanButton: fetch error');
                     const errorData = await response.json();
                     throw new Error(`Upload failed: ${errorData.message}`);
                 }
-                 setUploadStatus('Scanning...');
+               console.log('handleScanButton: fetch success');
+                setUploadStatus('Scanning...');
                 setIsScanning(true);
                 const data = await response.json();
                 setResults(data.data);
                 setCsvFileName(data.csvFileName);
+                  console.log('handleScanButton: fetch data received');
                 setUploadStatus('Upload and scanning successful.');
+                console.log('handleScanButton: Upload and scanning successfull');
                 setShowPreview(true);
-          }
-        catch (error) {
-               console.error('Error during upload or processing:', error);
+               console.log('handleScanButton: setShowPreview true');
+        }
+       catch(error){
+               console.error('handleScanButton: Error during upload or processing:', error);
                  setUploadStatus(
                   `Upload failed: ${error.message || 'An unexpected error occurred'}`
-                 );
-          } finally {
-              setIsUploading(false);
+                );
+       }
+        finally{
+               console.log('handleScanButton: finally block');
+            setIsUploading(false);
         }
     };
-
      const handleDownloadCSV = async () => {
-            const link = document.createElement('a');
-            link.href = `/output/${csvFileName}`;
-            link.download = csvFileName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            // Panggil backend untuk membersihkan direktori
-            try{
-                setCleanupStatus('Cleaning up files, please wait...');
-               const response = await fetch('/api/cleanup', { method: 'POST' });
-
-                  if (!response.ok) {
-                        throw new Error('Failed to clean up files');
-                  }
-
-                  setCleanupStatus('Cleanup completed, refreshing...');
-                  router.reload(); // Refresh halaman
-             }
-              catch(error){
-                  console.error("Error during cleanup: ", error);
-                  setCleanupStatus(`Failed to clean up files ${error.message || ''}`);
+        console.log('handleDownloadCSV : called');
+          const link = document.createElement('a');
+         link.href = `/output/${csvFileName}`;
+         link.download = csvFileName;
+         document.body.appendChild(link);
+         link.click();
+         document.body.removeChild(link);
+         // Panggil backend untuk membersihkan direktori
+          try{
+            setCleanupStatus('Cleaning up files, please wait...');
+             console.log('handleDownloadCSV : cleaning up files start');
+            const response = await fetch('/api/cleanup', { method: 'POST' });
+            if (!response.ok) {
+                    console.error('handleDownloadCSV : cleanup fetch error');
+                    throw new Error('Failed to clean up files');
               }
-        };
-     const handleHideQueue = () => {
-         setShowQueue(false);
-     };
+                console.log('handleDownloadCSV : cleanup success');
+                setCleanupStatus('Cleanup completed, refreshing...');
+                router.reload(); // Refresh halaman
+        }
+         catch(error){
+             console.error("handleDownloadCSV : Error during cleanup: ", error);
+             setCleanupStatus(`Failed to clean up files ${error.message || ''}`);
+         }
+    };
+    const handleHideQueue = () => {
+        console.log('handleHideQueue: hiding queue');
+       setShowQueue(false);
+    };
     return (
         <div className="upload-box">
             <div className="title-container" id="titleContainer">
@@ -175,29 +193,29 @@ function UploadBox() {
                             </div>
                         ))}
                     {csvFileName && (
-                        <div className="button-container">
-                          <Button onClick={handleDownloadCSV}>Download CSV</Button>
-                       </div>
+                         <div className="button-container">
+                             <Button onClick={handleDownloadCSV}>Download CSV</Button>
+                        </div>
                     )}
                 </div>
             )}
-            <div className={`upload-queue ${showQueue ? 'show' : ''}`} id="uploadQueue">
-                <h3>
-                    <Icon name="cloud-arrow-up" />
-                    Upload Queue
-                </h3>
-                <div className="file-list-container" id="uploadQueueFileListContainer">
-                    <ul className="file-list" id="uploadQueueFileList">
-                         {uploadQueueFiles.map((file, index) => (
-                            <li key={file.name} className="show">
-                               <span>{file.name}</span>
-                              <span className="status">Uploading...</span>
-                            </li>
-                          ))}
-                    </ul>
-                </div>
-                <Button onClick={handleHideQueue}>Close Queue</Button>
-            </div>
+             <div className={`upload-queue ${showQueue ? 'show' : ''}`} id="uploadQueue">
+                  <h3>
+                       <Icon name="cloud-arrow-up" />
+                       Upload Queue
+                  </h3>
+                   <div className="file-list-container" id="uploadQueueFileListContainer">
+                        <ul className="file-list" id="uploadQueueFileList">
+                             {uploadQueueFiles.map((file, index) => (
+                                <li key={file.name} className="show">
+                                    <span>{file.name}</span>
+                                    <span className="status">Uploading...</span>
+                                </li>
+                             ))}
+                        </ul>
+                      </div>
+                     <Button onClick={handleHideQueue}>Close Queue</Button>
+               </div>
         </div>
     );
 }

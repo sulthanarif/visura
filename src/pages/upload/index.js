@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 
 
-export default function HomePage() {
+export default function UploadPage() {
     const [uploadStatus, setUploadStatus] = useState('');
     const [results, setResults] = useState(null);
     const [csvFileName, setCsvFileName] = useState(null);
