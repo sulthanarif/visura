@@ -1,5 +1,5 @@
 // src/components/molecules/FileList.js
-import React, { useEffect } from 'react';
+import React from 'react';
 import FileListItem from '../atoms/FileListItem';
 
 function FileList({ files, onRemoveFile }) {
@@ -10,7 +10,7 @@ function FileList({ files, onRemoveFile }) {
                 <FileListItem
                     key={file.name}
                     file={file}
-                     index={index}
+                    index={index}
                     onRemove={() => onRemoveFile(file)}
                 />
             ))}
