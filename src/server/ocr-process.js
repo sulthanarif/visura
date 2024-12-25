@@ -1,3 +1,5 @@
+// src/server/ocr-process.js
+
 const Tesseract = require("tesseract.js");
 const sharp = require("sharp");
 const fs = require("fs");
