@@ -1,5 +1,7 @@
 // src/pages/api/ocr.js
 import { processPDF, generateDataFiles } from "../../server/ocr-process";
+import { tempCutDir, tempHiDpiDir, tempRotateDir, tempCutResultDir, tempDir, outputDir } from "../../server/ocr-process";
+
 import fs from 'fs';
 import path from "path";
 import formidable from "formidable";
@@ -10,8 +12,8 @@ export const config = {
     },
 };
 
-const tempDir = path.join(process.cwd(), "src/temp");
-const outputDir = path.join(process.cwd(), "public/output");
+
+
 const targetDPI = 800;
 
 
@@ -21,12 +23,12 @@ export default async function handler(req, res) {
     }
 
     try {
-        if (!fs.existsSync(outputDir)) {
-            await fs.promises.mkdir(outputDir, { recursive: true });
-        }
+        const directories = [outputDir, tempDir, tempCutDir, tempHiDpiDir, tempRotateDir, tempCutResultDir];
 
-        if (!fs.existsSync(tempDir)) {
-            await fs.promises.mkdir(tempDir, { recursive: true });
+        for (const dir of directories) {
+            if (!fs.existsSync(dir)) {
+            await fs.promises.mkdir(dir, { recursive: true });
+            }
         }
 
         const form = formidable({ multiples: true, uploadDir: tempDir });

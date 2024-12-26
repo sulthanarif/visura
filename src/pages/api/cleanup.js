@@ -8,7 +8,7 @@ export const config = {
     },
 };
 
-const tempDir = path.join(process.cwd(), "src/temp");
+const tempDir = path.join(process.cwd(), "src/temp/ocr");
 const outputDir = path.join(process.cwd(), "public/output");
 
 // Fungsi untuk menghapus semua file di direktori
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
 
     try {
          await clearDirectory(outputDir);
-         await clearDirectory(path.join(tempDir, 'cut'));
+         await clearDirectory(path.join(tempDir, 'cut','rotate','hi-dpi'));
 
         res.status(200).json({ message: 'Cleanup successful' });
     } catch (error) {

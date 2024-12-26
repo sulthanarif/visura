@@ -263,7 +263,7 @@ body {
 
 .preview-transmittal.show {
     left: 0;
-    top: -90px;
+    top: -78px;
     transform: translateX(-105%);
     /* Move to the left of the upload box */
     opacity: 1;

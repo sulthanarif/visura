@@ -1,8 +1,18 @@
+// src/server/ocr-process.js
+
 const Tesseract = require("tesseract.js");
 const sharp = require("sharp");
 const fs = require("fs");
 const path = require("path");
 const pdf2png = require("pdf2png");
+
+
+const tempCutDir = path.join(process.cwd(), "src/temp/ocr/cut/part");
+const tempHiDpiDir = path.join(process.cwd(), "src/temp/ocr/hi-dpi");
+const tempRotateDir = path.join(process.cwd(), "src/temp/ocr/rotate");
+const tempCutResultDir = path.join(process.cwd(), "src/temp/ocr/cut");
+const tempDir = path.join(process.cwd(), "src/temp/ocr");
+const outputDir = path.join(process.cwd(), "public/output");
 
 // Fungsi untuk convert PDF ke PNG
 async function pdfToPng(pdfPath, outputDir) {
@@ -122,24 +132,21 @@ const cropCoordinates = {
 
 async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilename) {
     try {
-        // 1. Convert PDF ke PNG
+       // 1. Convert PDF ke PNG
         const pngPath = await pdfToPng(pdfPath, tempDir);
 
         const baseName = path.parse(pngPath).name;
-         const cutDir = path.join(tempDir, "cut");
-        if (!fs.existsSync(cutDir)) {
-             await fs.promises.mkdir(cutDir, { recursive: true });
-        }
-        const highDpiImagePath = path.join(cutDir, `${baseName}-high-dpi.png`);
-        const rotatedImagePath = path.join(cutDir, `${baseName}-rotated.png`);
-        const croppedImagePath = path.join(cutDir, `${baseName}-cropped.png`);
+        const highDpiImagePath = path.join(tempHiDpiDir, `${baseName}-high-dpi.png`);
+        const rotatedImagePath = path.join(tempRotateDir, `${baseName}-rotated.png`);
+        const croppedImagePath = path.join(tempCutResultDir, `${baseName}-cropped.png`);
+
 
         const jsonData = {
-           filename: originalFilename, // Menggunakan nama file asli
+            filename: originalFilename,
             title: null,
             revision: null,
             drawingCode: null,
-             date: null,
+            date: null,
         };
 
         // 2. Tingkatkan DPI
@@ -152,8 +159,8 @@ async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilena
         await cropBottomRight(rotatedImagePath, croppedImagePath);
 
         // 5. Crop dan OCR untuk setiap bagian
-         for (const [key, coords] of Object.entries(cropCoordinates)) {
-            const sectionImagePath = path.join(cutDir, `${baseName}-${key}.png`);
+        for (const [key, coords] of Object.entries(cropCoordinates)) {
+            const sectionImagePath = path.join(tempCutDir, `${baseName}-${key}.png`);
             await sharp(croppedImagePath)
                 .extract({
                     left: coords.x,
@@ -298,4 +305,10 @@ Issued by: .....................,,,,,,,,,,`
 module.exports = {
     processPDF,
     generateDataFiles,
+    tempCutDir,
+    tempHiDpiDir,
+    tempRotateDir,
+    tempCutResultDir,
+    tempDir,
+    outputDir
 };
