@@ -1,5 +1,3 @@
-// src/server/ocr-process.js
-
 const Tesseract = require("tesseract.js");
 const sharp = require("sharp");
 const fs = require("fs");
@@ -17,21 +15,27 @@ const outputDir = path.join(process.cwd(), "public/output");
 // Fungsi untuk convert PDF ke PNG
 async function pdfToPng(pdfPath, outputDir) {
     return new Promise((resolve, reject) => {
-        // Menambahkan opsi quality untuk meningkatkan kualitas konversi
-        pdf2png.convert(pdfPath, { returnFilePath: true, quality: 400 }, function (resp) {
-            if (!resp.success) {
-                console.error("Error converting PDF to PNG:", resp.error);
-                reject(resp.error);
-                return;
-            }
-
-            console.log(`PDF berhasil dikonversi ke PNG: ${resp.data}`);
-            
-            resolve(resp.data);
+      pdf2png.convert(pdfPath, { returnFilePath: true, quality: 400 }, (resp) => {
+        if (!resp.success) {
+          console.error("Error converting PDF to PNG:", resp.error);
+          return reject(resp.error);
+        }
+  
+        const defaultPngPath = resp.data; // temporary file
+        const fileName = path.basename(defaultPngPath);
+        const finalPngPath = path.join(outputDir, fileName);
+  
+        fs.rename(defaultPngPath, finalPngPath, (err) => {
+          if (err) {
+            console.error("Error moving PNG:", err);
+            return reject(err);
+          }
+          console.log(`PNG saved to: ${finalPngPath}`);
+          resolve(finalPngPath);
         });
+      });
     });
-}
-
+  }
 // Fungsi untuk meningkatkan DPI
 async function increaseDPI(inputPath, outputPath, dpi) {
     const image = sharp(inputPath);
@@ -132,7 +136,7 @@ const cropCoordinates = {
 
 async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilename) {
     try {
-       // 1. Convert PDF ke PNG
+        // 1. Convert PDF ke PNG
         const pngPath = await pdfToPng(pdfPath, tempDir);
 
         const baseName = path.parse(pngPath).name;
@@ -140,9 +144,9 @@ async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilena
         const rotatedImagePath = path.join(tempRotateDir, `${baseName}-rotated.png`);
         const croppedImagePath = path.join(tempCutResultDir, `${baseName}-cropped.png`);
 
-
+        // Simpan filename asli
         const jsonData = {
-            filename: originalFilename,
+            filename: originalFilename, // <---- Simpan nama file di sini
             title: null,
             revision: null,
             drawingCode: null,
@@ -173,33 +177,30 @@ async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilena
             const { data: { text } } = await Tesseract.recognize(sectionImagePath, "eng", {
                 logger: (m) => console.log(`[${baseName}-${key}]`, m),
             });
-             switch (key) {
-                   case 'revision':
-                        jsonData[key] = correctRevisionOCR(text.trim());
-                        break;
+            switch (key) {
+                case 'revision':
+                    jsonData[key] = correctRevisionOCR(text.trim());
+                    break;
 
-                    case 'date':
-                        // Validasi dan format tanggal jika ada
-                        const formattedDate = validateAndFormatDate(text.trim());
-                        
-                         // Jika revisi ada dan tanggal valid, gabungkan revisi dan tanggal
-                         if (jsonData['revision'] && formattedDate) {
-                           jsonData['revision'] = `${jsonData['revision']}-${formattedDate}`;
-                           jsonData['date'] = formattedDate;
-                           }
-                         break;
+                case 'date':
+                    // Validasi dan format tanggal jika ada
+                    const formattedDate = validateAndFormatDate(text.trim());
 
+                    // Jika revisi ada dan tanggal valid, gabungkan revisi dan tanggal
+                    if (jsonData['revision'] && formattedDate) {
+                        jsonData['revision'] = `${jsonData['revision']}-${formattedDate}`;
+                        jsonData['date'] = formattedDate;
+                    }
+                    break;
 
-                    default:
-                        jsonData[key] = cleanText(text.trim()); // Simpan hasil tanpa koreksi untuk bagian lain
-                        break;
-                }
+                default:
+                    jsonData[key] = cleanText(text.trim()); // Simpan hasil tanpa koreksi untuk bagian lain
+                    break;
+            }
 
-                
             console.log(`[${baseName}] Teks ${key} berhasil diekstrak.`);
             console.log(`[${baseName}] Hasil OCR ${key}: ${jsonData[key]}`);
         }
-
 
         console.log(`[${baseName}] Data berhasil diproses.`);
         return jsonData;
@@ -209,97 +210,93 @@ async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilena
     }
 }
 
-async function generateDataFiles(allResults, outputDir) {
-    // Generate CSV data from template
-    const generateCSVData = (results) => {
-        const transmittalNumber = generateTransmittalNumber();
-        const projectName = "[project Name]";
-        const now = new Date();
-        const dateDay = now.getDate();
-        const dateMonth = now.getMonth() + 1;
-        const dateYear = now.getFullYear();
 
-        let csvContent = `TRANSMITTAL,,,,,,,,,,
-,,,,,,,,,,
-No. Transmittal: ${transmittalNumber},,,,,,,,,,
-PROJECT: ,,,,,,,,,  Received :,[document name]
-${projectName},,,,,,,,,Date,${dateDay}
-,,,,,,,,,Month,${dateMonth}
-PACKAGE :,,,,,,,,,Year,${dateYear}
-,,,,,,,,,,
-No.,File Name,Drawing Name,Drawing Code,Format,Revision
-`;
+async function generateDataFiles(transmittalData, outputDir) {
+    const transmittalNumber = generateTransmittalNumber();
+    const projectName = "[project Name]";
+    const now = new Date();
+    const dateDay = now.getDate();
+    const dateMonth = now.getMonth() + 1;
+    const dateYear = now.getFullYear();
 
-        const drawingDataRows = results.map((item, index) => {
-            const drawingNumber = item.filename; // Menggunakan nama file asli
-            const drawingName = item.title || "";
-            const drawingCode = item.drawingCode || "";
-            const drawingRevision = item.revision;
-            return `${index + 1},${drawingNumber},${drawingName},${drawingCode},A2,${drawingRevision}`;
-        });
+    let csvContent = `TRANSMITTAL,,,,,,,,,,
+    ,,,,,,,,,,
+    No. Transmittal: ${transmittalNumber},,,,,,,,,,
+    PROJECT: ,,,,,,,,,  Received :,[document name]
+    ${projectName},,,,,,,,,Date,${dateDay}
+    ,,,,,,,,,Month,${dateMonth}
+    PACKAGE :,,,,,,,,,Year,${dateYear}
+    ,,,,,,,,,,
+    No.,File Name,Drawing Name,Drawing Code,Format,Revision
+    `;
 
-        csvContent += drawingDataRows.join('\n')
-        csvContent += `
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-Distributed to :,,,,,,,,,,Copies to :
-,,,,,,,,,,
-1,,,,,,,,,,
-2,,,,,,,,,,
-3,,,,,,,,,,
-,,,,,,,,,,
-Legends,,,,,,,,,,Reason for Issue
-,A   ,:   Approval,,,,,I, : Information,,
-,C   ,:   Copy,,,,,R, : Revision,,
-,CO ,:   Construction,,,,,Ct, : Contract,,
-,D    ,:   Disk,,,,,T, : Tender,,
-Issued by: .....................,,,,,,,,,,`
+   const drawingDataRows = transmittalData.map((item, index) => {
+        const drawingNumber = item.filename;
+        const drawingName = item.drawing || "";
+        const drawingCode = item.drawingCode || "";
+        const drawingRevision = item.revision;
+        return `${index + 1},${drawingNumber},${drawingName},${drawingCode},A2,${drawingRevision}`;
+    });
 
-        return csvContent;
-    }
-
-    // Simpan semua hasil ke file CSV
-    const csv = generateCSVData(allResults);
-    fs.writeFileSync(path.join(outputDir, "allData.csv"), csv, { encoding: 'utf-8' });
-    console.log("File CSV keseluruhan berhasil dibuat.");
+    csvContent += drawingDataRows.join('\n')
+    csvContent += `
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    ,,,,,,,,,,
+    Distributed to :,,,,,,,,,,Copies to :
+    ,,,,,,,,,,
+    1,,,,,,,,,,
+    2,,,,,,,,,,
+    3,,,,,,,,,,
+    ,,,,,,,,,,
+    Legends,,,,,,,,,,Reason for Issue
+    ,A   ,:   Approval,,,,,I, : Information,,
+    ,C   ,:   Copy,,,,,R, : Revision,,
+    ,CO ,:   Construction,,,,,Ct, : Contract,,
+    ,D    ,:   Disk,,,,,T, : Tender,,
+    Issued by: .....................,,,,,,,,,,`
+    
+    const csvFileName = `allData.csv`;
+    fs.writeFileSync(path.join(outputDir, csvFileName), csvContent, { encoding: "utf-8" });
+    console.log("File CSV Transmittal berhasil dibuat.");
+    return csvFileName;
 }
 
 module.exports = {

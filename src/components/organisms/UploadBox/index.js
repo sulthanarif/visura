@@ -9,7 +9,6 @@ import FileListDisplay from "./FileListDisplay";
 import UploadQueue from "./UploadQueue";
 import PreviewTransmittal from "./PreviewTransmittal";
 
-
 function UploadBox() {
     const router = useRouter();
     const fileInputRef = useRef(null);
@@ -39,7 +38,7 @@ function UploadBox() {
     const fileListContainerRef = useRef(null);
     const uploadQueueRef = useRef(null);
     const uploadQueueFileListContainerRef = useRef(null);
-     const [activeQueueItem, setActiveQueueItem] = useState(null);
+    const [activeQueueItem, setActiveQueueItem] = useState(null);
     const initialPreviewData = useRef({});
 
     useEffect(() => {
@@ -48,12 +47,12 @@ function UploadBox() {
 
     useEffect(() => {
         if (files.length > 0) {
-            if(fileListContainerRef.current){
+            if (fileListContainerRef.current) {
                 console.log("useEffect: adding show class");
                 fileListContainerRef.current.classList.add("show");
             }
         } else {
-            if(fileListContainerRef.current){
+            if (fileListContainerRef.current) {
                 console.log("useEffect: removing show class");
                 fileListContainerRef.current.classList.remove("show");
             }
@@ -61,23 +60,22 @@ function UploadBox() {
     }, [files]);
 
     useEffect(() => {
-        if(showQueue){
-            if(uploadQueueRef.current){
+        if (showQueue) {
+            if (uploadQueueRef.current) {
                 uploadQueueRef.current.classList.add("show");
             }
-            if(uploadQueueFileListContainerRef.current){
+            if (uploadQueueFileListContainerRef.current) {
                 uploadQueueFileListContainerRef.current.classList.add("show");
             }
         } else {
-            if(uploadQueueRef.current){
+            if (uploadQueueRef.current) {
                 uploadQueueRef.current.classList.remove("show");
             }
-            if(uploadQueueFileListContainerRef.current){
+            if (uploadQueueFileListContainerRef.current) {
                 uploadQueueFileListContainerRef.current.classList.remove("show");
             }
         }
     }, [showQueue]);
-
 
     const handleFileChange = (e) => {
         console.log("handleFileChange: files changed");
@@ -85,7 +83,7 @@ function UploadBox() {
         handleAddFile(newFiles);
         setErrorMessage("");
     };
-    const handleScanButton = async () => {
+  const handleScanButton = async () => {
         if (files.length === 0 && uploadQueueFiles.length === 0) {
             setErrorMessage("Tidak ada file yang diunggah");
             return;
@@ -95,76 +93,76 @@ function UploadBox() {
         setUploadQueueFiles((prev) => [...prev, ...newQueueItems]);
         const filesTemp = [...files];
         setFiles([]);
-
+    
         try {
-            setUploadStatus("Uploading to Server...");
-            setIsUploading(true);
-
-            setUploadQueueFiles((prev) =>
-                prev.map((item) =>
-                    filesTemp.includes(item.file)
-                        ? { ...item, status: "Uploading..." }
-                        : item
-                )
+              setUploadStatus("Uploading to Server...");
+             setIsUploading(true);
+    
+             setUploadQueueFiles((prev) =>
+               prev.map((item) =>
+                filesTemp.includes(item.file)
+                    ? { ...item, status: "Uploading..." }
+                   : item
+               )
             );
             const formData = new FormData();
-            filesTemp.forEach((file) => {
+           filesTemp.forEach((file) => {
                 formData.append("pdfFile", file);
-            });
-            const response = await fetch("/api/ocr", {
+           });
+             const response = await fetch("/api/ocr", {
                 method: "POST",
                 body: formData,
             });
-            if (!response.ok) {
+           if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(`Upload failed: ${errorData.message}`);
             }
-
             setUploadQueueFiles((prev) =>
-                prev.map((item) =>
-                    filesTemp.includes(item.file)
-                        ? { ...item, status: "Scanning..." }
-                        : item
-                )
+               prev.map((item) =>
+                  filesTemp.includes(item.file)
+                       ? { ...item, status: "Scanning..." }
+                       : item
+               )
             );
             setUploadStatus("Scanning...");
             setIsScanning(true);
             const data = await response.json();
-            setResults(prev => {
-                const newResult = [...prev];
-                data.data.forEach((item, index) => {
-                    newResult.push({...item, id: prev.length + index})
-                    initialPreviewData.current[prev.length + index] = {
+             setResults(prev => {
+               const newResult = [...prev];
+                 data.data.forEach((item, index) => {
+                    newResult.push({ ...item, id: prev.length + index });
+                     initialPreviewData.current[prev.length + index] = {
                         project: projectName,
                         drawing: item.title,
                         revision: item.revision,
                         drawingCode: item.drawingCode,
                         date: item.date,
+                           filename: item.filename, // <-- pastikan file name disini
                     };
-                });
-                return newResult
-            });
-            setPreviewData(initialPreviewData.current);
-            setCsvFileName(data.csvFileName);
+                 });
+               return newResult
+             });
+            setPreviewData(prev => ({...prev, ...initialPreviewData.current}));
             setUploadStatus("Upload and scanning successful.");
             setShowPreview(true);
             setUploadQueueFiles((prev) =>
-                prev.map((item) =>
+               prev.map((item) =>
                     filesTemp.includes(item.file) ? { ...item, status: "Done" } : item
-                )
-            );
-            setActiveQueueItem(0);
+               )
+           );
+            if(results.length === 0)
+               setActiveQueueItem(0);
         } catch (error) {
-            console.error("Error during upload or processing:", error);
+             console.error("Error during upload or processing:", error);
             setUploadStatus(
-                `Upload failed: ${error.message || "An unexpected error occurred"}`
-            );
-            setUploadQueueFiles((prev) =>
-                prev.map((item) =>
-                    filesTemp.includes(item.file) ? { ...item, status: "Failed" } : item
-                )
-            );
-        } finally {
+                  `Upload failed: ${error.message || "An unexpected error occurred"}`
+              );
+             setUploadQueueFiles((prev) =>
+               prev.map((item) =>
+                     filesTemp.includes(item.file) ? { ...item, status: "Failed" } : item
+              )
+           );
+         } finally {
             setIsUploading(false);
         }
     };
@@ -186,28 +184,41 @@ function UploadBox() {
             return updatedPreview;
         });
     };
-    const handleDownloadCSV = async () => {
-        const link = document.createElement("a");
-        link.href = `/output/${csvFileName}`;
-        link.download = csvFileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        try{
-            setCleanupStatus("Cleaning up files, please wait...");
-            const response = await fetch("/api/cleanup", { method: "POST" });
+    const handleGenerateTransmittal = async () => {
+        try {
+            const transmittalData = Object.values(previewData);
+            const response = await fetch("/api/generate-transmittal", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ transmittalData }),
+            });
+
             if (!response.ok) {
+                throw new Error("Failed to generate transmittal");
+            }
+            const data = await response.json();
+            setCsvFileName(data.csvFileName);
+            const link = document.createElement("a");
+            link.href = `/output/${data.csvFileName}`;
+            link.download = data.csvFileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setCleanupStatus("Cleaning up files, please wait...");
+            const cleanupResponse = await fetch("/api/cleanup", { method: "POST" });
+            if (!cleanupResponse.ok) {
                 throw new Error("Failed to clean up files");
             }
             setCleanupStatus("Cleanup completed, refreshing...");
             router.reload(); // Refresh halaman
         }
-        catch(error){
-            console.error("Error during cleanup: ", error);
-            setCleanupStatus(`Failed to clean up files ${error.message || ""}`);
+        catch (error) {
+            console.error("Error during generate transmittal: ", error);
+            setCleanupStatus(`Failed to generate transmittal ${error.message || ""}`);
         }
     };
-    
     const handleHideQueue = () => {
         setShowQueue(false);
     };
@@ -235,49 +246,49 @@ function UploadBox() {
         updatePageInfo();
     }, [currentPage, results]);
 
-
     const handleQueueItemClick = (index, file) => {
-        setActiveQueueItem(index);
-        setCurrentPage(index + 1); // Move to the matching results page
-        setShowPreview(true);
-      };
+       setActiveQueueItem(index);
+          const foundIndex = results.findIndex(item => item.title === file.name.replace(".pdf",""));
+           if(foundIndex !== -1){
+              setCurrentPage(foundIndex + 1);
+          }
+           setShowPreview(true);
+    };
 
     return (
         <div className="upload-box">
             <ProjectInput projectName={projectName} setProjectName={setProjectName} />
             <FileUploadArea handleFileChange={handleFileChange} fileInputRef={fileInputRef} />
-             <FileListDisplay
-                 files={files}
-                 onRemoveFile={handleRemoveFile}
-                 fileListContainerRef={fileListContainerRef}
-           />
-           <p className="note">
-              *Mendukung file PDF (Maximal 20Mb per file, maksimal 20 file)
-           </p>
+            <FileListDisplay
+                files={files}
+                onRemoveFile={handleRemoveFile}
+                fileListContainerRef={fileListContainerRef}
+            />
+            <p className="note">
+                *Mendukung file PDF (Maximal 20Mb per file, maksimal 20 file)
+            </p>
             <p className="error-message" id="errorMessage">{errorMessage}</p>
             <Button onClick={handleScanButton} id="scanButton">
                 Scan File
             </Button>
-           <PreviewTransmittal
-             showPreview={showPreview}
-             projectName={projectName}
-             results={results}
-             currentPage={currentPage}
-             previewData={previewData}
-             handlePreviewChange={handlePreviewChange}
-             handlePrev={handlePrev}
-             handleNext={handleNext}
-             csvFileName={csvFileName}
-             handleDownloadCSV={handleDownloadCSV}
-
-           />
-           <UploadQueue
-              showQueue={showQueue}
-              uploadQueueFiles={uploadQueueFiles}
-              uploadQueueRef={uploadQueueRef}
-              uploadQueueFileListContainerRef={uploadQueueFileListContainerRef}
-              onQueueItemClick={handleQueueItemClick}
-              activeQueueItem={activeQueueItem}
+            <PreviewTransmittal
+                showPreview={showPreview}
+                projectName={projectName}
+                results={results}
+                currentPage={currentPage}
+                previewData={previewData}
+                handlePreviewChange={handlePreviewChange}
+                handlePrev={handlePrev}
+                handleNext={handleNext}
+                handleGenerateTransmittal={handleGenerateTransmittal}
+            />
+            <UploadQueue
+                showQueue={showQueue}
+                uploadQueueFiles={uploadQueueFiles}
+                uploadQueueRef={uploadQueueRef}
+                uploadQueueFileListContainerRef={uploadQueueFileListContainerRef}
+                onQueueItemClick={handleQueueItemClick}
+                activeQueueItem={activeQueueItem}
             />
         </div>
     );
