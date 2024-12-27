@@ -1,14 +1,13 @@
 // src/pages/upload-test/index.js
 import DefaultLayout from '../../components/templates/DefaultLayout';
-import UploadBox from '../../components/organisms/UploadBox';
-import PreviewTransmittal from '@/components/organisms/PreviewTransmittal';
+import UploadBox from '../../components/organisms/UploadBox/index';
+
 
 function UploadPageTest() {
     return (
         <DefaultLayout>
             <div className="container">
                 <UploadBox/>
-                <PreviewTransmittal/>
             </div>
          </DefaultLayout>
     );

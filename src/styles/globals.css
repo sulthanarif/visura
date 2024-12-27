@@ -69,12 +69,14 @@ body {
 }
 
 .upload-box input[type="text"] {
-  width: calc(100% - 8px); /* Adjust width accounting for padding */
-  padding: 16px;
-  margin-bottom: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  box-sizing: border-box; /* Include padding in width calculation */
+    width: calc(100% - 8px);
+    /* Adjust width accounting for padding */
+    padding: 16px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    /* Include padding in width calculation */
 }
 
 .upload-box .upload-area {
@@ -265,6 +267,7 @@ body {
     left: 0;
     top: -78px;
     transform: translateX(-105%);
+    transition: all 0.5s ease;
     /* Move to the left of the upload box */
     opacity: 1;
     max-height: 100vh;
@@ -332,7 +335,8 @@ body {
     width: 100%;
 
 }
-.preview-transmittal .button-container button#saveLibraryButton{
+
+.preview-transmittal .button-container button#saveLibraryButton {
     padding: 15px 15px;
     border: none;
     background-color: #EBA801;
@@ -348,134 +352,152 @@ body {
 }
 
 .upload-queue {
-        position: absolute;
-        right: 25%;
-        top: 0;
-        width: 300px;
-        max-height: 600px;
-        background-color: #f0f0f0;
-        transition: right 0.4s ease-in-out;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        border-radius: 8px;
-        padding: 0;
-        opacity: 0;
-        padding: 10px 0;
-    }
-
-.upload-queue h3 {
-        padding: 10px;
-        margin: 0;
-        font-size: 1.2em;
-        border-radius: 8px 8px 0 0;
-    }
-
-.upload-queue .file-list-container {
-        max-height: 500px;
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding: 10px;
-        opacity: 0;
-        display: none;
-        transition: opacity 0.3s ease;
-        max-height: 0;
-        max-width: 0;
-    }
-
-.upload-queue .file-list-container.show {
-        opacity: 1;
-        display: block;
-        transition: all 0.3s ease;
-        max-height: 100%;
-        max-width: 100%;
-    }
-
-.upload-queue .file-list {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-        max-height: 500px;
-    }
-
-.upload-queue .file-list li {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 5px;
-        background-color: #f9f9f9;
-        padding: 8px 12px;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        overflow: hidden;
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-.upload-queue .file-list li.show {
-        opacity: 1;
-        transform: translateY(0px);
-    }
-
-.upload-queue .file-list li span {
-        font-size: 0.9em;
-        color: #555;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100px;
-    }
-
-.upload-queue .file-list li button {
-        background: #ff4d4d;
-        border: none;
-        color: #fff;
-        font-size: 0.9em;
-        max-width: 60px;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-
-.upload-queue .file-list li button:hover {
-        background-color: #ff1a1a;
-    }
-
-.upload-queue .file-list li.remove {
-        opacity: 0;
-        transform: translateY(100px);
-        max-height: 0;
-        padding: 0;
-        border: none;
-    }
-
-.upload-queue .file-list li.remove~li {
-        transform: translateY(-10px);
-    }
-
-.upload-queue .file-list li:hover {
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .upload-queue .file-list li span.status {
-        font-size: 0.9em;
-        color: #fff;
-        background-color: #E17218;
-        padding: 5px 10px;
-        border-radius: 5px;
-        margin-left: 10px;
-    }
+    position: absolute;
+    right: 25%;
+    top: 0;
+    width: 300px;
+    max-height: 600px;
+    background-color: #f0f0f0;
+    transition: right 0.4s ease-in-out;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 0;
+    opacity: 0;
+    padding: 10px 0;
+}
 
 .upload-queue.show {
-        right: 0;
-        transform: translateX(105%);
-        opacity: 1;
-    }
+    right: 0;
+    transform: translateX(105%);
+    opacity: 1;
+}
+
+
+.upload-queue h3 {
+    padding: 10px;
+    margin: 0;
+    font-size: 1.2em;
+    border-radius: 8px 8px 0 0;
+}
+
+.upload-queue .file-list-container {
+    max-height: 500px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 10px;
+    opacity: 0;
+    display: none;
+    transition: opacity 0.3s ease;
+    max-height: 0;
+    max-width: 0;
+}
+
+.upload-queue .file-list-container.show {
+    opacity: 1;
+    display: block;
+    transition: all 0.3s ease;
+    max-height: 100%;
+    max-width: 100%;
+}
+
+.upload-queue .file-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    max-height: 500px;
+}
+
+.upload-queue .file-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    background-color: #f9f9f9;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.upload-queue .file-list li.show {
+    opacity: 1;
+    transform: translateY(0px);
+}
+
+.upload-queue .file-list li span {
+    font-size: 0.9em;
+    color: #555;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
+}
+
+.upload-queue .file-list li button {
+    background: #ff4d4d;
+    border: none;
+    color: #fff;
+    font-size: 0.9em;
+    max-width: 60px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.upload-queue .file-list li button:hover {
+    background-color: #ff1a1a;
+}
+
+.upload-queue .file-list li.remove {
+    opacity: 0;
+    transform: translateY(100px);
+    max-height: 0;
+    padding: 0;
+    border: none;
+}
+
+.upload-queue .file-list li.remove~li {
+    transform: translateY(-10px);
+}
+
+.upload-queue .file-list li:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.upload-queue .file-list li span.status {
+    font-size: 0.9em;
+    color: #fff;
+    background-color: #E17218;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin-left: 10px;
+}
+
+.upload-queue .file-list li span.status.done-item {
+    font-size: 0.9em;
+    color: #fff;
+    background-color: #008C28;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin-left: 10px;
+}
+
+.upload-queue .file-list li.done-item {
+    cursor: pointer;
+}
+
+.upload-queue .file-list li.active {
+    background-color: rgba(255, 153, 0, 0.1);
+}
 
 .title-container {
     align-items: center;
     margin-bottom: 20px;
 }
 
-.title-container .remove{
- display: none;
+.title-container .remove {
+    display: none;
 }
