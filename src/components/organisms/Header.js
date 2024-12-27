@@ -7,7 +7,7 @@ function Header() {
     <header className="header">
         <Image alt="Summarecon Logo" height={40} src="/assets/Summarecon_Agung 1.svg" width={150} />
       <nav>
-          <a href="#">Scan Files</a>
+          <a href="/upload">Scan Files</a>
           <a href="#">Library</a>
       </nav>
       <div className="user-info">
