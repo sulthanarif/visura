@@ -1,6 +1,7 @@
 import React from 'react';
 import Icon from '../../atoms/Icon';
 import Button from '../../atoms/Button';
+import { useState } from 'react';
 
 function PreviewTransmittal({
     showPreview,
@@ -13,6 +14,22 @@ function PreviewTransmittal({
     handleNext,
     handleGenerateTransmittal,
 }) {
+      const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState({
+        text: null,
+        type: null, //success, warning, error
+    });
+   const  handleGenerateTransmittalClick = async ()=>{
+      setLoading(true);
+        try {
+            await handleGenerateTransmittal();
+               setMessage({ text: 'Transmittal generated successfully!', type: 'success' });
+        }catch(e){
+              setMessage({ text: 'Error generating transmittal, please check log', type: 'error' });
+        }finally{
+            setLoading(false);
+        }
+   };
     return (
         <div
             className={`preview-transmittal ${showPreview ? "show" : "remove"}`}
@@ -89,8 +106,13 @@ function PreviewTransmittal({
                 </Button>
             </div>
              <div className="button-container">
-                <Button Icon name="database" onClick={handleGenerateTransmittal}>Generate Transmittal</Button>
+                <Button Icon name="database" onClick={handleGenerateTransmittalClick} loading={loading} disabled={loading}>Generate Transmittal</Button>
             </div>
+              {message.text && (
+                <div className={`message ${message.type}`}>
+                    {message.text}
+                </div>
+            )}
         </div>
     );
 }

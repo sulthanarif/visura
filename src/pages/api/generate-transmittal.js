@@ -1,4 +1,3 @@
-// src/pages/api/generate-transmittal.js
 import { generateDataFiles } from "../../server/ocr-process";
 import { outputDir } from "../../server/ocr-process";
 import fs from 'fs';
@@ -19,12 +18,18 @@ export default async function handler(req, res) {
        if (!transmittalData || transmittalData.length === 0) {
             return res.status(400).json({ message: "No transmittal data provided." });
         }
+         let csvFileName;
+        try {
+              csvFileName = await generateDataFiles(transmittalData, outputDir);
+        }catch(e){
+            console.error("Error generating transmittal:", e);
+             return res.status(500).json({ message: "Error generating transmittal", error: e.message });
+        }
 
-       const csvFileName = await generateDataFiles(transmittalData, outputDir);
        res.status(200).json({ message: 'Transmittal generated successfully', csvFileName: csvFileName });
 
     } catch (error) {
         console.error("Error generating transmittal:", error);
-        res.status(500).json({ message: "Error generating transmittal" });
+       res.status(500).json({ message: "Error generating transmittal", error: error.message });
     }
 }

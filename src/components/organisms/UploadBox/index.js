@@ -83,7 +83,7 @@ function UploadBox() {
         handleAddFile(newFiles);
         setErrorMessage("");
     };
-  const handleScanButton = async () => {
+     const handleScanButton = async () => {
         if (files.length === 0 && uploadQueueFiles.length === 0) {
             setErrorMessage("Tidak ada file yang diunggah");
             return;
@@ -93,36 +93,37 @@ function UploadBox() {
         setUploadQueueFiles((prev) => [...prev, ...newQueueItems]);
         const filesTemp = [...files];
         setFiles([]);
-    
+
         try {
-              setUploadStatus("Uploading to Server...");
-             setIsUploading(true);
-    
-             setUploadQueueFiles((prev) =>
-               prev.map((item) =>
-                filesTemp.includes(item.file)
-                    ? { ...item, status: "Uploading..." }
-                   : item
-               )
+            setUploadStatus("Uploading to Server...");
+            setIsUploading(true);
+
+            setUploadQueueFiles((prev) =>
+                prev.map((item) =>
+                    filesTemp.includes(item.file)
+                        ? { ...item, status: "Uploading..." }
+                        : item
+                )
             );
             const formData = new FormData();
-           filesTemp.forEach((file) => {
+            filesTemp.forEach((file) => {
                 formData.append("pdfFile", file);
-           });
-             const response = await fetch("/api/ocr", {
+            });
+            const response = await fetch("/api/ocr", {
                 method: "POST",
                 body: formData,
             });
-           if (!response.ok) {
+            if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(`Upload failed: ${errorData.message}`);
             }
+
             setUploadQueueFiles((prev) =>
-               prev.map((item) =>
-                  filesTemp.includes(item.file)
-                       ? { ...item, status: "Scanning..." }
-                       : item
-               )
+                prev.map((item) =>
+                    filesTemp.includes(item.file)
+                        ? { ...item, status: "Scanning..." }
+                        : item
+                )
             );
             setUploadStatus("Scanning...");
             setIsScanning(true);
@@ -132,37 +133,37 @@ function UploadBox() {
                  data.data.forEach((item, index) => {
                     newResult.push({ ...item, id: prev.length + index });
                      initialPreviewData.current[prev.length + index] = {
-                        project: projectName,
+                         project: projectName,
                         drawing: item.title,
                         revision: item.revision,
-                        drawingCode: item.drawingCode,
-                        date: item.date,
-                           filename: item.filename, // <-- pastikan file name disini
-                    };
+                         drawingCode: item.drawingCode,
+                         date: item.date,
+                         filename: item.filename
+                   };
                  });
-               return newResult
+                return newResult
              });
             setPreviewData(prev => ({...prev, ...initialPreviewData.current}));
             setUploadStatus("Upload and scanning successful.");
             setShowPreview(true);
             setUploadQueueFiles((prev) =>
-               prev.map((item) =>
+                prev.map((item) =>
                     filesTemp.includes(item.file) ? { ...item, status: "Done" } : item
-               )
-           );
-            if(results.length === 0)
-               setActiveQueueItem(0);
+                )
+            );
+             if(results.length === 0)
+                setActiveQueueItem(0);
         } catch (error) {
-             console.error("Error during upload or processing:", error);
+            console.error("Error during upload or processing:", error);
             setUploadStatus(
-                  `Upload failed: ${error.message || "An unexpected error occurred"}`
-              );
-             setUploadQueueFiles((prev) =>
-               prev.map((item) =>
-                     filesTemp.includes(item.file) ? { ...item, status: "Failed" } : item
-              )
-           );
-         } finally {
+                `Upload failed: ${error.message || "An unexpected error occurred"}`
+            );
+            setUploadQueueFiles((prev) =>
+                prev.map((item) =>
+                    filesTemp.includes(item.file) ? { ...item, status: "Failed" } : item
+                )
+            );
+        } finally {
             setIsUploading(false);
         }
     };
@@ -199,7 +200,7 @@ function UploadBox() {
                 throw new Error("Failed to generate transmittal");
             }
             const data = await response.json();
-            setCsvFileName(data.csvFileName);
+           setCsvFileName(data.csvFileName);
             const link = document.createElement("a");
             link.href = `/output/${data.csvFileName}`;
             link.download = data.csvFileName;
@@ -207,9 +208,11 @@ function UploadBox() {
             link.click();
             document.body.removeChild(link);
             setCleanupStatus("Cleaning up files, please wait...");
-            const cleanupResponse = await fetch("/api/cleanup", { method: "POST" });
+             const cleanupResponse = await fetch("/api/cleanup", { method: "POST" });
+            
             if (!cleanupResponse.ok) {
-                throw new Error("Failed to clean up files");
+                const errorData = await cleanupResponse.json();
+                throw new Error(`Failed to clean up files ${errorData.message || ""}`);
             }
             setCleanupStatus("Cleanup completed, refreshing...");
             router.reload(); // Refresh halaman
@@ -246,13 +249,14 @@ function UploadBox() {
         updatePageInfo();
     }, [currentPage, results]);
 
-    const handleQueueItemClick = (index, file) => {
-       setActiveQueueItem(index);
+
+     const handleQueueItemClick = (index, file) => {
+        setActiveQueueItem(index);
           const foundIndex = results.findIndex(item => item.title === file.name.replace(".pdf",""));
            if(foundIndex !== -1){
-              setCurrentPage(foundIndex + 1);
-          }
-           setShowPreview(true);
+               setCurrentPage(foundIndex + 1);
+           }
+          setShowPreview(true);
     };
 
     return (
@@ -281,6 +285,7 @@ function UploadBox() {
                 handlePrev={handlePrev}
                 handleNext={handleNext}
                 handleGenerateTransmittal={handleGenerateTransmittal}
+
             />
             <UploadQueue
                 showQueue={showQueue}
