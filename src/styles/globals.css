@@ -485,6 +485,16 @@ body {
     margin-left: 10px;
 }
 
+.upload-queue .file-list li span.status.failed-item  {
+    font-size: 0.9em;
+    color: #fff;
+    background-color: #8c0000;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin-left: 10px;
+}
+
+
 .upload-queue .file-list li.done-item {
     cursor: pointer;
 }
@@ -500,4 +510,27 @@ body {
 
 .title-container .remove {
     display: none;
+}
+
+.status-indicator {
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 8px;
+    font-size: 12px;
+    
+    &.pending {
+        background-color: #f0f0f0;
+    }
+    
+    &.processing {
+        background-color: #fff3cd;
+    }
+    
+    &.completed {
+        background-color: #d4edda;
+    }
+    
+    &.error {
+        background-color: #f8d7da;
+    }
 }

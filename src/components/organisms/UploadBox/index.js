@@ -1,4 +1,3 @@
-// src/components/organisms/UploadBox/index.js
 import React, { useState, useRef, useEffect } from "react";
 import Button from "../../atoms/Button";
 import { useUpload } from "@/models/upload";
@@ -26,8 +25,8 @@ function UploadBox() {
 
     const [showPreview, setShowPreview] = useState(false);
     const [showQueue, setShowQueue] = useState(false);
-    const [uploadStatus, setUploadStatus] = useState("");
     const [results, setResults] = useState([]);
+    const [uploadStatus, setUploadStatus] = useState("");
     const [csvFileName, setCsvFileName] = useState(null);
     const [cleanupStatus, setCleanupStatus] = useState("");
     const [isUploading, setIsUploading] = useState(false);
@@ -40,6 +39,7 @@ function UploadBox() {
     const uploadQueueFileListContainerRef = useRef(null);
     const [activeQueueItem, setActiveQueueItem] = useState(null);
     const initialPreviewData = useRef({});
+   const [documentName, setDocumentName] = useState("");
 
     useEffect(() => {
         resetState();
@@ -83,6 +83,7 @@ function UploadBox() {
         handleAddFile(newFiles);
         setErrorMessage("");
     };
+
      const handleScanButton = async () => {
         if (files.length === 0 && uploadQueueFiles.length === 0) {
             setErrorMessage("Tidak ada file yang diunggah");
@@ -167,6 +168,7 @@ function UploadBox() {
             setIsUploading(false);
         }
     };
+    
     const handlePrev = () => {
         if (currentPage > 1) {
             setCurrentPage(currentPage - 1);
@@ -193,7 +195,7 @@ function UploadBox() {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ transmittalData }),
+                body: JSON.stringify({ transmittalData, projectName, documentName }),
             });
 
             if (!response.ok) {
@@ -209,7 +211,7 @@ function UploadBox() {
             document.body.removeChild(link);
             setCleanupStatus("Cleaning up files, please wait...");
              const cleanupResponse = await fetch("/api/cleanup", { method: "POST" });
-            
+
             if (!cleanupResponse.ok) {
                 const errorData = await cleanupResponse.json();
                 throw new Error(`Failed to clean up files ${errorData.message || ""}`);
@@ -252,7 +254,7 @@ function UploadBox() {
 
      const handleQueueItemClick = (index, file) => {
         setActiveQueueItem(index);
-          const foundIndex = results.findIndex(item => item.title === file.name.replace(".pdf",""));
+          const foundIndex = results.findIndex(item => item.title === file.name.replace(".pdf", ""));
            if(foundIndex !== -1){
                setCurrentPage(foundIndex + 1);
            }
@@ -262,6 +264,16 @@ function UploadBox() {
     return (
         <div className="upload-box">
             <ProjectInput projectName={projectName} setProjectName={setProjectName} />
+            <div className="field">
+                <label htmlFor="documentName">Document Name</label>
+                <input
+                    type="text"
+                    id="documentName"
+                    placeholder="Document Name"
+                    value={documentName}
+                    onChange={(e) => setDocumentName(e.target.value)}
+                />
+            </div>
             <FileUploadArea handleFileChange={handleFileChange} fileInputRef={fileInputRef} />
             <FileListDisplay
                 files={files}

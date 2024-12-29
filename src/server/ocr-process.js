@@ -1,4 +1,3 @@
-// src/server/ocr-process.js
 const Tesseract = require("tesseract.js");
 const sharp = require("sharp");
 const fs = require("fs");
@@ -11,6 +10,8 @@ const tempRotateDir = path.join(process.cwd(), "src/temp/ocr/rotate");
 const tempCutResultDir = path.join(process.cwd(), "src/temp/ocr/cut");
 const tempDir = path.join(process.cwd(), "src/temp/ocr");
 const outputDir = path.join(process.cwd(), "public/output");
+const targetDPI = 800;
+
 
 // Fungsi untuk convert PDF ke PNG
 async function pdfToPng(pdfPath, tempDir) {
@@ -216,9 +217,8 @@ async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilena
     }
 }
 
-async function generateDataFiles(transmittalData, outputDir) {
+async function generateDataFiles(transmittalData, outputDir, projectName, documentName) {
     const transmittalNumber = generateTransmittalNumber();
-    const projectName = "[project Name]";
     const now = new Date();
     const dateDay = now.getDate();
     const dateMonth = now.getMonth() + 1;
@@ -237,7 +237,7 @@ async function generateDataFiles(transmittalData, outputDir) {
     let csvContent = `TRANSMITTAL,,,,,,,,,,
     ,,,,,,,,,,
     No. Transmittal: ${transmittalNumber},,,,,,,,,,
-    PROJECT: ,,,,,,,,,  Received :,[document name]
+    PROJECT: ,,,,,,,,,  Received :,${documentName}
     ${projectName},,,,,,,,,Date,${dateDay}
     ,,,,,,,,,Month,${dateMonth}
     PACKAGE :,,,,,,,,,Year,${dateYear}
@@ -307,7 +307,7 @@ async function generateDataFiles(transmittalData, outputDir) {
     ,CO ,:   Construction,,,,,Ct, : Contract,,
     ,D    ,:   Disk,,,,,T, : Tender,,
     Issued by: .....................,,,,,,,,,,`
-    
+
     const csvFileName = `allData.csv`;
     fs.writeFileSync(path.join(outputDir, csvFileName), csvContent, { encoding: "utf-8" });
     console.log("File CSV Transmittal berhasil dibuat.");
@@ -323,5 +323,6 @@ module.exports = {
     tempRotateDir,
     tempCutResultDir,
     tempDir,
-    outputDir
+    outputDir,
+    targetDPI
 };
