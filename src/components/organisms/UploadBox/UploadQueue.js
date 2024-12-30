@@ -6,8 +6,6 @@ function UploadQueue({
     uploadQueueFiles,
     uploadQueueRef,
     uploadQueueFileListContainerRef,
-    onQueueItemClick,
-    activeQueueItem,
 }) {
     return (
         <div className={`upload-queue ${showQueue ? "show" : ""}`} id="uploadQueue" ref={uploadQueueRef}>
@@ -24,8 +22,8 @@ function UploadQueue({
                     {uploadQueueFiles.map((item, index) => (
                         <li
                             key={item.file.name}
-                            className={`show ${item.status === "Done" ? "done-item" : "" } ${item.status === "Failed" ? "failed-item" : ""} ${activeQueueItem === index ? "active" : ""}`}
-                            onClick={() => onQueueItemClick(index, item.file)}
+                            className={`show ${item.status === "Done" ? "done-item" : "" } ${item.status === "Failed" ? "failed-item" : ""} : ""}`}
+
                         >
                             <span>{item.file.name}</span>
                             <span className={`status ${item.status === "Done" ? "done-item" : "" }  ${item.status === "Failed" ? "failed-item" : ""}`}>{item.status}</span>

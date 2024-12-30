@@ -25,6 +25,7 @@ function UploadBox() {
 
     const [showPreview, setShowPreview] = useState(false);
     const [showQueue, setShowQueue] = useState(false);
+    const [uploadStatus, setUploadStatus] = useState("");
     const [results, setResults] = useState([]);
     const [csvFileName, setCsvFileName] = useState(null);
     const [cleanupStatus, setCleanupStatus] = useState("");
@@ -36,7 +37,6 @@ function UploadBox() {
     const fileListContainerRef = useRef(null);
     const uploadQueueRef = useRef(null);
     const uploadQueueFileListContainerRef = useRef(null);
-    const [activeQueueItem, setActiveQueueItem] = useState(null);
     const initialPreviewData = useRef({});
    const [documentName, setDocumentName] = useState("");
 
@@ -77,88 +77,88 @@ function UploadBox() {
     }, [showQueue]);
 
     const handleFileChange = (e) => {
+        e.preventDefault();
         console.log("handleFileChange: files changed");
         const newFiles = Array.from(e.target.files);
         handleAddFile(newFiles);
         setErrorMessage("");
     };
 
-     const handleScanButton = async () => {
-        if (files.length === 0 && uploadQueueFiles.length === 0) {
+    const handleScanButton = async (e) => {
+         e.preventDefault();
+         if (files.length === 0 && uploadQueueFiles.length === 0) {
             setErrorMessage("Tidak ada file yang diunggah");
             return;
         }
         setShowQueue(true);
-        const newQueueItems = files.map((file) => ({ file, status: "Waiting..." }));
-        setUploadQueueFiles((prev) => [...prev, ...newQueueItems]);
-        const filesTemp = [...files];
+          const newQueueItems = files.map((file) => ({ file: { name: file.name }, status: "Waiting..." }));
+          setUploadQueueFiles((prev) => [...prev, ...newQueueItems]);
+         const filesTemp = [...files];
         setFiles([]);
-
         try {
             setIsUploading(true);
-
-            setUploadQueueFiles((prev) =>
-                prev.map((item) =>
-                    filesTemp.includes(item.file)
-                        ? { ...item, status: "Uploading..." }
-                        : item
-                )
-            );
+            setUploadStatus("Uploading to Server...");
             const formData = new FormData();
-            filesTemp.forEach((file) => {
-                formData.append("pdfFile", file);
-            });
-            const response = await fetch("/api/ocr", {
-                method: "POST",
-                body: formData,
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`Upload failed: ${errorData.message}`);
-            }
-
-            setUploadQueueFiles((prev) =>
-                prev.map((item) =>
-                    filesTemp.includes(item.file)
-                        ? { ...item, status: "Scanning..." }
-                        : item
-                )
-            );
-            setIsScanning(true);
+              filesTemp.forEach((file) => {
+                  formData.append("pdfFile", file);
+              });
+           const response =  await fetch("/api/ocr", {
+                  method: "POST",
+                  body: formData,
+              });
+             if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Upload failed: ${errorData.message}`);
+                }
             const data = await response.json();
-             setResults(prev => {
-               const newResult = [...prev];
-                 data.data.forEach((item, index) => {
-                    newResult.push({ ...item, id: prev.length + index });
-                     initialPreviewData.current[prev.length + index] = {
-                         project: projectName,
-                        drawing: item.title,
-                        revision: item.revision,
-                         drawingCode: item.drawingCode,
-                         date: item.date,
-                         filename: item.filename
-                   };
-                 });
-                return newResult
-             });
-            setPreviewData(prev => ({...prev, ...initialPreviewData.current}));
-            setShowPreview(true);
-            setUploadQueueFiles((prev) =>
-                prev.map((item) =>
-                    filesTemp.includes(item.file) ? { ...item, status: "Done" } : item
-                )
-            );
-             if(results.length === 0)
-                setActiveQueueItem(0);
-        } catch (error) {
+             if (data.uploadQueueFiles) {
+                setUploadQueueFiles(data.uploadQueueFiles);
+                if(data.uploadQueueFiles.length > 0){
+                     if(data.uploadQueueFiles[0].status === "Done" || data.uploadQueueFiles[0].status === "Failed"){
+                        setShowPreview(true);
+                     }
+                  }
+             }
+              if(data.data){
+                    setResults(prev => {
+                         const newResult = [...prev];
+                         data.data.forEach((item, index) => {
+                            newResult.push({ ...item, id: prev.length + index });
+                             initialPreviewData.current[prev.length + index] = {
+                                 project: projectName,
+                                drawing: item.title,
+                                revision: item.revision,
+                                 drawingCode: item.drawingCode,
+                                 date: item.date,
+                                 filename: item.filename
+                           };
+                         });
+                        return newResult
+                     });
+                   setPreviewData(prev => ({...prev, ...initialPreviewData.current}));
+                 
+                    setUploadStatus("Scanning...");
+                     setIsScanning(true);
+              }
+              if(data.csvFileName){
+                    setCsvFileName(data.csvFileName);
+                       setIsUploading(false);
+                      setUploadStatus("Upload and scanning successful.");
+                 }
+         } catch (error) {
             console.error("Error during upload or processing:", error);
-            setUploadQueueFiles((prev) =>
+             setUploadStatus(
+                `Upload failed: ${error.message || "An unexpected error occurred"}`
+             );
+              setUploadQueueFiles((prev) =>
                 prev.map((item) =>
                     filesTemp.includes(item.file) ? { ...item, status: "Failed" } : item
                 )
             );
-        } finally {
-            setIsUploading(false);
+           
+        }  finally{
+           setIsUploading(false);
+           setIsScanning(false);
         }
     };
     
@@ -247,15 +247,6 @@ function UploadBox() {
     }, [currentPage, results]);
 
 
-     const handleQueueItemClick = (index, file) => {
-        setActiveQueueItem(index);
-          const foundIndex = results.findIndex(item => item.title === file.name.replace(".pdf", ""));
-           if(foundIndex !== -1){
-               setCurrentPage(foundIndex + 1);
-           }
-          setShowPreview(true);
-    };
-
     return (
         <div className="upload-box">
             <ProjectInput projectName={projectName} setProjectName={setProjectName} />
@@ -299,8 +290,6 @@ function UploadBox() {
                 uploadQueueFiles={uploadQueueFiles}
                 uploadQueueRef={uploadQueueRef}
                 uploadQueueFileListContainerRef={uploadQueueFileListContainerRef}
-                onQueueItemClick={handleQueueItemClick}
-                activeQueueItem={activeQueueItem}
             />
         </div>
     );

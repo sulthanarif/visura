@@ -494,15 +494,6 @@ body {
     margin-left: 10px;
 }
 
-
-.upload-queue .file-list li.done-item {
-    cursor: pointer;
-}
-
-.upload-queue .file-list li.active {
-    background-color: rgba(255, 153, 0, 0.1);
-}
-
 .title-container {
     align-items: center;
     margin-bottom: 20px;
@@ -510,27 +501,4 @@ body {
 
 .title-container .remove {
     display: none;
-}
-
-.status-indicator {
-    padding: 2px 8px;
-    border-radius: 4px;
-    margin-left: 8px;
-    font-size: 12px;
-    
-    &.pending {
-        background-color: #f0f0f0;
-    }
-    
-    &.processing {
-        background-color: #fff3cd;
-    }
-    
-    &.completed {
-        background-color: #d4edda;
-    }
-    
-    &.error {
-        background-color: #f8d7da;
-    }
 }
