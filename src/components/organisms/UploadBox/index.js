@@ -26,7 +26,6 @@ function UploadBox() {
     const [showPreview, setShowPreview] = useState(false);
     const [showQueue, setShowQueue] = useState(false);
     const [results, setResults] = useState([]);
-    const [uploadStatus, setUploadStatus] = useState("");
     const [csvFileName, setCsvFileName] = useState(null);
     const [cleanupStatus, setCleanupStatus] = useState("");
     const [isUploading, setIsUploading] = useState(false);
@@ -96,7 +95,6 @@ function UploadBox() {
         setFiles([]);
 
         try {
-            setUploadStatus("Uploading to Server...");
             setIsUploading(true);
 
             setUploadQueueFiles((prev) =>
@@ -126,7 +124,6 @@ function UploadBox() {
                         : item
                 )
             );
-            setUploadStatus("Scanning...");
             setIsScanning(true);
             const data = await response.json();
              setResults(prev => {
@@ -145,7 +142,6 @@ function UploadBox() {
                 return newResult
              });
             setPreviewData(prev => ({...prev, ...initialPreviewData.current}));
-            setUploadStatus("Upload and scanning successful.");
             setShowPreview(true);
             setUploadQueueFiles((prev) =>
                 prev.map((item) =>
@@ -156,9 +152,6 @@ function UploadBox() {
                 setActiveQueueItem(0);
         } catch (error) {
             console.error("Error during upload or processing:", error);
-            setUploadStatus(
-                `Upload failed: ${error.message || "An unexpected error occurred"}`
-            );
             setUploadQueueFiles((prev) =>
                 prev.map((item) =>
                     filesTemp.includes(item.file) ? { ...item, status: "Failed" } : item
@@ -187,6 +180,8 @@ function UploadBox() {
             return updatedPreview;
         });
     };
+
+
     const handleGenerateTransmittal = async () => {
         try {
             const transmittalData = Object.values(previewData);
