@@ -7,6 +7,8 @@ import FileUploadArea from "./FileUploadArea";
 import FileListDisplay from "./FileListDisplay";
 import UploadQueue from "./UploadQueue";
 import PreviewTransmittal from "./PreviewTransmittal";
+import IconWithText from "@/components/molecules/IconWithText";
+import Icon from "@/components/atoms/Icon";
 
 function UploadBox() {
     const router = useRouter();
@@ -39,6 +41,25 @@ function UploadBox() {
     const uploadQueueFileListContainerRef = useRef(null);
     const initialPreviewData = useRef({});
    const [documentName, setDocumentName] = useState("");
+
+   useEffect(() => {
+    if (uploadStatus) {
+        const timer = setTimeout(() => {
+            setUploadStatus("");
+        }, 5000);
+        return () => clearTimeout(timer);
+    }
+}, [uploadStatus]);
+
+useEffect(() => {
+    if (errorMessage) {
+        const timer = setTimeout(() => {
+            setErrorMessage("");
+        }, 5000);
+        return () => clearTimeout(timer);
+    }
+}, [errorMessage]);
+
 
     useEffect(() => {
         resetState();
@@ -75,6 +96,7 @@ function UploadBox() {
             }
         }
     }, [showQueue]);
+    
 
     const handleFileChange = (e) => {
         e.preventDefault();
@@ -106,11 +128,21 @@ function UploadBox() {
                   method: "POST",
                   body: formData,
               });
-             if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`Upload failed: ${errorData.message}`);
-                }
-            const data = await response.json();
+
+              const responseData = await response.json();
+
+              if (!response.ok) {
+                //   setUploadQueueFiles((prev) =>
+                //       prev.map((item) => ({
+                //           ...item,
+                //           status: "Failed",
+                //           error: responseData.message
+                //       }))
+                //   );
+                  setUploadStatus(`${responseData.message}`);
+                  return;
+              }
+            const data = await responseData;
              if (data.uploadQueueFiles) {
                 setUploadQueueFiles(data.uploadQueueFiles);
                 if(data.uploadQueueFiles.length > 0){
@@ -136,9 +168,11 @@ function UploadBox() {
                         return newResult
                      });
                    setPreviewData(prev => ({...prev, ...initialPreviewData.current}));
-                 
-                    setUploadStatus("Scanning...");
                      setIsScanning(true);
+              }
+              
+              if(data.error){
+                  setErrorMessage(data.error);
               }
               if(data.csvFileName){
                     setCsvFileName(data.csvFileName);
@@ -269,9 +303,10 @@ function UploadBox() {
             <p className="note">
                 *Mendukung file PDF (Maximal 20Mb per file, maksimal 20 file)
             </p>
+            <p className="upload-status" id="uploadStatus">{uploadStatus}</p>
             <p className="error-message" id="errorMessage">{errorMessage}</p>
             <Button onClick={handleScanButton} id="scanButton">
-                Scan File
+                <IconWithText icon="paper-plane" text="Scan" />
             </Button>
             <PreviewTransmittal
                 showPreview={showPreview}

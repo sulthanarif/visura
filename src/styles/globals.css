@@ -1,8 +1,14 @@
+/* 
+@tailwind base;
+@tailwind components;
+@tailwind utilities; */
+
 /* src/styles/global.css */
 body {
     margin: 0;
     font-family: 'Roboto', sans-serif;
-    background-color: #f5f5f5;
+    background-image: url('/assets/Property 1=Frame 48.png');
+    background-size: cover;
     height: 100vh;
     /* overflow: hidden; */
 }
@@ -42,8 +48,7 @@ body {
     align-items: center;
     height: 100vh;
     width: 100%;
-    background-image: url('/assets/Property 1=Frame 48.png');
-    background-size: cover;
+   
 }
 
 .upload-box {
@@ -312,6 +317,7 @@ body {
     border-radius: 4px;
     background-color: transparent;
     cursor: pointer;
+    
 }
 
 .preview-transmittal .pagination button:hover {
@@ -322,7 +328,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
-
 }
 
 .preview-transmittal .button-container button {
@@ -373,7 +378,7 @@ body {
 }
 
 
-.upload-queue h3 {
+.upload-queue h2 {
     padding: 10px;
     margin: 0;
     font-size: 1.2em;

@@ -1,7 +1,9 @@
+//src/components/organisms/UploadBox/PreviewTransmittal.js
 import React from 'react';
 import Icon from '../../atoms/Icon';
 import Button from '../../atoms/Button';
 import { useState } from 'react';
+import IconWithText from '@/components/molecules/IconWithText';
 
 function PreviewTransmittal({
     showPreview,
@@ -34,8 +36,13 @@ function PreviewTransmittal({
         <div
             className={`preview-transmittal ${showPreview ? "show" : "remove"}`}
             id="previewTransmittal"
-        >
-            <h3>Preview Transmittal</h3>
+        >   
+        
+            <h2>
+            <Icon name="file-csv" />
+                Preview Transmittal
+            </h2>
+            <br />
             <div className="field">
                 <label htmlFor="previewProjectName">Project Name</label>
                 <input type="text" id="previewProjectName" placeholder="Project Name" value={projectName} disabled />
@@ -75,14 +82,16 @@ function PreviewTransmittal({
                         />
                     </div>
                     <div className="field">
-                        <label htmlFor={`previewDate-${currentPage - 1}`}>Date</label>
+                        <label htmlFor={`previewDate-${currentPage - 1}`} style={{display:"flex", alignItems:"center", gap:"5px"}}>
+                            <Icon name="calendar-alt" />
+                            Date
+                        </label>
                         <input
                             type="text"
                             id={`previewDate-${currentPage - 1}`}
                             placeholder="Date"
                             value={previewData[results[currentPage - 1]?.id]?.date || ""}
                             onChange={(e) => handlePreviewChange(results[currentPage - 1]?.id, 'date', e.target.value)}
-                            disabled
                         />
                     </div>
                     <hr />
@@ -106,7 +115,9 @@ function PreviewTransmittal({
                 </Button>
             </div>
              <div className="button-container">
-                <Button Icon name="database" onClick={handleGenerateTransmittalClick} loading={loading} disabled={loading}>Generate Transmittal</Button>
+                <Button onClick={handleGenerateTransmittalClick} loading={loading} disabled={loading}>
+                    <IconWithText icon="file-csv" text="Generate Transmittal" />
+                </Button>
             </div>
               {message.text && (
                 <div className={`message ${message.type}`}>
