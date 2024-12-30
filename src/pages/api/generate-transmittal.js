@@ -1,14 +1,15 @@
+//src/pages/api/generate-transmittal.js
 import ocrController from "../../server/controller/ocrController";
 
 export const config = {
     api: {
-        bodyParser: false,
+        bodyParser: true,
     },
 };
 
 export default async function handler(req, res) {
-    if (req.method !== 'POST') {
+     if (req.method !== 'POST') {
         return res.status(405).json({ message: 'Method Not Allowed' });
     }
-    await ocrController.processUpload(req, res);
+   await ocrController.generateTransmittal(req, res);
 }
