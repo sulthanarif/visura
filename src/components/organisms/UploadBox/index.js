@@ -10,6 +10,8 @@ import PreviewTransmittal from "./PreviewTransmittal";
 import IconWithText from "@/components/molecules/IconWithText";
 import Icon from "@/components/atoms/Icon";
 
+import { FaTimes, FaCheck, FaArrowLeft, FaArrowRight, FaDownload } from "react-icons/fa";
+
 function UploadBox() {
     const router = useRouter();
     const fileInputRef = useRef(null);
@@ -199,16 +201,17 @@ function UploadBox() {
     };
 
     const handlePrev = () => {
-        if (currentPage > 1) {
-            setCurrentPage(currentPage - 1);
-        }
+        if (step > 1) {
+          setStep(step - 1);
+       }
     };
 
-    const handleNext = () => {
-        if (currentPage < results.length) {
-            setCurrentPage(currentPage + 1);
-        }
+   const handleNext = () => {
+        if(step < 3){
+          setStep(step + 1);
+       }
     };
+
     const handlePreviewChange = (index, field, value) => {
         setPreviewData((prev) => {
             const updatedPreview = { ...prev };
@@ -217,14 +220,13 @@ function UploadBox() {
         });
     };
     const handleGenerateTransmittal = () => {
-         setErrorMessageModal("")
-        setModalProjectName(projectName);
+         setErrorMessageModal("");
+         setModalProjectName(projectName);
         setShowTransmittalModal(true);
     };
 
-
     const confirmGenerateTransmittal = async () => {
-         setErrorMessageModal("");
+          setErrorMessageModal("");
           if (!modalProjectName || !modalDocumentName || !transmittalNumber || !manualCsvFileName) {
             setErrorMessageModal('All fields are required.');
             return;
@@ -358,30 +360,29 @@ function UploadBox() {
                         </button>
                          {/* Stepper */}
                     <ol class="flex items-center w-full mb-4 sm:mb-5">
-                        <li class={`flex w-full items-center ${step >= 1 ? "text-blue-600 dark:text-blue-500" : "text-gray-500 dark:text-gray-400"}  after:content-[''] after:w-full after:h-1 after:border-b after:border-blue-100 after:border-4 after:inline-block dark:after:border-blue-800`}>
-                            <div class={`flex items-center justify-center w-10 h-10 ${step >= 1 ? "bg-blue-100 dark:bg-blue-800" : "bg-gray-100 dark:bg-gray-700"} rounded-full lg:h-12 lg:w-12 shrink-0`}>
-                                <svg class={`w-4 h-4 ${step >= 1 ? "text-blue-600 dark:text-blue-300" : "text-gray-500 dark:text-gray-400"} lg:w-6 lg:h-6`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 16">
+                        <li class={`flex w-full items-center transition-all duration-300 ease-in-out  ${step >= 1 ? "text-blue-600 dark:text-blue-500" : "text-gray-500 dark:text-gray-400"}  after:content-[''] after:w-full after:h-1 after:border-b after:border-blue-100 after:border-4 after:inline-block dark:after:border-blue-800`}>
+                            <div class={`flex items-center justify-center w-10 h-10 transition-all duration-300 ease-in-out ${step >= 1 ? "bg-blue-100 dark:bg-blue-800" : "bg-gray-100 dark:bg-gray-700"} rounded-full lg:h-12 lg:w-12 shrink-0`}>
+                                <svg class={`w-4 h-4 transition-all duration-300 ease-in-out ${step >= 1 ? "text-blue-600 dark:text-blue-300" : "text-gray-500 dark:text-gray-400"} lg:w-6 lg:h-6`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 16">
                                     <path d="M18 0H2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2ZM6.5 3a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3.014 13.021l.157-.625A3.427 3.427 0 0 1 6.5 9.571a3.426 3.426 0 0 1 3.322 2.805l.159.622-6.967.023ZM16 12h-3a1 1 0 0 1 0-2h3a1 1 0 0 1 0 2Zm0-3h-3a1 1 0 1 1 0-2h3a1 1 0 1 1 0 2Zm0-3h-3a1 1 0 1 1 0-2h3a1 1 0 1 1 0 2Z"/>
                                 </svg>
                             </div>
                         </li>
-                        <li class={`flex w-full items-center ${step >= 2 ? "text-blue-600 dark:text-blue-500" : "text-gray-500 dark:text-gray-400"} after:content-[''] after:w-full after:h-1 after:border-b after:border-gray-100 after:border-4 after:inline-block dark:after:border-gray-700`}>
-                            <div class={`flex items-center justify-center w-10 h-10 ${step >= 2 ? "bg-blue-100 dark:bg-blue-800" : "bg-gray-100 dark:bg-gray-700"} rounded-full lg:h-12 lg:w-12 shrink-0`}>
-                                <svg class={`w-4 h-4 ${step >= 2 ? "text-blue-600 dark:text-blue-300" : "text-gray-500 dark:text-gray-400"} lg:w-6 lg:h-6`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 14">
+                        <li class={`flex w-full items-center transition-all duration-300 ease-in-out ${step >= 2 ? "text-blue-600 dark:text-blue-500" : "text-gray-500 dark:text-gray-400"} after:content-[''] after:w-full after:h-1 after:border-b after:border-gray-100 after:border-4 after:inline-block dark:after:border-gray-700`}>
+                            <div class={`flex items-center justify-center w-10 h-10 transition-all duration-300 ease-in-out ${step >= 2 ? "bg-blue-100 dark:bg-blue-800" : "bg-gray-100 dark:bg-gray-700"} rounded-full lg:h-12 lg:w-12 shrink-0`}>
+                                 <svg class={`w-4 h-4 transition-all duration-300 ease-in-out ${step >= 2 ? "text-blue-600 dark:text-blue-300" : "text-gray-500 dark:text-gray-400"} lg:w-6 lg:h-6`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 14">
                                     <path d="M18 0H2a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2ZM2 12V6h16v6H2Z"/>
                                     <path d="M6 8H4a1 1 0 0 0 0 2h2a1 1 0 0 0 0-2Zm8 0H9a1 1 0 0 0 0 2h5a1 1 0 1 0 0-2Z"/>
                                 </svg>
                             </div>
                         </li>
-                        <li class={`flex items-center w-full ${step >= 3 ? "text-blue-600 dark:text-blue-500" : "text-gray-500 dark:text-gray-400"}`}>
-                            <div class={`flex items-center justify-center w-10 h-10 ${step >= 3 ? "bg-blue-100 dark:bg-blue-800" : "bg-gray-100 dark:bg-gray-700"} rounded-full lg:h-12 lg:w-12 shrink-0`}>
-                                <svg class={`w-4 h-4 ${step >= 3 ? "text-blue-600 dark:text-blue-300" : "text-gray-500 dark:text-gray-400"} lg:w-6 lg:h-6`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 20">
+                        <li class={`flex items-center w-full transition-all duration-300 ease-in-out ${step >= 3 ? "text-blue-600 dark:text-blue-500" : "text-gray-500 dark:text-gray-400"}`}>
+                            <div class={`flex items-center justify-center w-10 h-10 transition-all duration-300 ease-in-out ${step >= 3 ? "bg-blue-100 dark:bg-blue-800" : "bg-gray-100 dark:bg-gray-700"} rounded-full lg:h-12 lg:w-12 shrink-0`}>
+                                <svg class={`w-4 h-4 transition-all duration-300 ease-in-out ${step >= 3 ? "text-blue-600 dark:text-blue-300" : "text-gray-500 dark:text-gray-400"} lg:w-6 lg:h-6`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 20">
                                     <path d="M16 1h-3.278A1.992 1.992 0 0 0 11 0H7a1.993 1.993 0 0 0-1.722 1H2a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2ZM7 2h4v3H7V2Zm5.7 8.289-3.975 3.857a1 1 0 0 1-1.393 0L5.3 12.182a1.002 1.002 0 1 1 1.4-1.436l1.328 1.289 3.28-3.181a1 1 0 1 1 1.392 1.435Z"/>
                                 </svg>
                             </div>
                         </li>
                     </ol>
-
 
                         {/* Step 1: Project Name */}
                         {step === 1 && (
@@ -440,13 +441,13 @@ function UploadBox() {
                                 />
                             </div>
                         )}
-                        {errorMessageModal && <p className="text-red-500 text-sm mb-4">{errorMessageModal}</p>}
+                         {errorMessageModal && <p className="text-red-500 text-sm mb-4">{errorMessageModal}</p>}
                         {/* Step controls */}
                         <div className="flex justify-end space-x-3">
                             {step > 1 && (
                                 <button
                                     className="px-4 py-2 rounded-lg bg-gradient-to-r from-gray-500 to-gray-700 bg-opacity-90 transition"
-                                     onClick={() => setStep(step - 1)}
+                                     onClick={handlePrev}
                                 >
                                       <IconWithText icon="arrow-left" text="Back" />
                                 </button>
@@ -454,19 +455,19 @@ function UploadBox() {
                             {step < 3 && (
                                 <button
                                     className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 text-white hover:opacity-90 transition"
-                                    onClick={() => setStep(step + 1)}
+                                    onClick={handleNext}
                                 >
                                    <span className="mr-2">
                                         {step === 1 && "Set Details"}
                                         {step === 2 && "Last Touch"}
                                     </span>
-                                   <Icon name="arrow-right" />
+                                    <Icon name="arrow-right" />
                                 </button>
                             )}
                             {step === 3 && (
                                 <button
                                     className="px-4 py-2 rounded-lg bg-gradient-to-r from-green-500 to-green-700 text-white hover:opacity-90 transition"
-                                     onClick={confirmGenerateTransmittal}
+                                   onClick={confirmGenerateTransmittal}
                                 >
                                      <IconWithText icon="download" text="Generate" />
                                 </button>

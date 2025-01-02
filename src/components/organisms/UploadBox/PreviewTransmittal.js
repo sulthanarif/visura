@@ -61,7 +61,8 @@ function PreviewTransmittal({
                             id={`previewRevision-${currentPage - 1}`}
                              placeholder="Revision"
                              value={previewData[results[currentPage - 1]?.id]?.revision || ""}
-                            disabled
+                                onChange={(e) => handlePreviewChange(results[currentPage - 1]?.id, 'revision', e.target.value)}
+                            
                         />
                     </div>
                     <div className="field">
