@@ -40,33 +40,34 @@ function UploadBox() {
     const uploadQueueRef = useRef(null);
     const uploadQueueFileListContainerRef = useRef(null);
     const initialPreviewData = useRef({});
-//    const [documentName, setDocumentName] = useState("");
+    const [errorMessageModal, setErrorMessageModal] = useState('');
 
 
-const [showTransmittalModal, setShowTransmittalModal] = useState(false);
-const [step, setStep] = useState(1);
-const [modalProjectName, setModalProjectName] = useState(projectName);
-const [modalDocumentName, setModalDocumentName] = useState("");
-const [transmittalNumber, setTransmittalNumber] = useState("");
-const [manualCsvFileName, setManualCsvFileName] = useState("");
+    const [showTransmittalModal, setShowTransmittalModal] = useState(false);
+    const [step, setStep] = useState(1);
+    const [modalProjectName, setModalProjectName] = useState(projectName);
+    const [modalDocumentName, setModalDocumentName] = useState("");
+    const [transmittalNumber, setTransmittalNumber] = useState("");
+    const [manualCsvFileName, setManualCsvFileName] = useState("");
 
-   useEffect(() => {
-    if (uploadStatus) {
-        const timer = setTimeout(() => {
-            setUploadStatus("");
-        }, 5000);
-        return () => clearTimeout(timer);
-    }
-}, [uploadStatus]);
 
-useEffect(() => {
-    if (errorMessage) {
-        const timer = setTimeout(() => {
-            setErrorMessage("");
-        }, 5000);
-        return () => clearTimeout(timer);
-    }
-}, [errorMessage]);
+    useEffect(() => {
+        if (uploadStatus) {
+            const timer = setTimeout(() => {
+                setUploadStatus("");
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [uploadStatus]);
+
+    useEffect(() => {
+        if (errorMessage) {
+            const timer = setTimeout(() => {
+                setErrorMessage("");
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [errorMessage]);
 
 
     useEffect(() => {
@@ -104,7 +105,7 @@ useEffect(() => {
             }
         }
     }, [showQueue]);
-    
+
 
     const handleFileChange = (e) => {
         e.preventDefault();
@@ -115,95 +116,88 @@ useEffect(() => {
     };
 
     const handleScanButton = async (e) => {
-         e.preventDefault();
-         if (files.length === 0 && uploadQueueFiles.length === 0) {
+        e.preventDefault();
+        if (files.length === 0 && uploadQueueFiles.length === 0) {
             setErrorMessage("Tidak ada file yang diunggah");
             return;
         }
         setShowQueue(true);
-          const newQueueItems = files.map((file) => ({ file: { name: file.name }, status: "Waiting..." }));
-          setUploadQueueFiles((prev) => [...prev, ...newQueueItems]);
-         const filesTemp = [...files];
+        const newQueueItems = files.map((file) => ({ file: { name: file.name }, status: "Waiting..." }));
+        setUploadQueueFiles((prev) => [...prev, ...newQueueItems]);
+        const filesTemp = [...files];
         setFiles([]);
         try {
             setIsUploading(true);
             setUploadStatus("Uploading to Server...");
             const formData = new FormData();
-              filesTemp.forEach((file) => {
-                  formData.append("pdfFile", file);
-              });
-           const response =  await fetch("/api/ocr", {
-                  method: "POST",
-                  body: formData,
-              });
+            filesTemp.forEach((file) => {
+                formData.append("pdfFile", file);
+            });
+            const response = await fetch("/api/ocr", {
+                method: "POST",
+                body: formData,
+            });
 
-              const responseData = await response.json();
+            const responseData = await response.json();
 
-              if (!response.ok) {
-                //   setUploadQueueFiles((prev) =>
-                //       prev.map((item) => ({
-                //           ...item,
-                //           status: "Failed",
-                //           error: responseData.message
-                //       }))
-                //   );
-                  setUploadStatus(`${responseData.message}`);
-                  return;
-              }
+            if (!response.ok) {
+                setUploadStatus(`${responseData.message}`);
+                return;
+            }
             const data = await responseData;
-             if (data.uploadQueueFiles) {
+            if (data.uploadQueueFiles) {
                 setUploadQueueFiles(data.uploadQueueFiles);
-                if(data.uploadQueueFiles.length > 0){
-                     if(data.uploadQueueFiles[0].status === "Done" || data.uploadQueueFiles[0].status === "Failed"){
+                if (data.uploadQueueFiles.length > 0) {
+                    if (data.uploadQueueFiles[0].status === "Done" || data.uploadQueueFiles[0].status === "Failed") {
                         setShowPreview(true);
-                     }
-                  }
-             }
-              if(data.data){
-                    setResults(prev => {
-                         const newResult = [...prev];
-                         data.data.forEach((item, index) => {
-                            newResult.push({ ...item, id: prev.length + index });
-                             initialPreviewData.current[prev.length + index] = {
-                                 project: projectName,
-                                drawing: item.title,
-                                revision: item.revision,
-                                 drawingCode: item.drawingCode,
-                                 date: item.date,
-                                 filename: item.filename
-                           };
-                         });
-                        return newResult
-                     });
-                   setPreviewData(prev => ({...prev, ...initialPreviewData.current}));
-                     setIsScanning(true);
-              }
-              
-              if(data.error){
-                  setErrorMessage(data.error);
-              }
-              if(data.csvFileName){
-                    setCsvFileName(data.csvFileName);
-                       setIsUploading(false);
-                      setUploadStatus("Upload and scanning successful.");
-                 }
-         } catch (error) {
+                    }
+                }
+            }
+            if (data.data) {
+                setResults(prev => {
+                    const newResult = [...prev];
+                    data.data.forEach((item, index) => {
+                        newResult.push({ ...item, id: prev.length + index });
+                        initialPreviewData.current[prev.length + index] = {
+                            project: projectName,
+                            drawing: item.title,
+                            revision: item.revision,
+                            drawingCode: item.drawingCode,
+                            date: item.date,
+                            filename: item.filename
+                        };
+                    });
+                    return newResult
+                });
+                setPreviewData(prev => ({ ...prev, ...initialPreviewData.current }));
+                setIsScanning(true);
+            }
+
+            if (data.error) {
+                setErrorMessage(data.error);
+            }
+            if (data.csvFileName) {
+                setCsvFileName(data.csvFileName);
+                setIsUploading(false);
+                setUploadStatus("Upload and scanning successful.");
+            }
+        } catch (error) {
             console.error("Error during upload or processing:", error);
-             setUploadStatus(
+            setUploadStatus(
                 `Upload failed: ${error.message || "An unexpected error occurred"}`
-             );
-              setUploadQueueFiles((prev) =>
+            );
+            setUploadQueueFiles((prev) =>
                 prev.map((item) =>
                     filesTemp.includes(item.file) ? { ...item, status: "Failed" } : item
                 )
             );
-           
-        }  finally{
-           setIsUploading(false);
-           setIsScanning(false);
+
+        } finally {
+            setIsUploading(false);
+            setIsScanning(false);
         }
     };
-    
+
     const handlePrev = () => {
         if (currentPage > 1) {
             setCurrentPage(currentPage - 1);
@@ -223,40 +217,47 @@ useEffect(() => {
         });
     };
     const handleGenerateTransmittal = () => {
+         setErrorMessageModal("")
         setModalProjectName(projectName);
         setShowTransmittalModal(true);
-      };
+    };
+
 
     const confirmGenerateTransmittal = async () => {
+         setErrorMessageModal("");
+          if (!modalProjectName || !modalDocumentName || !transmittalNumber || !manualCsvFileName) {
+            setErrorMessageModal('All fields are required.');
+            return;
+        }
         try {
-            const transmittalData = Object.values(previewData); 
-    const response = await fetch("/api/generate-transmittal", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        transmittalData,
-        projectName: modalProjectName,
-        documentName: modalDocumentName,
-        transmittalNumber,
-        csvFileName: manualCsvFileName
-      }),
-    });
-    if (!response.ok) throw new Error("Failed to generate transmittal");    
-    const data = await response.json();
-    setCsvFileName(data.csvFileName);
+            const transmittalData = Object.values(previewData);
+            const response = await fetch("/api/generate-transmittal", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    transmittalData,
+                    projectName: modalProjectName,
+                    documentName: modalDocumentName,
+                    transmittalNumber,
+                    csvFileName: manualCsvFileName
+                }),
+            });
+            if (!response.ok) throw new Error("Failed to generate transmittal");
+            const data = await response.json();
+            setCsvFileName(data.csvFileName);
 
-    // download file
+            // download file
             const link = document.createElement("a");
             link.href = `/output/${data.csvFileName}`;
             link.download = data.csvFileName;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-// we can use this cleanup function to remove the file from the server
+            // we can use this cleanup function to remove the file from the server
             setCleanupStatus("Cleaning up files, please wait...");
-             const cleanupResponse = await fetch("/api/cleanup", { method: "POST" });
-            
-             setShowTransmittalModal(false);
+            const cleanupResponse = await fetch("/api/cleanup", { method: "POST" });
+
+            setShowTransmittalModal(false);
 
             if (!cleanupResponse.ok) {
                 const errorData = await cleanupResponse.json();
@@ -270,10 +271,14 @@ useEffect(() => {
             setCleanupStatus(`Failed to generate transmittal ${error.message || ""}`);
         }
     };
+
     const handleHideQueue = () => {
         setShowQueue(false);
     };
-
+    const handleModalClose = () => {
+        setShowTransmittalModal(false);
+        setStep(1); // Reset step to 1 when modal closes
+    };
     function updatePageInfo() {
         const pageInfo = document.getElementById("pageInfo");
         if (pageInfo) {
@@ -327,132 +332,150 @@ useEffect(() => {
                 handleGenerateTransmittal={handleGenerateTransmittal}
 
             />
-{showTransmittalModal && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-    <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full relative space-y-6">
-      <h1 className="text-2xl font-semibold text center">A Few Action Needed</h1>
-      {/* Close Button (X icon) */}
-      <button
-        className="top-1 right-4 text-gray-500 hover:text-gray-700 transition max-w-max mb-4 absolute"
-        onClick={() => setShowTransmittalModal(false)}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={2}
-          stroke="currentColor"
-          className="w-6 h-6"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
+            {showTransmittalModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full relative space-y-6">
+                        <h1 className="text-2xl font-semibold text center">A Few Action Needed</h1>
+                        {/* Close Button (X icon) */}
+                        <button
+                            className="top-1 right-4 text-gray-500 hover:text-gray-700 transition max-w-max mb-4 absolute"
+                           onClick={handleModalClose}
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth={2}
+                                stroke="currentColor"
+                                className="w-6 h-6"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M6 18L18 6M6 6l12 12"
+                                />
+                            </svg>
+                        </button>
+                         {/* Stepper */}
+                    <ol class="flex items-center w-full mb-4 sm:mb-5">
+                        <li class={`flex w-full items-center ${step >= 1 ? "text-blue-600 dark:text-blue-500" : "text-gray-500 dark:text-gray-400"}  after:content-[''] after:w-full after:h-1 after:border-b after:border-blue-100 after:border-4 after:inline-block dark:after:border-blue-800`}>
+                            <div class={`flex items-center justify-center w-10 h-10 ${step >= 1 ? "bg-blue-100 dark:bg-blue-800" : "bg-gray-100 dark:bg-gray-700"} rounded-full lg:h-12 lg:w-12 shrink-0`}>
+                                <svg class={`w-4 h-4 ${step >= 1 ? "text-blue-600 dark:text-blue-300" : "text-gray-500 dark:text-gray-400"} lg:w-6 lg:h-6`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 16">
+                                    <path d="M18 0H2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2ZM6.5 3a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3.014 13.021l.157-.625A3.427 3.427 0 0 1 6.5 9.571a3.426 3.426 0 0 1 3.322 2.805l.159.622-6.967.023ZM16 12h-3a1 1 0 0 1 0-2h3a1 1 0 0 1 0 2Zm0-3h-3a1 1 0 1 1 0-2h3a1 1 0 1 1 0 2Zm0-3h-3a1 1 0 1 1 0-2h3a1 1 0 1 1 0 2Z"/>
+                                </svg>
+                            </div>
+                        </li>
+                        <li class={`flex w-full items-center ${step >= 2 ? "text-blue-600 dark:text-blue-500" : "text-gray-500 dark:text-gray-400"} after:content-[''] after:w-full after:h-1 after:border-b after:border-gray-100 after:border-4 after:inline-block dark:after:border-gray-700`}>
+                            <div class={`flex items-center justify-center w-10 h-10 ${step >= 2 ? "bg-blue-100 dark:bg-blue-800" : "bg-gray-100 dark:bg-gray-700"} rounded-full lg:h-12 lg:w-12 shrink-0`}>
+                                <svg class={`w-4 h-4 ${step >= 2 ? "text-blue-600 dark:text-blue-300" : "text-gray-500 dark:text-gray-400"} lg:w-6 lg:h-6`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 14">
+                                    <path d="M18 0H2a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2ZM2 12V6h16v6H2Z"/>
+                                    <path d="M6 8H4a1 1 0 0 0 0 2h2a1 1 0 0 0 0-2Zm8 0H9a1 1 0 0 0 0 2h5a1 1 0 1 0 0-2Z"/>
+                                </svg>
+                            </div>
+                        </li>
+                        <li class={`flex items-center w-full ${step >= 3 ? "text-blue-600 dark:text-blue-500" : "text-gray-500 dark:text-gray-400"}`}>
+                            <div class={`flex items-center justify-center w-10 h-10 ${step >= 3 ? "bg-blue-100 dark:bg-blue-800" : "bg-gray-100 dark:bg-gray-700"} rounded-full lg:h-12 lg:w-12 shrink-0`}>
+                                <svg class={`w-4 h-4 ${step >= 3 ? "text-blue-600 dark:text-blue-300" : "text-gray-500 dark:text-gray-400"} lg:w-6 lg:h-6`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 20">
+                                    <path d="M16 1h-3.278A1.992 1.992 0 0 0 11 0H7a1.993 1.993 0 0 0-1.722 1H2a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2ZM7 2h4v3H7V2Zm5.7 8.289-3.975 3.857a1 1 0 0 1-1.393 0L5.3 12.182a1.002 1.002 0 1 1 1.4-1.436l1.328 1.289 3.28-3.181a1 1 0 1 1 1.392 1.435Z"/>
+                                </svg>
+                            </div>
+                        </li>
+                    </ol>
 
-      {/* Progress bar step indicator */}
-      <div className="relative w-full bg-gray-200 rounded-full h-2 mb-9 bg-opacity-10">
-        <div
-          className={`absolute h-2 rounded-full bg-blue-500 transition-all`}
-          style={{ width: `${(step / 3) * 100}%`, maxWidth: "80%" }}
-        ></div>
-      </div>
 
-      {/* Step 1: Project Name */}
-      {step === 1 && (
-        <div className="space-y-4">
-          <label className="block text-lg font-medium text-gray-700">
-            Project Name
-          </label>
-          <input
-            className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
-            type="text"
-            value={modalProjectName}
-            onChange={(e) => setModalProjectName(e.target.value)}
-            placeholder="Enter project name"
-          />
-        </div>
-      )}
+                        {/* Step 1: Project Name */}
+                        {step === 1 && (
+                            <div className="space-y-4">
+                                <label className="block text-lg font-medium text-gray-700">
+                                    Project Name
+                                </label>
+                                <input
+                                    className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+                                    type="text"
+                                    value={modalProjectName}
+                                    onChange={(e) => setModalProjectName(e.target.value)}
+                                    placeholder="Enter project name"
+                                />
+                            </div>
+                        )}
 
-      {/* Step 2: Document Name + Transmittal Number */}
-      {step === 2 && (
-        <div className="space-y-4">
-          <label className="block text-lg font-medium text-gray-700">
-            Document Name
-          </label>
-          <input
-            className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
-            type="text"
-            value={modalDocumentName}
-            onChange={(e) => setModalDocumentName(e.target.value)}
-            placeholder="Enter document name"
-          />
-          <label className="block text-lg font-medium text-gray-700">
-            Transmittal Number
-          </label>
-          <input
-            className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
-            type="text"
-            value={transmittalNumber}
-            onChange={(e) => setTransmittalNumber(e.target.value)}
-            placeholder="Enter transmittal number"
-          />
-        </div>
-      )}
+                        {/* Step 2: Document Name + Transmittal Number */}
+                        {step === 2 && (
+                            <div className="space-y-4">
+                                <label className="block text-lg font-medium text-gray-700">
+                                    Document Name
+                                </label>
+                                <input
+                                    className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+                                    type="text"
+                                    value={modalDocumentName}
+                                    onChange={(e) => setModalDocumentName(e.target.value)}
+                                    placeholder="Enter document name"
+                                />
+                                <label className="block text-lg font-medium text-gray-700">
+                                    Transmittal Number
+                                </label>
+                                <input
+                                    className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+                                    type="text"
+                                    value={transmittalNumber}
+                                    onChange={(e) => setTransmittalNumber(e.target.value)}
+                                    placeholder="Enter transmittal number"
+                                />
+                            </div>
+                        )}
 
-      {/* Step 3: CSV File Name */}
-      {step === 3 && (
-        <div className="space-y-4">
-          <label className="block text-lg font-medium text-gray-700">
-            CSV File Name
-          </label>
-          <input
-            className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
-            type="text"
-            value={manualCsvFileName}
-            onChange={(e) => setManualCsvFileName(e.target.value)}
-            placeholder="Enter CSV file name"
-          />
-        </div>
-      )}
+                        {/* Step 3: CSV File Name */}
+                        {step === 3 && (
+                            <div className="space-y-4">
+                                <label className="block text-lg font-medium text-gray-700">
+                                    CSV File Name
+                                </label>
+                                <input
+                                    className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+                                    type="text"
+                                    value={manualCsvFileName}
+                                    onChange={(e) => setManualCsvFileName(e.target.value)}
+                                    placeholder="Enter CSV file name"
+                                />
+                            </div>
+                        )}
+                        {errorMessageModal && <p className="text-red-500 text-sm mb-4">{errorMessageModal}</p>}
+                        {/* Step controls */}
+                        <div className="flex justify-end space-x-3">
+                            {step > 1 && (
+                                <button
+                                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-gray-500 to-gray-700 bg-opacity-90 transition"
+                                     onClick={() => setStep(step - 1)}
+                                >
+                                      <IconWithText icon="arrow-left" text="Back" />
+                                </button>
+                            )}
+                            {step < 3 && (
+                                <button
+                                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 text-white hover:opacity-90 transition"
+                                    onClick={() => setStep(step + 1)}
+                                >
+                                   <span className="mr-2">
+                                        {step === 1 && "Set Details"}
+                                        {step === 2 && "Last Touch"}
+                                    </span>
+                                   <Icon name="arrow-right" />
+                                </button>
+                            )}
+                            {step === 3 && (
+                                <button
+                                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-green-500 to-green-700 text-white hover:opacity-90 transition"
+                                     onClick={confirmGenerateTransmittal}
+                                >
+                                     <IconWithText icon="download" text="Generate" />
+                                </button>
 
-      {/* Step controls */}
-      <div className="flex justify-end space-x-3">
-        {step > 1 && (
-          <button
-            className="px-4 py-2 rounded-lg bg-gradient-to-r from-gray-500 to-gray-700 bg-opacity-90 transition"
-            onClick={() => setStep(step - 1)}
-          >
-            <IconWithText icon="arrow-left" text="Back" />
-          </button>
-        )}
-        {step < 3 && (
-          <button
-            className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 text-white hover:opacity-90 transition"
-            onClick={() => setStep(step + 1)}
-          >
-            <span className="mr-2">
-                {step === 1 && "Set Details"}
-                {step === 2 && "Last Touch"}
-            </span>
-            <i className="fas fa-arrow-right"></i>
-          </button>
-        )}
-        {step === 3 && (
-          <button
-            className="px-4 py-2 rounded-lg bg-gradient-to-r from-green-500 to-green-700 text-white hover:opacity-90 transition"
-            onClick={confirmGenerateTransmittal}
-          >
-            <IconWithText icon="download" text="Generate" />
-          </button>
-          
-        )}
-      </div>
-    </div>
-  </div>
-)}
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
 
             <UploadQueue

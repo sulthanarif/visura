@@ -42,10 +42,6 @@ function PreviewTransmittal({
                 Preview Transmittal
             </h2>
             <br />
-            <div className="field">
-                <label htmlFor="previewProjectName">Project Name</label>
-                <input type="text" id="previewProjectName" placeholder="Project Name" value={projectName} disabled />
-            </div>
             {results && results[currentPage - 1] && (
                 <div key={results[currentPage - 1]?.id}>
                     <div className="field">
