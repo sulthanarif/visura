@@ -40,7 +40,15 @@ function UploadBox() {
     const uploadQueueRef = useRef(null);
     const uploadQueueFileListContainerRef = useRef(null);
     const initialPreviewData = useRef({});
-   const [documentName, setDocumentName] = useState("");
+//    const [documentName, setDocumentName] = useState("");
+
+
+const [showTransmittalModal, setShowTransmittalModal] = useState(false);
+const [step, setStep] = useState(1);
+const [modalProjectName, setModalProjectName] = useState(projectName);
+const [modalDocumentName, setModalDocumentName] = useState("");
+const [transmittalNumber, setTransmittalNumber] = useState("");
+const [manualCsvFileName, setManualCsvFileName] = useState("");
 
    useEffect(() => {
     if (uploadStatus) {
@@ -214,32 +222,41 @@ useEffect(() => {
             return updatedPreview;
         });
     };
+    const handleGenerateTransmittal = () => {
+        setModalProjectName(projectName);
+        setShowTransmittalModal(true);
+      };
 
-
-    const handleGenerateTransmittal = async () => {
+    const confirmGenerateTransmittal = async () => {
         try {
-            const transmittalData = Object.values(previewData);
-            const response = await fetch("/api/generate-transmittal", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ transmittalData, projectName, documentName }),
-            });
+            const transmittalData = Object.values(previewData); 
+    const response = await fetch("/api/generate-transmittal", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        transmittalData,
+        projectName: modalProjectName,
+        documentName: modalDocumentName,
+        transmittalNumber,
+        csvFileName: manualCsvFileName
+      }),
+    });
+    if (!response.ok) throw new Error("Failed to generate transmittal");    
+    const data = await response.json();
+    setCsvFileName(data.csvFileName);
 
-            if (!response.ok) {
-                throw new Error("Failed to generate transmittal");
-            }
-            const data = await response.json();
-           setCsvFileName(data.csvFileName);
+    // download file
             const link = document.createElement("a");
             link.href = `/output/${data.csvFileName}`;
             link.download = data.csvFileName;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+// we can use this cleanup function to remove the file from the server
             setCleanupStatus("Cleaning up files, please wait...");
              const cleanupResponse = await fetch("/api/cleanup", { method: "POST" });
+            
+             setShowTransmittalModal(false);
 
             if (!cleanupResponse.ok) {
                 const errorData = await cleanupResponse.json();
@@ -284,16 +301,6 @@ useEffect(() => {
     return (
         <div className="upload-box">
             <ProjectInput projectName={projectName} setProjectName={setProjectName} />
-            <div className="field">
-                <label htmlFor="documentName">Document Name</label>
-                <input
-                    type="text"
-                    id="documentName"
-                    placeholder="Document Name"
-                    value={documentName}
-                    onChange={(e) => setDocumentName(e.target.value)}
-                />
-            </div>
             <FileUploadArea handleFileChange={handleFileChange} fileInputRef={fileInputRef} />
             <FileListDisplay
                 files={files}
@@ -320,6 +327,134 @@ useEffect(() => {
                 handleGenerateTransmittal={handleGenerateTransmittal}
 
             />
+{showTransmittalModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full relative space-y-6">
+      <h1 className="text-2xl font-semibold text center">A Few Action Needed</h1>
+      {/* Close Button (X icon) */}
+      <button
+        className="top-1 right-4 text-gray-500 hover:text-gray-700 transition max-w-max mb-4 absolute"
+        onClick={() => setShowTransmittalModal(false)}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+          className="w-6 h-6"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+
+      {/* Progress bar step indicator */}
+      <div className="relative w-full bg-gray-200 rounded-full h-2 mb-9 bg-opacity-10">
+        <div
+          className={`absolute h-2 rounded-full bg-blue-500 transition-all`}
+          style={{ width: `${(step / 3) * 100}%`, maxWidth: "80%" }}
+        ></div>
+      </div>
+
+      {/* Step 1: Project Name */}
+      {step === 1 && (
+        <div className="space-y-4">
+          <label className="block text-lg font-medium text-gray-700">
+            Project Name
+          </label>
+          <input
+            className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+            type="text"
+            value={modalProjectName}
+            onChange={(e) => setModalProjectName(e.target.value)}
+            placeholder="Enter project name"
+          />
+        </div>
+      )}
+
+      {/* Step 2: Document Name + Transmittal Number */}
+      {step === 2 && (
+        <div className="space-y-4">
+          <label className="block text-lg font-medium text-gray-700">
+            Document Name
+          </label>
+          <input
+            className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+            type="text"
+            value={modalDocumentName}
+            onChange={(e) => setModalDocumentName(e.target.value)}
+            placeholder="Enter document name"
+          />
+          <label className="block text-lg font-medium text-gray-700">
+            Transmittal Number
+          </label>
+          <input
+            className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+            type="text"
+            value={transmittalNumber}
+            onChange={(e) => setTransmittalNumber(e.target.value)}
+            placeholder="Enter transmittal number"
+          />
+        </div>
+      )}
+
+      {/* Step 3: CSV File Name */}
+      {step === 3 && (
+        <div className="space-y-4">
+          <label className="block text-lg font-medium text-gray-700">
+            CSV File Name
+          </label>
+          <input
+            className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+            type="text"
+            value={manualCsvFileName}
+            onChange={(e) => setManualCsvFileName(e.target.value)}
+            placeholder="Enter CSV file name"
+          />
+        </div>
+      )}
+
+      {/* Step controls */}
+      <div className="flex justify-end space-x-3">
+        {step > 1 && (
+          <button
+            className="px-4 py-2 rounded-lg bg-gradient-to-r from-gray-500 to-gray-700 bg-opacity-90 transition"
+            onClick={() => setStep(step - 1)}
+          >
+            <IconWithText icon="arrow-left" text="Back" />
+          </button>
+        )}
+        {step < 3 && (
+          <button
+            className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 text-white hover:opacity-90 transition"
+            onClick={() => setStep(step + 1)}
+          >
+            <span className="mr-2">
+                {step === 1 && "Set Details"}
+                {step === 2 && "Last Touch"}
+            </span>
+            <i className="fas fa-arrow-right"></i>
+          </button>
+        )}
+        {step === 3 && (
+          <button
+            className="px-4 py-2 rounded-lg bg-gradient-to-r from-green-500 to-green-700 text-white hover:opacity-90 transition"
+            onClick={confirmGenerateTransmittal}
+          >
+            <IconWithText icon="download" text="Generate" />
+          </button>
+          
+        )}
+      </div>
+    </div>
+  </div>
+)}
+
+
             <UploadQueue
                 showQueue={showQueue}
                 uploadQueueFiles={uploadQueueFiles}

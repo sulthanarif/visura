@@ -1,7 +1,7 @@
-/* 
+
 @tailwind base;
 @tailwind components;
-@tailwind utilities; */
+@tailwind utilities;
 
 /* src/styles/global.css */
 body {
@@ -11,6 +11,15 @@ body {
     background-size: cover;
     height: 100vh;
     /* overflow: hidden; */
+}
+
+input[type="date"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
 }
 
 .header {

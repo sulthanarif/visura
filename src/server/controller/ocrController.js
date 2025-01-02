@@ -98,20 +98,18 @@ const ocrController = {
     },
     generateTransmittal: async (req, res) => {
         try {
-            const { transmittalData, projectName, documentName } = req.body;
-            if (!transmittalData || transmittalData.length === 0) {
-                return res.status(400).json({ message: "No transmittal data provided." });
-            }
-             let csvFileName;
-            try {
-                  csvFileName = await generateDataFiles(transmittalData, outputDir, projectName, documentName);
-            }catch(e){
-                console.error("Error generating transmittal:", e);
-                 return res.status(500).json({ message: "Error generating transmittal", error: e.message });
-            }
+            const { transmittalData, projectName, documentName, transmittalNumber, csvFileName } = req.body;
 
-           res.status(200).json({ message: 'Transmittal generated successfully', csvFileName: csvFileName });
-
+            // Pass csvFileName to the OCR or CSV generator
+            const generatedFileName = await generateDataFiles(
+              transmittalData,
+              projectName,
+              documentName,
+              transmittalNumber,
+              csvFileName
+            );
+        
+            return res.status(200).json({ csvFileName: generatedFileName });
         } catch (error) {
             console.error("Error generating transmittal:", error);
            res.status(500).json({ message: "Error generating transmittal", error: error.message });

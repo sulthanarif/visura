@@ -1,8 +1,6 @@
-//src/components/organisms/UploadBox/PreviewTransmittal.js
 import React from 'react';
 import Icon from '../../atoms/Icon';
 import Button from '../../atoms/Button';
-import { useState } from 'react';
 import IconWithText from '@/components/molecules/IconWithText';
 
 function PreviewTransmittal({
@@ -16,30 +14,31 @@ function PreviewTransmittal({
     handleNext,
     handleGenerateTransmittal,
 }) {
-      const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState({
-        text: null,
-        type: null, //success, warning, error
-    });
-   const  handleGenerateTransmittalClick = async ()=>{
-      setLoading(true);
-        try {
-            await handleGenerateTransmittal();
-               setMessage({ text: 'Transmittal generated successfully!', type: 'success' });
-        }catch(e){
-              setMessage({ text: 'Error generating transmittal, please check log', type: 'error' });
-        }finally{
-            setLoading(false);
-        }
-   };
+
+    const handleDateChange = (index, event) => {
+         const newDate = event.target.value;
+        const dateObj = new Date(newDate);
+
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+        const year = dateObj.getFullYear();
+
+        const formattedDate = `${day}/${month}/${year}`;
+        const formattedRevisionDate = `${day}${month}${year}`;
+
+       const newRevision = previewData[index]?.revision.split('-')[0] + "-" + formattedRevisionDate.slice(0,8)
+
+        // Update both date and revision fields
+        handlePreviewChange(index, 'date', newDate);
+         handlePreviewChange(index, 'revision', newRevision)
+    };
     return (
         <div
             className={`preview-transmittal ${showPreview ? "show" : "remove"}`}
             id="previewTransmittal"
-        >   
-        
+        >
             <h2>
-            <Icon name="file-csv" />
+                <Icon name="file-csv" />
                 Preview Transmittal
             </h2>
             <br />
@@ -64,9 +63,9 @@ function PreviewTransmittal({
                         <input
                             type="text"
                             id={`previewRevision-${currentPage - 1}`}
-                            placeholder="Revision"
-                            value={previewData[results[currentPage - 1]?.id]?.revision || ""}
-                            onChange={(e) => handlePreviewChange(results[currentPage - 1]?.id, 'revision', e.target.value)}
+                             placeholder="Revision"
+                             value={previewData[results[currentPage - 1]?.id]?.revision || ""}
+                            disabled
                         />
                     </div>
                     <div className="field">
@@ -83,15 +82,14 @@ function PreviewTransmittal({
                     </div>
                     <div className="field">
                         <label htmlFor={`previewDate-${currentPage - 1}`} style={{display:"flex", alignItems:"center", gap:"5px"}}>
-                            <Icon name="calendar-alt" />
                             Date
                         </label>
-                        <input
-                            type="text"
+                          <input 
+                            type="date"
                             id={`previewDate-${currentPage - 1}`}
                             placeholder="Date"
                             value={previewData[results[currentPage - 1]?.id]?.date || ""}
-                            onChange={(e) => handlePreviewChange(results[currentPage - 1]?.id, 'date', e.target.value)}
+                            onChange={(e) => handleDateChange(results[currentPage - 1]?.id, e)}
                         />
                     </div>
                     <hr />
@@ -103,7 +101,7 @@ function PreviewTransmittal({
                     onClick={handlePrev}
                     disabled={currentPage === 1}
                 >
-                    <Icon name="angle-left" />
+                  <Icon name="angle-left" />
                 </Button>
                 <span id="pageInfo"></span>
                 <Button
@@ -111,19 +109,14 @@ function PreviewTransmittal({
                     onClick={handleNext}
                     disabled={results.length === 0}
                 >
-                    <Icon name="angle-right" />
+                   <Icon name="angle-right" />
                 </Button>
             </div>
-             <div className="button-container">
-                <Button onClick={handleGenerateTransmittalClick} loading={loading} disabled={loading}>
-                    <IconWithText icon="file-csv" text="Generate Transmittal" />
+            <div className="button-container">
+                <Button onClick={handleGenerateTransmittal}>
+                   <IconWithText icon="file-csv" text="Generate Transmittal" />
                 </Button>
             </div>
-              {message.text && (
-                <div className={`message ${message.type}`}>
-                    {message.text}
-                </div>
-            )}
         </div>
     );
 }
