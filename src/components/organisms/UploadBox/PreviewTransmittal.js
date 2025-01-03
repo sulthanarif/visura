@@ -96,7 +96,6 @@ function PreviewTransmittal({
                 <Button
                     id="prevBtn"
                     onClick={handlePrev}
-                    disabled={currentPage === 1}
                 >
                   <Icon name="angle-left" />
                 </Button>
@@ -104,7 +103,6 @@ function PreviewTransmittal({
                 <Button
                     id="nextBtn"
                     onClick={handleNext}
-                    disabled={results.length === 0}
                 >
                    <Icon name="angle-right" />
                 </Button>
