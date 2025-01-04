@@ -117,86 +117,102 @@ function UploadBox() {
     };
 
     const handleScanButton = async (e) => {
-        e.preventDefault();
-        if (files.length === 0 && uploadQueueFiles.length === 0) {
-            setErrorMessage("Tidak ada file yang diunggah");
-            return;
+      e.preventDefault();
+      setCurrentPage(1);
+      if (files.length === 0 && uploadQueueFiles.length === 0) {
+        setErrorMessage("Tidak ada file yang diunggah");
+        return;
+      }
+      setShowQueue(true);
+      const newQueueItems = files.map((file) => ({
+        file: { name: file.name },
+        status: "Waiting...",
+      }));
+      setUploadQueueFiles((prev) => [...prev, ...newQueueItems]);
+      const filesTemp = [...files];
+      setFiles([]);
+      try {
+        setIsUploading(true);
+        setUploadStatus("Uploading to Server...");
+        const formData = new FormData();
+        filesTemp.forEach((file) => {
+          formData.append("pdfFile", file);
+        });
+        const response = await fetch("/api/ocr", {
+          method: "POST",
+          body: formData,
+        });
+  
+        const responseData = await response.json();
+  
+        if (!response.ok) {
+          setUploadStatus(`${responseData.message}`);
+          return;
         }
-        setShowQueue(true);
-        const newQueueItems = files.map((file) => ({ file: { name: file.name }, status: "Waiting..." }));
-        setUploadQueueFiles((prev) => [...prev, ...newQueueItems]);
-        const filesTemp = [...files];
-        setFiles([]);
-        try {
-            setIsUploading(true);
-            setUploadStatus("Uploading to Server...");
-            const formData = new FormData();
-            filesTemp.forEach((file) => {
-                formData.append("pdfFile", file);
+  
+        const data = await responseData;
+  
+        if (data.uploadQueueFiles) {
+          setUploadQueueFiles(data.uploadQueueFiles);
+  
+          const hasFailed = data.uploadQueueFiles.some(
+            (file) => file.status === "Failed"
+          );
+          const hasDone = data.uploadQueueFiles.some(
+            (file) => file.status === "Done"
+          );
+  
+          if (hasFailed) {
+            setErrorMessage("Some files failed to process");
+          }
+          if (hasDone) {
+            setShowPreview(true);
+          }
+        }
+  
+        if (data.data) {
+          setResults((prev) => {
+            const newResult = [...prev];
+            data.data.forEach((item, index) => {
+              newResult.push({ ...item, id: prev.length + index });
+              initialPreviewData.current[prev.length + index] = {
+                project: projectName,
+                drawing: item.title,
+                revision: item.revision,
+                drawingCode: item.drawingCode,
+                date: item.date,
+                filename: item.filename,
+              };
             });
-            const response = await fetch("/api/ocr", {
-                method: "POST",
-                body: formData,
-            });
-
-            const responseData = await response.json();
-
-            if (!response.ok) {
-                setUploadStatus(`${responseData.message}`);
-                return;
-            }
-            const data = await responseData;
-            if (data.uploadQueueFiles) {
-                setUploadQueueFiles(data.uploadQueueFiles);
-                if (data.uploadQueueFiles.length > 0) {
-                    if (data.uploadQueueFiles[0].status === "Done" || data.uploadQueueFiles[0].status === "Failed") {
-                        setShowPreview(true);
-                    }
-                }
-            }
-            if (data.data) {
-                setResults(prev => {
-                    const newResult = [...prev];
-                    data.data.forEach((item, index) => {
-                        newResult.push({ ...item, id: prev.length + index });
-                        initialPreviewData.current[prev.length + index] = {
-                            project: projectName,
-                            drawing: item.title,
-                            revision: item.revision,
-                            drawingCode: item.drawingCode,
-                            date: item.date,
-                            filename: item.filename
-                        };
-                    });
-                    return newResult
-                });
-                setPreviewData(prev => ({ ...prev, ...initialPreviewData.current }));
-                setIsScanning(true);
-            }
-
-            if (data.error) {
-                setErrorMessage(data.error);
-            }
-            if (data.csvFileName) {
-                setCsvFileName(data.csvFileName);
-                setIsUploading(false);
-                setUploadStatus("Upload and scanning successful.");
-            }
-        } catch (error) {
-            console.error("Error during upload or processing:", error);
-            setUploadStatus(
-                `Upload failed: ${error.message || "An unexpected error occurred"}`
-            );
-            setUploadQueueFiles((prev) =>
-                prev.map((item) =>
-                    filesTemp.includes(item.file) ? { ...item, status: "Failed" } : item
-                )
-            );
-
-        } finally {
+            return newResult;
+          });
+          setPreviewData((prev) => ({ ...prev, ...initialPreviewData.current }));
+          setIsScanning(true);
+        }
+  
+        if (data.error) {
+          setErrorMessage(data.error);
+          setUploadStatus(`Failed: ${data.error}`);
+          return;
+        }
+  
+        if (data.csvFileName) {
+          if (data.uploadQueueFiles?.some((file) => file.status === "Failed")) {
+            setUploadStatus("Processing completed with errors");
+          } else {
+            setCsvFileName(data.csvFileName);
             setIsUploading(false);
-            setIsScanning(false);
+            setUploadStatus("Upload and scanning successful.");
+          }
         }
+        setIsUploading(false);
+        setIsScanning(false);
+      } catch (error) {
+        console.error("Error during scan: ", error);
+        setErrorMessage(`Failed to scan: ${error.message || ""}`);
+        setIsUploading(false);
+        setIsScanning(false);
+      }
     };
 
     const handlePrev = () => {
