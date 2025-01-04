@@ -128,7 +128,7 @@ function UploadBox() {
 
     const handleScanButton = async (e) => {
       e.preventDefault();
-      setCurrentPage(1);
+      // setCurrentPage(1);
       if (files.length === 0 && uploadQueueFiles.length === 0) {
         setErrorMessage("Tidak ada file yang diunggah");
         return;
@@ -327,9 +327,9 @@ function UploadBox() {
         <div className="upload-box">
             <ProjectInput projectName={projectName} setProjectName={setProjectName} />
             <FileUploadArea handleFileChange={handleFileChange} fileInputRef={fileInputRef} />
-            <div className="file-count">
-            {files.length}/{MAX_FILES} files
-        </div>
+             <div className="file-count">
+                 {files.length}/{MAX_FILES} files
+            </div>
             <FileListDisplay
                 files={files}
                 onRemoveFile={handleRemoveFile}

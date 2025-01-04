@@ -555,3 +555,49 @@ input[type="date"] {
 .title-container .remove {
     display: none;
 }
+
+.accordion-section {
+    margin: 1rem 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.accordion-trigger {
+    width: 100%;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f9fafb;
+    border: none;
+    cursor: pointer;
+}
+
+.accordion-trigger.open {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.accordion-content.show {
+    max-height: 500px;
+    padding: 1rem;
+}
+
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.cropped-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 0.25rem;
+    border: 1px solid #e5e7eb;
+}

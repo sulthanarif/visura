@@ -3,7 +3,6 @@ import React from 'react';
 import FileListItem from '../atoms/FileListItem';
 
 function FileList({ files, onRemoveFile }) {
-    console.log('from file list FileList: files received', files);
     return (
         <ul className="file-list">
             {files && files.map((file, index) => (
