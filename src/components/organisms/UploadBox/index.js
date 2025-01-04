@@ -43,7 +43,10 @@ function UploadBox() {
     const initialPreviewData = useRef({});
     const [errorMessageModal, setErrorMessageModal] = useState('');
 
+    const MAX_FILES = 10;
 
+    // Add to existing state declarations
+    const [fileCount, setFileCount] = useState(0);
     const [showTransmittalModal, setShowTransmittalModal] = useState(false);
     // const [step, setStep] = useState(1);
     // const [modalProjectName, setModalProjectName] = useState(projectName);
@@ -109,11 +112,18 @@ function UploadBox() {
 
 
     const handleFileChange = (e) => {
-        e.preventDefault();
-        console.log("handleFileChange: files changed");
-        const newFiles = Array.from(e.target.files);
-        handleAddFile(newFiles);
-        setErrorMessage("");
+      e.preventDefault();
+      const newFiles = Array.from(e.target.files);
+      
+      // Check if adding new files would exceed limit
+      if (files.length + newFiles.length > MAX_FILES) {
+          setErrorMessage(`Maximum ${MAX_FILES} files allowed`);
+          return;
+      }
+      
+      handleAddFile(newFiles);
+      setFileCount(files.length + newFiles.length);
+      setErrorMessage("");
     };
 
     const handleScanButton = async (e) => {
@@ -235,7 +245,6 @@ function UploadBox() {
     };
     const handleGenerateTransmittal = () => {
          setErrorMessageModal("");
-        //  setModalProjectName(projectName);
         setShowTransmittalModal(true);
     };
 
@@ -318,19 +327,24 @@ function UploadBox() {
         <div className="upload-box">
             <ProjectInput projectName={projectName} setProjectName={setProjectName} />
             <FileUploadArea handleFileChange={handleFileChange} fileInputRef={fileInputRef} />
+            <div className="file-count">
+            {files.length}/{MAX_FILES} files
+        </div>
             <FileListDisplay
                 files={files}
                 onRemoveFile={handleRemoveFile}
                 fileListContainerRef={fileListContainerRef}
             />
+            
             <p className="note">
-                *Mendukung file PDF (Maximal 20Mb per file, maksimal 20 file)
+                *Mendukung file PDF (Maximal 10Mb per file, maksimal 10 file)
             </p>
             <p className="upload-status" id="uploadStatus">{uploadStatus}</p>
             <p className="error-message" id="errorMessage">{errorMessage}</p>
             <Button onClick={handleScanButton} id="scanButton">
                 <IconWithText icon="paper-plane" text="Scan" />
             </Button>
+            
             <PreviewTransmittal
                 showPreview={showPreview}
                 projectName={projectName}

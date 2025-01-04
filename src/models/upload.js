@@ -6,13 +6,13 @@ export const useUpload = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [projectName, setProjectName] = useState("");
   const handleAddFile = (newFiles) => {
-    if (files.length + newFiles.length > 20) {
-      setErrorMessage("Maksimal 20 file yang dapat diunggah.");
+    if (files.length + newFiles.length > 10) {
+      setErrorMessage("Maksimal 10 file yang dapat diunggah.");
       return;
     }
     newFiles.forEach((file) => {
-      if (file.size > 20 * 1024 * 1024) {
-        setErrorMessage(`File ${file.name} melebihi 20MB!`);
+      if (file.size > 10 * 1024 * 1024) {
+        setErrorMessage(`File ${file.name} melebihi 10MB!`);
       } else {
         setFiles((prevFiles) => [...prevFiles, file]);
       }
