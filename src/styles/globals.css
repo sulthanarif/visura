@@ -13,6 +13,25 @@ body {
     /* overflow: hidden; */
 }
 
+button {
+    font-weight: Bold;
+    transition: all 0.5s;
+    -webkit-transition: all 0.5s;
+  }
+  
+
+button:hover {
+    box-shadow: 0 0 20px #6fc5ff50;
+  transform: scale(1.01);
+}
+
+button:active {
+    transition: all 0.25s;
+    -webkit-transition: all 0.25s;
+    box-shadow: none;
+    transform: scale(0.98);
+  }
+
 input[type="date"] {
     width: 100%;
     padding: 10px;

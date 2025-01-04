@@ -144,18 +144,27 @@ function UploadBox() {
         setUploadStatus(`${responseData.message}`);
         return;
       }
+
       const data = await responseData;
+
       if (data.uploadQueueFiles) {
         setUploadQueueFiles(data.uploadQueueFiles);
-        if (data.uploadQueueFiles.length > 0) {
-          if (
-            data.uploadQueueFiles[0].status === "Done" ||
-            data.uploadQueueFiles[0].status === "Failed"
-          ) {
-            setShowPreview(true);
-          }
+
+        const hasFailed = data.uploadQueueFiles.some(
+          (file) => file.status === "Failed"
+        );
+        const hasDone = data.uploadQueueFiles.some(
+          (file) => file.status === "Done"
+        );
+
+        if (hasFailed) {
+          setErrorMessage("Some files failed to process");
+        }
+        if (hasDone) {
+          setShowPreview(true);
         }
       }
+
       if (data.data) {
         setResults((prev) => {
           const newResult = [...prev];
@@ -178,23 +187,24 @@ function UploadBox() {
 
       if (data.error) {
         setErrorMessage(data.error);
+        setUploadStatus(`Failed: ${data.error}`);
+        return;
       }
+
       if (data.csvFileName) {
-        setCsvFileName(data.csvFileName);
-        setIsUploading(false);
-        setUploadStatus("Upload and scanning successful.");
+        if (data.uploadQueueFiles?.some((file) => file.status === "Failed")) {
+          setUploadStatus("Processing completed with errors");
+        } else {
+          setCsvFileName(data.csvFileName);
+          setIsUploading(false);
+          setUploadStatus("Upload and scanning successful.");
+        }
       }
+      setIsUploading(false);
+      setIsScanning(false);
     } catch (error) {
-      console.error("Error during upload or processing:", error);
-      setUploadStatus(
-        `Upload failed: ${error.message || "An unexpected error occurred"}`
-      );
-      setUploadQueueFiles((prev) =>
-        prev.map((item) =>
-          filesTemp.includes(item.file) ? { ...item, status: "Failed" } : item
-        )
-      );
-    } finally {
+      console.error("Error during scan: ", error);
+      setErrorMessage(`Failed to scan: ${error.message || ""}`);
       setIsUploading(false);
       setIsScanning(false);
     }
@@ -208,7 +218,7 @@ function UploadBox() {
       });
     }
   };
-  
+
   const handlePrev = () => {
     if (currentPage > 1) {
       setCurrentPage((prev) => {
@@ -230,14 +240,13 @@ function UploadBox() {
     }
   };
 
-
   const handlePreviewChange = (index, field, value) => {
     setPreviewData((prev) => {
       const updatedPreview = { ...prev };
       updatedPreview[index] = { ...updatedPreview[index], [field]: value };
       return updatedPreview;
     });
-  }
+  };
 
   const handleGenerateTransmittal = () => {
     setErrorMessageModal("");
@@ -307,21 +316,21 @@ function UploadBox() {
   };
 
   function updatePageInfo() {
-    console.log('updatePageInfo', { currentPage, totalPages: results.length });
-    
+    console.log("updatePageInfo", { currentPage, totalPages: results.length });
+
     const pageInfo = document.getElementById("pageInfo");
     if (pageInfo) {
       const totalPages = results.length;
       pageInfo.textContent = `${currentPage} / ${totalPages}`;
-      
+
       const prevBtn = document.getElementById("prevBtn");
       const nextBtn = document.getElementById("nextBtn");
-      
+
       // Update prev button state
       if (prevBtn) {
         prevBtn.disabled = currentPage <= 1;
       }
-      
+
       // Update next button state
       if (nextBtn) {
         nextBtn.disabled = currentPage >= totalPages;

@@ -125,11 +125,6 @@ function validateAndFormatDate(text) {
     return null; // Mengembalikan null jika format tanggal tidak valid
 }
 
-// Fungsi untuk generate nomor transmittal
-// function generateTransmittalNumber() {
-//     return `[]`;
-// }
-
 // Koordinat crop untuk OCR
 const cropCoordinates = {
     title: { x: 400, y: 200, width: 1300, height: 400 },
