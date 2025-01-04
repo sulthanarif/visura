@@ -1,7 +1,7 @@
 import React from 'react';
 import Icon from '../../atoms/Icon';
 import Button from '../../atoms/Button';
-import { useState } from 'react';
+import IconWithText from '@/components/molecules/IconWithText';
 
 function PreviewTransmittal({
     showPreview,
@@ -14,32 +14,71 @@ function PreviewTransmittal({
     handleNext,
     handleGenerateTransmittal,
 }) {
-      const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState({
-        text: null,
-        type: null, //success, warning, error
-    });
-   const  handleGenerateTransmittalClick = async ()=>{
-      setLoading(true);
+
+
+    const formatDateForInput = (dateStr) => {
+        if (!dateStr) return '';
+        
         try {
-            await handleGenerateTransmittal();
-               setMessage({ text: 'Transmittal generated successfully!', type: 'success' });
-        }catch(e){
-              setMessage({ text: 'Error generating transmittal, please check log', type: 'error' });
-        }finally{
-            setLoading(false);
+            // Check if date is already in YYYY-MM-DD format
+            if (dateStr.includes('-')) return dateStr;
+            
+            // Parse DD/MM/YYYY format
+            if (dateStr.includes('/')) {
+                const parts = dateStr.split('/');
+                if (parts.length !== 3) return '';
+                
+                const [day, month, year] = parts;
+                // Validate parts exist before using padStart
+                if (!day || !month || !year) return '';
+                
+                return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+            }
+            
+            return '';
+        } catch (error) {
+            console.error('Date parsing error:', error);
+            return '';
         }
-   };
+    };
+    
+    const handleDateChange = (index, event) => {
+        const newDate = event.target.value;
+        if (!newDate) return;
+    
+        try {
+            const dateObj = new Date(newDate);
+            if (isNaN(dateObj.getTime())) return; // Invalid date
+            
+            const day = dateObj.getDate().toString().padStart(2, '0');
+            const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+            const year = dateObj.getFullYear();
+            
+            const displayDate = `${day}/${month}/${year}`;
+            const revisionDate = `${day}${month}${year}`;
+            
+            // Update revision with new date
+            const currentRevision = previewData[index]?.revision || '';
+            const revisionPrefix = currentRevision.split('-')[0] || '';
+            const newRevision = `${revisionPrefix}-${revisionDate}`;
+    
+            handlePreviewChange(index, 'date', displayDate);
+            handlePreviewChange(index, 'revision', newRevision);
+        } catch (error) {
+            console.error('Date change error:', error);
+        }
+    };
+
     return (
         <div
             className={`preview-transmittal ${showPreview ? "show" : "remove"}`}
             id="previewTransmittal"
         >
-            <h3>Preview Transmittal</h3>
-            <div className="field">
-                <label htmlFor="previewProjectName">Project Name</label>
-                <input type="text" id="previewProjectName" placeholder="Project Name" value={projectName} disabled />
-            </div>
+            <h2>
+                <Icon name="file-csv" />
+                Preview Transmittal
+            </h2>
+            <br />
             {results && results[currentPage - 1] && (
                 <div key={results[currentPage - 1]?.id}>
                     <div className="field">
@@ -53,13 +92,14 @@ function PreviewTransmittal({
                         />
                     </div>
                     <div className="field">
-                        <label htmlFor={`previewRevision-${currentPage - 1}`}>Revision</label>
+                        <label htmlFor={`previewRevision-${currentPage - 1}`}>Revision - Date (DD/MM/YYYY)</label>
                         <input
                             type="text"
                             id={`previewRevision-${currentPage - 1}`}
-                            placeholder="Revision"
-                            value={previewData[results[currentPage - 1]?.id]?.revision || ""}
-                            onChange={(e) => handlePreviewChange(results[currentPage - 1]?.id, 'revision', e.target.value)}
+                             placeholder="Revision"
+                             value={previewData[results[currentPage - 1]?.id]?.revision || ""}
+                                onChange={(e) => handlePreviewChange(results[currentPage - 1]?.id, 'revision', e.target.value)}
+                            
                         />
                     </div>
                     <div className="field">
@@ -75,15 +115,16 @@ function PreviewTransmittal({
                         />
                     </div>
                     <div className="field">
-                        <label htmlFor={`previewDate-${currentPage - 1}`}>Date</label>
-                        <input
-                            type="text"
-                            id={`previewDate-${currentPage - 1}`}
-                            placeholder="Date"
-                            value={previewData[results[currentPage - 1]?.id]?.date || ""}
-                            onChange={(e) => handlePreviewChange(results[currentPage - 1]?.id, 'date', e.target.value)}
-                            disabled
-                        />
+                        <label htmlFor={`previewDate-${currentPage - 1}`} style={{display:"flex", alignItems:"center", gap:"5px"}}>
+                            Date 
+                        </label>
+                          <input 
+            type="date"
+            id={`previewDate-${currentPage - 1}`}
+            placeholder="Date"
+            value={formatDateForInput(previewData[results[currentPage - 1]?.id]?.date)}
+            onChange={(e) => handleDateChange(results[currentPage - 1]?.id, e)}
+        />
                     </div>
                     <hr />
                 </div>
@@ -92,27 +133,22 @@ function PreviewTransmittal({
                 <Button
                     id="prevBtn"
                     onClick={handlePrev}
-                    disabled={currentPage === 1}
                 >
-                    <Icon name="angle-left" />
+                  <Icon name="angle-left" />
                 </Button>
                 <span id="pageInfo"></span>
                 <Button
                     id="nextBtn"
                     onClick={handleNext}
-                    disabled={results.length === 0}
                 >
-                    <Icon name="angle-right" />
+                   <Icon name="angle-right" />
                 </Button>
             </div>
-             <div className="button-container">
-                <Button Icon name="database" onClick={handleGenerateTransmittalClick} loading={loading} disabled={loading}>Generate Transmittal</Button>
+            <div className="button-container">
+                <Button onClick={handleGenerateTransmittal}>
+                   <IconWithText icon="file-csv" text="Generate Transmittal" />
+                </Button>
             </div>
-              {message.text && (
-                <div className={`message ${message.type}`}>
-                    {message.text}
-                </div>
-            )}
         </div>
     );
 }

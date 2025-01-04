@@ -125,11 +125,6 @@ function validateAndFormatDate(text) {
     return null; // Mengembalikan null jika format tanggal tidak valid
 }
 
-// Fungsi untuk generate nomor transmittal
-function generateTransmittalNumber() {
-    return `[]`;
-}
-
 // Koordinat crop untuk OCR
 const cropCoordinates = {
     title: { x: 400, y: 200, width: 1300, height: 400 },
@@ -217,8 +212,17 @@ async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilena
     }
 }
 
-async function generateDataFiles(transmittalData, outputDir, projectName, documentName) {
-    const transmittalNumber = generateTransmittalNumber();
+async function generateDataFiles(transmittalData, projectName, documentName, transmittalNumber, userCsvName) {
+   
+    let finalCsvName = userCsvName && userCsvName.trim() !== '' 
+    ? userCsvName.trim() 
+    : 'allData';  
+
+  // Append ".csv" if not present
+  if (!finalCsvName.toLowerCase().endsWith('.csv')) {
+    finalCsvName += '.csv';
+  }
+
     const now = new Date();
     const dateDay = now.getDate();
     const dateMonth = now.getMonth() + 1;
@@ -308,10 +312,10 @@ async function generateDataFiles(transmittalData, outputDir, projectName, docume
     ,D    ,:   Disk,,,,,T, : Tender,,
     Issued by: .....................,,,,,,,,,,`
 
-    const csvFileName = `allData.csv`;
-    fs.writeFileSync(path.join(outputDir, csvFileName), csvContent, { encoding: "utf-8" });
-    console.log("File CSV Transmittal berhasil dibuat.");
-    return csvFileName;
+    // const csvFileName = userCsvName && userCsvName.trim() !== "" ? userCsvName : "allData.csv";
+
+    fs.writeFileSync(path.join(outputDir, finalCsvName), csvContent, { encoding: "utf-8" });
+  return finalCsvName;
 }
 
 
