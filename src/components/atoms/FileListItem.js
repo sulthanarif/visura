@@ -1,5 +1,6 @@
 // src/components/atoms/FileListItem.js
 import React, {useEffect, useState} from 'react';
+import Icon from './Icon';
 
 function FileListItem({ file, onRemove, index }) {
      const [show, setShow] = useState(false)
@@ -20,7 +21,7 @@ function FileListItem({ file, onRemove, index }) {
     return (
             <li className={`${show ? 'show' : ''} ${remove ? 'remove' : ''}`}>
                 <span>{file.name}</span>
-              <button type="button" onClick={handleRemove}>Hapus</button>
+              <button type="button" onClick={handleRemove}><Icon name={'trash'}/> </button>
             </li>
      );
 }
