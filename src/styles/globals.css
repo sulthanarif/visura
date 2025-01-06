@@ -6,12 +6,23 @@
 /* src/styles/global.css */
 body {
     margin: 0;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Dax-Regular', sans-serif;
     background-image: url('/assets/Property 1=Frame 48.png');
     background-size: cover;
     height: 100vh;
     /* overflow: hidden; */
+    
 }
+
+@font-face {
+    font-family: "Dax-Regular";
+    src: url("https://db.onlinewebfonts.com/t/a52678f563c78c6fc954b7ace30bc8e5.eot");
+    src: url("https://db.onlinewebfonts.com/t/a52678f563c78c6fc954b7ace30bc8e5.eot?#iefix")format("embedded-opentype"),
+    url("https://db.onlinewebfonts.com/t/a52678f563c78c6fc954b7ace30bc8e5.woff2")format("woff2"),
+    url("https://db.onlinewebfonts.com/t/a52678f563c78c6fc954b7ace30bc8e5.woff")format("woff"),
+    url("https://db.onlinewebfonts.com/t/a52678f563c78c6fc954b7ace30bc8e5.ttf")format("truetype"),
+    url("https://db.onlinewebfonts.com/t/a52678f563c78c6fc954b7ace30bc8e5.svg#Dax-Regular")format("svg")
+    }
 
 button {
     font-weight: Bold;
@@ -95,6 +106,10 @@ input[type="date"] {
     margin-bottom: 10px;
     display: flex;
     align-items: center;
+}
+
+.upload-box .note {
+    margin-top: 8px;
 }
 
 .upload-box h2 i {
@@ -268,9 +283,14 @@ input[type="date"] {
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
+.file-count {
+    font-size: 0.775rem;
+    color: #666;
+    padding: 0.01rem;
+    text-align: right;
+}
 
 .upload-box .file-list li button:hover {
-
     background-color: #ff1a1a;
 }
 
@@ -298,7 +318,7 @@ input[type="date"] {
 
 .preview-transmittal.show {
     left: 0;
-    top: -78px;
+    top: 0;
     transform: translateX(-105%);
     transition: all 0.5s ease;
     /* Move to the left of the upload box */
@@ -534,4 +554,50 @@ input[type="date"] {
 
 .title-container .remove {
     display: none;
+}
+
+.accordion-section {
+    margin: 1rem 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.accordion-trigger {
+    width: 100%;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f9fafb;
+    border: none;
+    cursor: pointer;
+}
+
+.accordion-trigger.open {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.accordion-content.show {
+    max-height: 500px;
+    padding: 1rem;
+}
+
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.cropped-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 0.25rem;
+    border: 1px solid #e5e7eb;
 }
