@@ -120,9 +120,8 @@ const ocrController = {
       });
     } catch (error) {
       console.error("OCR Processing Error:", error);
-      return res.status(500).json({
-        message:
-          "Unable to process document. Please ensure it follows the required template.",
+       return res.status(500).json({
+        message: "Error processing files", error: error.message,
       });
     }
   },
