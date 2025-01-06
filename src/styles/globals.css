@@ -23,7 +23,11 @@ body {
     url("https://db.onlinewebfonts.com/t/a52678f563c78c6fc954b7ace30bc8e5.ttf")format("truetype"),
     url("https://db.onlinewebfonts.com/t/a52678f563c78c6fc954b7ace30bc8e5.svg#Dax-Regular")format("svg")
     }
-
+a {
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+}
 button {
     font-weight: Bold;
     transition: all 0.5s;
@@ -265,20 +269,20 @@ input[type="date"] {
 }
 
 .upload-box .file-list li span {
-    font-size: 0.9em;
+    font-size: 1em;
     color: #555;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100px;
+    max-width: 160px;
 }
 
 .upload-box .file-list li button {
-    background: #ff4d4d;
+    background: transparent;
     border: none;
-    color: #fff;
-    font-size: 0.9em;
-    max-width: 60px;
+    color: #ff4d4d;
+    font-size: 1.1em;
+    max-width: 30px;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
@@ -291,7 +295,8 @@ input[type="date"] {
 }
 
 .upload-box .file-list li button:hover {
-    background-color: #ff1a1a;
+    color: #666;
+    box-shadow: none;
 }
 
 .preview-transmittal {
@@ -554,50 +559,4 @@ input[type="date"] {
 
 .title-container .remove {
     display: none;
-}
-
-.accordion-section {
-    margin: 1rem 0;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-    overflow: hidden;
-}
-
-.accordion-trigger {
-    width: 100%;
-    padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #f9fafb;
-    border: none;
-    cursor: pointer;
-}
-
-.accordion-trigger.open {
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.accordion-content {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out;
-}
-
-.accordion-content.show {
-    max-height: 500px;
-    padding: 1rem;
-}
-
-.image-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1rem;
-}
-
-.cropped-image img {
-    width: 100%;
-    height: auto;
-    border-radius: 0.25rem;
-    border: 1px solid #e5e7eb;
 }

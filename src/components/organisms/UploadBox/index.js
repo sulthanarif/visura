@@ -10,6 +10,10 @@ import PreviewTransmittal from "./PreviewTransmittal";
 import IconWithText from "@/components/molecules/IconWithText";
 import Icon from "@/components/atoms/Icon";
 import TransmittalModal from "@/components/molecules/TransmittalModal";
+import axios from "axios";
+
+const env = require('dotenv').config();
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 
 function UploadBox() {
     const router = useRouter();
@@ -148,7 +152,8 @@ function UploadBox() {
         filesTemp.forEach((file) => {
           formData.append("pdfFile", file);
         });
-        const response = await fetch("/api/ocr", {
+        
+        const response = await fetch(`${SERVER_URL}/api/ocr`, {
           method: "POST",
           body: formData,
         });
@@ -191,7 +196,11 @@ function UploadBox() {
                 revision: item.revision,
                 drawingCode: item.drawingCode,
                 date: item.date,
-                filename: item.filename,
+                 filename: item.filename,
+                titleImage: item.titleImage,
+                revisionImage: item.revisionImage,
+                drawingCodeImage: item.drawingCodeImage,
+                dateImage: item.dateImage
               };
             });
             return newResult;
@@ -251,7 +260,7 @@ function UploadBox() {
     const confirmGenerateTransmittal = async (data) => {
        try {
             const transmittalData = Object.values(previewData);
-            const response = await fetch("/api/generate-transmittal", {
+            const response = await fetch(`${SERVER_URL}/api/generate-transmittal`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -342,7 +351,7 @@ function UploadBox() {
             <p className="upload-status" id="uploadStatus">{uploadStatus}</p>
             <p className="error-message" id="errorMessage">{errorMessage}</p>
             <Button onClick={handleScanButton} id="scanButton">
-                <IconWithText icon="paper-plane" text="Scan" />
+                <IconWithText icon="wand-magic-sparkles" text="Start Scan" />
             </Button>
             
             <PreviewTransmittal
