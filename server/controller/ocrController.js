@@ -12,6 +12,7 @@ import {
 import fs from "fs";
 import path from "path";
 import formidable from "formidable";
+import e from "cors";
 
 const ocrController = {
   handleFormData: async (req, res) => {
@@ -121,8 +122,7 @@ const ocrController = {
     } catch (error) {
       console.error("OCR Processing Error:", error);
       return res.status(500).json({
-        message:
-          "Unable to process document. Please ensure it follows the required template.",
+        message: "Error processing files", error: error.message,
       });
     }
   },
