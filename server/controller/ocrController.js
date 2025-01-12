@@ -12,7 +12,6 @@ import {
 import fs from "fs";
 import path from "path";
 import formidable from "formidable";
-import e from "cors";
 
 const ocrController = {
   handleFormData: async (req, res) => {
