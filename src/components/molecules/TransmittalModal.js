@@ -132,7 +132,7 @@ function TransmittalModal({ isOpen, onClose, onSubmit, initialData = {} }) {
                         className={`flex w-full items-center transition-all duration-300 ease-in-out ${step >= 2
                                 ? "text-blue-600 dark:text-blue-500"
                                 : "text-gray-500 dark:text-gray-400"
-                            } after:content-[''] after:w-full after:h-1 after:border-b after:border-gray-100 after:border-4 after:inline-block dark:after:border-gray-700`}
+                            } after:content-[''] ${step >= 2 ? "after:w-full after:h-1 after:border-b after:border-blue-100 after:border-4 after:inline-block dark:after:border-blue-800" : "after:w-full after:h-1 after:border-b after:border-gray-100 after:border-4 after:inline-block dark:after:border-gray-700" }`}
                     >
                         <div
                             className={`flex items-center justify-center w-10 h-10 transition-all duration-300 ease-in-out ${step >= 2

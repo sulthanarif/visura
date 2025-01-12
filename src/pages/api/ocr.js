@@ -1,4 +1,4 @@
-import ocrController from "../../server/controller/ocrController";
+import ocrController from "../../../server/controller/ocrController";
 
 export const config = {
     api: {
