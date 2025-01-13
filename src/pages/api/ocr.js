@@ -1,3 +1,4 @@
+// src/pages/api/ocr.js
 import ocrController from "../../../server/controller/ocrController";
 
 export const config = {
