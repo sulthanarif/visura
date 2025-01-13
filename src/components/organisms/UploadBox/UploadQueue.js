@@ -3,88 +3,125 @@ import React from "react";
 import Icon from "../../atoms/Icon";
 import IconWithText from "@/components/molecules/IconWithText";
 
-function UploadQueue({
-    showQueue,
-    uploadQueueFiles,
-    uploadQueueRef,
-    uploadQueueFileListContainerRef,
-}) {
-    // Fungsi untuk menentukan warna progress bar berdasarkan status
-    const getProgressColor = (status) => {
-        switch(status) {
-            case "Done": return "bg-green-500";
-            case "Failed": return "bg-red-500";
-            case "Processing...": return "bg-blue-500";
-            default: return "bg-gray-300";
-        }
-    };
+const UploadQueue = ({
+  showQueue,
+  uploadQueueFiles,
+  uploadQueueRef,
+  uploadQueueFileListContainerRef,
+}) => {
+  const getProgressColor = (status) => {
+    switch (status) {
+      case "Done":
+        return "bg-green-500";
+      case "Failed":
+        return "bg-red-500";
+      case "Processing...":
+        return "bg-blue-500";
+      default:
+        return "bg-gray-300";
+    }
+  };
 
-    return (
-        <div className={`upload-queue ${showQueue ? "show" : ""}`} id="uploadQueue" ref={uploadQueueRef}>
-            <h2>
-                <IconWithText icon="upload" text="Upload Queue" />
-            </h2>
-            <div
-                className="file-list-container"
-                id="uploadQueueFileListContainer"
-                ref={uploadQueueFileListContainerRef}
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  const calculateTimeEstimate = (fileSize, progress) => {
+    // Assume 1MB takes ~2 seconds to process
+    const baseRate = 1; // seconds per MB
+    const fileSizeInMB = fileSize / (1024 * 1024);
+    const totalEstimatedTime = fileSizeInMB * baseRate;
+    const remainingTime = totalEstimatedTime * ((100 - progress) / 100);
+
+    if (remainingTime < 60) {
+      return `${Math.ceil(remainingTime)}s`;
+    } else {
+      const minutes = Math.floor(remainingTime / 60);
+      const seconds = Math.ceil(remainingTime % 60);
+      return `${minutes}m ${seconds}s`;
+    }
+  };
+
+  return (
+    <div
+      className={`upload-queue ${showQueue ? "show" : ""}`}
+      id="uploadQueue"
+      ref={uploadQueueRef}
+    >
+      <h2>
+        <IconWithText icon="upload" text="Upload Queue" />
+      </h2>
+      <div
+        className="file-list-container"
+        ref={uploadQueueFileListContainerRef}
+      >
+        <ul className="file-list">
+          {uploadQueueFiles.map((item, index) => (
+            <li
+              key={item.file.name}
+              className={`show ${item.status === "Done" ? "done-item" : ""}`}
             >
-                <ul className="file-list" id="uploadQueueFileList">
-                    {uploadQueueFiles.map((item, index) => {
-                        // Menghitung estimasi waktu jika status "Processing..."
-                        const progress = item.progress || 0;
-                        const elapsedTime = item.elapsedTime || 0; // Waktu yang telah berlalu dalam detik
-                        const remainingTime = elapsedTime > 0 ? (100 - progress) * (elapsedTime / progress) : 0;
-                        const remainingTimeInMinutes = Math.ceil(remainingTime / 60);
+              <div className="flex flex-col w-full gap-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">{item.file.name}</span>
+                  <span
+                    className={`status ${
+                      item.status === "Done" ? "text-green-600" : ""
+                    }  ${item.status === "Failed" ? "animate-shake" : ""}`}
+                  >
+                    {item.status}
+                  </span>
+                </div>
 
-                        return (
-                            <li
-                                key={item.file.name}
-                                className={`show ${item.status === "Done" ? "done-item" : ""} ${item.status === "Failed" ? "failed-item" : ""}`}
-                            >
-                                <div className="flex flex-col w-full gap-2">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm">{item.file.name}</span>
-                                        <span className={`status text-sm ${
-                                            item.status === "Done" ? "text-green-600" : ""} 
-                                            ${item.status === "Failed" ? "text-red-600" : ""}`}>
-                                            {item.status}
-                                        </span>
-                                    </div>
+                {/* calculateTimeEstimate(item.file.size, item.progress) */}
 
-                                    {/* Progress bar */}
-                                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                                        <div 
-                                            className={`h-full ${getProgressColor(item.status)} 
-                                                    transition-all duration-300 ease-in-out`}
-                                            style={{ 
-                                                width: `${progress}%`,
-                                                transition: 'width 0.3s ease-in-out'
-                                            }}
-                                        />
-                                    </div>
+                <div className="flex items-center justify-between">
+                  <div className="text-xs text-gray-600">
+                    <span>File size: {formatFileSize(item.file.size)}</span>
+                  </div>
 
-                                    {/* Estimation */}
-                                    {item.status === "Processing..." && (
-                                        <span className="text-xs text-gray-500">
-                                            Estimated time: ~{remainingTimeInMinutes} min
-                                        </span>
-                                    )}
+                  <div className="text-xs text-gray-600">
+                    <span>
+                      Remaining time:{" "}
+                      {calculateTimeEstimate(item.file.size, item.progress)}
+                    </span>
+                  </div>
+                </div>
 
-                                    {/* Error message */}
-                                    {item.status === "Failed" && item.error && (
-                                        <span className="text-xs text-red-500">
-                                            Error: {item.error}
-                                        </span>
-                                    )}
-                                </div>
-                            </li>
-                        );
-                    })}
-                </ul>
-            </div>
-        </div>
-    );
-}
-
+                <div className="relative w-full h-1 bg-gray-200 rounded-full overflow-hidden ">
+                  <div
+                    className={`
+                        absolute top-0 left-0 h-full 
+                        bg-blue-500
+                        before:absolute before:content-[''] 
+                        before:top-0 before:left-0
+                        before:w-full before:h-full 
+                        before:bg-blue-500
+                        transition-all duration-300
+                        ${item.status === "Processing..." ? "animate-loading-bar" : ""}
+                        ${item.status === "Failed" ? "animate-shake" : ""}
+                    `}
+                  />
+                  <div
+                    className={`
+                        absolute top-0 left-0 h-full rounded-full
+                        transition-all duration-300 ease-out
+                        ${getProgressColor(item.status)}
+                        ${item.status === "Failed" ? "animate-shake" : ""}
+                    `}
+                    style={{ width: `${item.progress || 0}%` }}
+                  />
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+};
 export default UploadQueue;

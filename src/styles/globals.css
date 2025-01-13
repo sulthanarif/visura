@@ -562,3 +562,40 @@ input[type="date"] {
 .title-container .remove {
     display: none;
 }
+
+@keyframes loadingBar {
+    50% {
+      width: 100%;
+    }
+    100% {
+      width: 0;
+      right: 0;
+      left: unset;
+    }
+  }
+  
+  @layer utilities {
+    .animate-loading-bar {
+      animation: loadingBar 1s ease-in-out infinite;
+    }
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(8px); }
+    75% { transform: translateX(-8px); }
+  }
+  
+  @keyframes fadeOut {
+    from { display: 1; }
+    to { opacity: 0; }
+  }
+  
+  @layer utilities {
+    .animate-shake {
+      animation: shake 0.3s ease-in-out;
+    }
+    .animate-fade-out {
+      animation: fadeOut 1s ease-in-out forwards;
+    }
+  }

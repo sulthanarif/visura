@@ -9,6 +9,7 @@ function FileList({ files, onRemoveFile }) {
                 <FileListItem
                     key={file.name}
                     file={file}
+                    size={file.size}
                     index={index}
                     onRemove={() => onRemoveFile(file)}
                 />

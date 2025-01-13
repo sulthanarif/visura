@@ -53,11 +53,6 @@ function UploadBox() {
     // Add to existing state declarations
     const [fileCount, setFileCount] = useState(0);
     const [showTransmittalModal, setShowTransmittalModal] = useState(false);
-    // const [step, setStep] = useState(1);
-    // const [modalProjectName, setModalProjectName] = useState(projectName);
-    // const [modalDocumentName, setModalDocumentName] = useState("");
-    // const [transmittalNumber, setTransmittalNumber] = useState("");
-    // const [manualCsvFileName, setManualCsvFileName] = useState("");
 
 
     useEffect(() => {
@@ -145,9 +140,12 @@ function UploadBox() {
     
         // Initialize queue items
         const queueItems = filesTemp.map(file => ({
-            file: { name: file.name },
+            file: {
+                name: file.name,
+                size: file.size  // Add file size to queue item
+            },
             status: "Waiting...",
-            progress: 0,
+            progress: 0
         }));
         setUploadQueueFiles(queueItems);
     
@@ -157,7 +155,7 @@ function UploadBox() {
                 // Update queue status to processing
                 setUploadQueueFiles(prev =>
                     prev.map((item, idx) =>
-                        idx === i ? { ...item, status: "Processing...", progress: 10 } : item
+                        idx === i ? { ...item, status: "Processing...", progress: 0 } : item
                     )
                 );
     
@@ -342,7 +340,6 @@ function UploadBox() {
     };
     const handleModalClose = () => {
         setShowTransmittalModal(false);
-        // setStep(1); // Reset step to 1 when modal closes
     };
     function updatePageInfo() {
         const pageInfo = document.getElementById("pageInfo");
