@@ -414,7 +414,7 @@ input[type="date"] {
     right: 25%;
     top: 0;
     width: 300px;
-    max-height: 600px;
+    max-height: 900px;
     background-color: #f0f0f0;
     transition: right 0.4s ease-in-out;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -422,6 +422,9 @@ input[type="date"] {
     padding: 0;
     opacity: 0;
     padding: 10px 0;
+    overflow: hidden;
+    transform: translateX(105%);
+    
 }
 
 .upload-queue.show {
@@ -439,7 +442,6 @@ input[type="date"] {
 }
 
 .upload-queue .file-list-container {
-    max-height: 500px;
     overflow-y: auto;
     overflow-x: hidden;
     padding: 10px;
@@ -491,7 +493,7 @@ input[type="date"] {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100px;
+    max-width: 150px;
 }
 
 .upload-queue .file-list li button {
@@ -560,3 +562,40 @@ input[type="date"] {
 .title-container .remove {
     display: none;
 }
+
+@keyframes loadingBar {
+    50% {
+      width: 100%;
+    }
+    100% {
+      width: 0;
+      right: 0;
+      left: unset;
+    }
+  }
+  
+  @layer utilities {
+    .animate-loading-bar {
+      animation: loadingBar 1s ease-in-out infinite;
+    }
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(8px); }
+    75% { transform: translateX(-8px); }
+  }
+  
+  @keyframes fadeOut {
+    from { display: 1; }
+    to { opacity: 0; }
+  }
+  
+  @layer utilities {
+    .animate-shake {
+      animation: shake 0.3s ease-in-out;
+    }
+    .animate-fade-out {
+      animation: fadeOut 1s ease-in-out forwards;
+    }
+  }
