@@ -119,7 +119,7 @@ const SignupForm = ({ onSubmit, errorMessage }) => {
       <div className="flex justify-center items-center mt-6 space-x-4">
         <button
           type="submit"
-          className={`px-11 py-3 rounded-md ${
+          className={`w-full px-11 py-3 rounded-md ${
             !namaPegawai ||
             !nomorPegawai ||
             !email ||
