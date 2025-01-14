@@ -108,7 +108,7 @@ const SignupForm = ({ onSubmit, errorMessage }) => {
           Sudah punya akun?{" "}
           <button
             type="button"
-            onClick={() => router.push("/auth/login")}
+            onClick={() => router.push("login")}
             className="text-[#E17218] hover:underline"
           >
             Masuk Akun

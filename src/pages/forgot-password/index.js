@@ -1,5 +1,5 @@
 import React from "react";
-import ForgotPasswordPage from "../components/auth/organism/ForgotPasswordPage";
+import ForgotPasswordPage from "../../components/auth/organism/ForgotPasswordPage";
 
 const ForgotPassword = () => {
   return (

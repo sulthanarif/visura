@@ -63,7 +63,7 @@ const LoginForm = ({ onSubmit, errorMessage }) => {
           Lupa password?{" "}
           <button
             type="button"
-            onClick={() => router.push("/auth/forgot-password")}
+            onClick={() => router.push("forgot-password")}
             className="text-[#E17218] hover:underline"
           >
             Klik disini
@@ -86,7 +86,7 @@ const LoginForm = ({ onSubmit, errorMessage }) => {
         </button>
         <button
           type="button"
-          onClick={() => router.push("/auth/signup")}
+          onClick={() => router.push("/signup")}
           className={`px-11 py-3 text-white bg-[#E17218] hover:bg-[#c35d14] rounded-md`}
           style={{ borderRadius: "30px", fontWeight: "normal" }}
         >

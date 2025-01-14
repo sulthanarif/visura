@@ -115,7 +115,7 @@ const ForgotPasswordPage = ({
         <div className="flex justify-center items-center mt-6 space-x-4">
           <button
             type="button"
-            onClick={() => router.push("/auth/login")}
+            onClick={() => router.push("login")}
             className="text-[#E17218] hover:underline flex items-center"
           >
             <img
