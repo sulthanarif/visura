@@ -379,7 +379,7 @@ function UploadBox() {
             />
             
             <p className="note">
-                *Mendukung file PDF (Maximal 10Mb per file, maksimal 10 file)
+                <IconWithText icon="info-circle" text="Maximum 10 files allowed and 10MB per file. Only PDF files are allowed." />
             </p>
             <p className="upload-status" id="uploadStatus">{uploadStatus}</p>
             <p className="error-message" id="errorMessage">{errorMessage}</p>
