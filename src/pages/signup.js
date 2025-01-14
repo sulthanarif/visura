@@ -1,5 +1,5 @@
 import React from "react";
-import SignupPage from "../../components/auth/organism/SignupPage"; // Import SignupPage
+import SignupPage from "../components/auth/organism/SignupPage"; // Import SignupPage
 
 const Signup = () => {
   const handleSignupSubmit = (data) => {
