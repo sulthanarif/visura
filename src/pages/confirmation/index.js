@@ -7,11 +7,10 @@ import IconWithText from '@/components/molecules/IconWithText';
 
 function ConfirmationPage() {
     return (
-        <DefaultLayout>
             <div className="container">
                 <IconWithText icon="check-circle" text="This is a confirmation page" />
             </div>
-         </DefaultLayout>
+         
     );
 }
 

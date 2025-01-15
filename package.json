@@ -36,6 +36,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sharp": "^0.33.5",
+    "supabase": "^2.6.8",
     "tesseract.js": "^5.1.1"
   },
   "devDependencies": {

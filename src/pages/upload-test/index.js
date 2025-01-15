@@ -5,11 +5,10 @@ import UploadBox from '../../components/organisms/UploadBox/index';
 
 function UploadPageTest() {
     return (
-        <DefaultLayout>
             <div className="container">
                 <UploadBox/>
             </div>
-         </DefaultLayout>
+         
     );
 }
 
