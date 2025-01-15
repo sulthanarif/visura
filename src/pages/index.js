@@ -9,11 +9,11 @@ function HomePage() {
           router.push('/upload-test');
       };
     return (
-        <DefaultLayout>
+        
           <div className="container">
               <Button onClick={handleRedirect}>Go To Upload Test Page</Button>
              </div>
-        </DefaultLayout>
+        
      )
  }
 export default HomePage;
