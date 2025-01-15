@@ -10,21 +10,23 @@ const WallpaperSlider = () => {
     "/assets/Property 4.png",
   ];
 
-  
-    useEffect(() => {
-      const interval = setInterval(() => {
-        setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
-      }, 3000); 
-  
-      return () => clearInterval(interval);
-    }, []);
-  
-    return (
-      <div className="absolute top-0 left-0 w-full h-full bg-cover bg-center"
-           style={{ backgroundImage: `url(${images[currentIndex]})` }}>
-      </div>
-    );
-  };
-  
-  export default WallpaperSlider;
-  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % wallpapers.length);
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="wallpaper-slider">
+      <img
+        src={wallpapers[currentIndex]}
+        alt="Wallpaper"
+        className="w-full h-full object-cover transition-opacity duration-6000 ease-in-out"
+      />
+    </div>
+  );
+};
+
+export default WallpaperSlider;
