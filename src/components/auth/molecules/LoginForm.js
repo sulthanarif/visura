@@ -63,7 +63,7 @@ const LoginForm = ({ onSubmit, errorMessage }) => {
           Lupa password?{" "}
           <button
             type="button"
-            onClick={() => router.push("forgot-password")}
+            onClick={() => router.push("/forgot-password")}
             className="text-[#E17218] hover:underline"
           >
             Klik disini

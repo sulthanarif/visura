@@ -601,7 +601,7 @@ input[type="date"] {
   }
 
   .wallpaper-slider {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
