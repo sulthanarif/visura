@@ -1,8 +1,8 @@
 // src/components/atoms/Icon.js
 import React from 'react';
 
-function Icon({ name, ...props }) {
-  return <i className={`fa fa-${name}`}  {...props} />;
-}
+const Icon = ({ name, className, ...props }) => (
+  <i className={`fa fa-${name} ${className}`} {...props} />
+);
 
 export default Icon;
