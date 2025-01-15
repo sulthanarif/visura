@@ -5,11 +5,11 @@ import UploadBox from '../../components/organisms/UploadBox/index';
 
 function ResetPasswordPage() {
     return (
-        <DefaultLayout>
+    
             <div className="container">
                 <p>Reset Password Page</p>
             </div>
-         </DefaultLayout>
+       
     );
 }
 
