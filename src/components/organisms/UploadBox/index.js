@@ -378,9 +378,10 @@ function UploadBox() {
                 fileListContainerRef={fileListContainerRef}
             />
             
-            <p className="note">
+            <div className="note">
                 <IconWithText icon="info-circle" text="Maximum 10 files allowed and 10MB per file. Only PDF files are allowed." />
-            </p>
+            </div>
+            
             <p className="upload-status" id="uploadStatus">{uploadStatus}</p>
             <p className="error-message" id="errorMessage">{errorMessage}</p>
             <Button onClick={handleScanButton} id="scanButton">
