@@ -1,5 +1,5 @@
 // src/pages/upload-test/index.js
-import DefaultLayout from '../../components/templates/DefaultLayout';
+
 import UploadBox from '../../components/organisms/UploadBox/index';
 
 

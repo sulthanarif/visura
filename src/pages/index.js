@@ -1,5 +1,5 @@
 // src/pages/index.js
-import DefaultLayout from '@/components/templates/DefaultLayout';
+
 import Button from '@/components/atoms/Button';
 import { useRouter } from 'next/router';
 
