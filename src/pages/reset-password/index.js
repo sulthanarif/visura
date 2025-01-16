@@ -1,14 +1,11 @@
-// src/pages/upload-test/index.js
-import DefaultLayout from '../../components/templates/DefaultLayout';
-import UploadBox from '../../components/organisms/UploadBox/index';
+import React from 'react';
+import ResetPasswordComponent from '@/components/auth/organism/ResetPasswordComponent';
 
 
 function ResetPasswordPage() {
     return (
     
-            <div className="container">
-                <p>Reset Password Page</p>
-            </div>
+        <ResetPasswordComponent />
        
     );
 }

@@ -1,12 +1,12 @@
 import React from "react";
-import ForgotPasswordPage from "../../components/auth/organism/ForgotPasswordPage";
+import ForgotPasswordComponent from "../../components/auth/organism/ForgotPasswordComponent";
 
-const ForgotPassword = () => {
+const ForgotPasswordPage = () => {
   return (
     <div>
-      <ForgotPasswordPage />
+      <ForgotPasswordComponent />
     </div>
   );
 };
 
-export default ForgotPassword;
+export default ForgotPasswordPage;
