@@ -12,8 +12,8 @@ const LoginForm = ({ onSubmit, errorMessage }) => {
   const handleTogglePassword = () => setShowPassword(!showPassword);
 
   const handleSubmit = (e) => {
-    e.preventDefault(); // Mencegah form melakukan reload
-    if (!validateForm()) return; // Pastikan form valid
+    e.preventDefault();
+    if (!validateForm()) return; 
   
     // Panggil onSubmit dari props untuk mengirimkan data
     if (onSubmit) {
@@ -35,12 +35,17 @@ const LoginForm = ({ onSubmit, errorMessage }) => {
   return (
     <form onSubmit={handleSubmit} className="p-4">
       {/* Input Nomor Pegawai */}
-      <label>Masukkan Nomor Pegawai</label>
+      <label>Masukkan Nomor Pegawai </label>
       <InputField
         type="text"
         placeholder="Masukkan Nomor Pegawai"
         value={pegawaiNumber}
-        onChange={(e) => setPegawaiNumber(e.target.value)}
+        onChange={(e) => {
+          const value = e.target.value;
+          const onlyNumber = value.replace(/\D/g, "");
+          setPegawaiNumber(onlyNumber);
+        }}
+        pattern="[0-9]*"
       />
 
       {/* Input Password */}
