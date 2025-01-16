@@ -20,7 +20,17 @@ const LoginForm = ({ onSubmit, errorMessage }) => {
       onSubmit({ pegawaiNumber, password });
     }
   };
-  
+  const validateForm = () => {
+    if (!pegawaiNumber.trim()) {
+      alert("Nomor Pegawai harus diisi!");
+      return false;
+    }
+    if (!password.trim()) {
+      alert("Password harus diisi!");
+      return false;
+    }
+    return true;
+  };
 
   return (
     <form onSubmit={handleSubmit} className="p-4">
