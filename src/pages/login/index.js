@@ -1,4 +1,4 @@
-// src/Components/auth/login.js
+// src/pages/login/login.js
 import React from "react";
 import LoginComponent from "../../components/auth/organism/LoginComponent";
 import AuthLayout from "../../components/auth/organism/AuthLayout";
