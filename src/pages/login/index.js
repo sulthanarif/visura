@@ -1,13 +1,13 @@
-// src/pages/auth/login.js
+// src/Components/auth/login.js
 import React from "react";
-import LoginPage from "../../components/auth/organism/LoginPage";
+import LoginComponent from "../../components/auth/organism/LoginComponent";
 import AuthLayout from "../../components/auth/organism/AuthLayout";
 import WallpaperSlider from "@/components/auth/molecules/WallpaperSlider";
 
-const Login = () => {
+const LoginPage = () => {
   return (
-      <LoginPage />
+      <LoginComponent />
   );
 };
 
-export default Login;
+export default LoginPage;

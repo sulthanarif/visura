@@ -1,7 +1,5 @@
 // page confirmation
 import React from 'react';
-import DefaultLayout from '../../components/templates/DefaultLayout';
-import UploadBox from '../../components/organisms/UploadBox/index';
 import IconWithText from '@/components/molecules/IconWithText';
 
 

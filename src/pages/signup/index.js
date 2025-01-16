@@ -1,14 +1,14 @@
 import React from "react";
-import SignupPage from "../../components/auth/organism/SignupPage"; // Import SignupPage
+import SignupComponent from "../../components/auth/organism/SignupComponent"; // Import SignupComponent
 
-const Signup = () => {
+const SignupPage = () => {
   const handleSignupSubmit = (data) => {
     // Logic untuk menangani pengiriman form signup
     console.log("Data submit:", data);
   };
 
   return (
-    <SignupPage
+    <SignupComponent
       onSubmit={handleSignupSubmit}
       errorMessage="" // Jika ada error, bisa ditampilkan di sini
       showBackgroundImage={false} // Jika Anda ingin menambahkan background image
@@ -16,4 +16,4 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default SignupPage;

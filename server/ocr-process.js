@@ -234,7 +234,7 @@ async function generateDataFiles(transmittalData, projectName, documentName, tra
       } catch (error) {
           if (error.code !== 'EEXIST') { // Abaikan error jika direktori sudah ada
              console.error("Error creating output directory:", error);
-              throw error; // Atau tangani error dengan cara lain
+              throw error; 
           }
       }
 
