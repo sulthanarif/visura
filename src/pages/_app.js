@@ -7,7 +7,13 @@ import DefaultLayout from "@/components/templates/DefaultLayout";
 export default function App({ Component, pageProps }) {
 
   const router = useRouter();
-  const isImportantPage = router.pathname === '/login' || router.pathname === '/signup' || router.pathname === '/forgot-password' || router.pathname === '/reset-password' || router.pathname === '/confirmation';
+  const isImportantPage = 
+     router.pathname === '/login' 
+  || router.pathname === '/signup' 
+  || router.pathname === '/forgot-password' 
+  || router.pathname === '/reset-password'
+  || router.pathname === '/otpsignupconfirmation'
+  || router.pathname === '/otpforgotpasswordconfirmation';
 
   if (isImportantPage) {
     return <Component {...pageProps} />;

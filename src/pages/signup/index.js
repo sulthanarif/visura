@@ -10,12 +10,12 @@ const SignupPage = () => {
       const { ok, message, redirectUrl } = await signup(credentials);
 
       if (ok) {
-        // Jika pendaftaran berhasil, arahkan ke halaman OTP
+        
         if (redirectUrl) {
-          window.location.href = redirectUrl;  // Redirect ke halaman yang mengandung OTP
+          window.location.href = redirectUrl;  
         }
       } else {
-        setErrorMessage(message);  // Menampilkan pesan error jika gagal
+        setErrorMessage(message); 
       }
     } catch (error) {
       setErrorMessage("Terjadi kesalahan pada server.");
