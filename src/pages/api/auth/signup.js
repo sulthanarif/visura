@@ -42,7 +42,6 @@ export default async function handler(req, res) {
                 return res.status(500).json({ message: "Terjadi kesalahan pada server." });
             }
 
-    
             const isEmailVerifiedElsewhere = allEmailCheck.some((entry) => entry.email_verified);
 
             if (isEmailVerifiedElsewhere) {
@@ -77,6 +76,7 @@ export default async function handler(req, res) {
 
             return res.status(200).json({
                 message: `Data berhasil diperbarui. Silakan cek email Anda (${email}).`,
+                redirectUrl: `/otpsignupconfirmation?email=${email}`, // Menambahkan URL konfirmasi OTP
             });
         }
 
@@ -121,6 +121,7 @@ export default async function handler(req, res) {
 
         return res.status(200).json({
             message: `Pendaftaran berhasil. Silakan cek email Anda (${email}).`,
+            redirectUrl: `/otpsignupconfirmation?email=${email}`, // Menambahkan URL konfirmasi OTP
         });
 
     } catch (err) {

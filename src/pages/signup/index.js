@@ -1,24 +1,24 @@
-// src/pages/signup.js
-
 import React, { useState } from "react";
 import SignupComponent from "../../components/auth/organism/SignupComponent";
-import { signup } from "../../utils/authSignup";  // Import helper signup
+import { signup } from "../../utils/authSignup";  // Impor signup helper
 
 const SignupPage = () => {
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleSignup = async (credentials) => {
     try {
-      const response = await signup(credentials);  
+      const { ok, message, redirectUrl } = await signup(credentials);
 
-      if (response.ok) {
-       
-        window.location.href = "/otpsignupconfirmation"; 
+      if (ok) {
+        // Jika pendaftaran berhasil, arahkan ke halaman OTP
+        if (redirectUrl) {
+          window.location.href = redirectUrl;  // Redirect ke halaman yang mengandung OTP
+        }
       } else {
-        setErrorMessage(response.message);  
+        setErrorMessage(message);  // Menampilkan pesan error jika gagal
       }
     } catch (error) {
-      setErrorMessage("Error");
+      setErrorMessage("Terjadi kesalahan pada server.");
     }
   };
 
