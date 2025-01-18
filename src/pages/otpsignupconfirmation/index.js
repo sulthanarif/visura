@@ -1,33 +1,35 @@
 import { useRouter } from "next/router";
 import OTPsignupconfirmationComponent from "../../components/auth/organism/OTPsignupconfirmationComponent";
 import { verifyOtp } from "../../utils/authOTPsignup"; 
+import { useState } from "react";
 
 const OtpSignupConfirmationPage = () => {
   const router = useRouter();
-  const { email } = router.query;  // Mengambil email dari URL query
+  const { email, nomorPegawai } = router.query; // Mengambil email dan nomorPegawai dari URL query
+  const [errorMessage, setErrorMessage] = useState(""); // State untuk menyimpan error message
 
   const handleOtpSubmit = async (otp) => {
-    try {
-      // Proses verifikasi OTP menggunakan helper
-      const response = await verifyOtp({ email, otp });
+    if (!email || !nomorPegawai) {
+      setErrorMessage("Email dan nomor pegawai tidak ditemukan.");
+      return;
+    }
 
-      if (response.ok) {
-        // Jika OTP valid, arahkan ke halaman selanjutnya (misal: sukses atau halaman login)
-        router.push("/login");
-      } else {
-        // Jika OTP invalid
-        alert("Kode OTP tidak valid. Silakan coba lagi.");
-      }
-    } catch (error) {
-      console.error("Error verifikasi OTP:", error);
-      alert("Terjadi kesalahan, coba lagi.");
+    const response = await verifyOtp({ email, nomorPegawai, otp });
+
+    if (response.ok) {
+      // Jika OTP berhasil diverifikasi, arahkan ke halaman login
+      router.push("/login");
+    } else {
+      // Set error message dari response
+      setErrorMessage(response.message);
     }
   };
 
   return (
     <OTPsignupconfirmationComponent
       onSubmit={handleOtpSubmit}
-      email={email}  // Pass email ke komponen untuk menampilkan
+      email={email} 
+      errorMessage={errorMessage} // Pass error message ke komponen
     />
   );
 };

@@ -31,7 +31,7 @@ export default async function handler(req, res) {
 
 
     if (!user.email_verified) {
-      return res.status(403).json({ message: "Email belum terverifikasi, silahkan daftar ulang." });
+      return res.status(403).json({ message: "Email belum terverifikasi, silahkan daftarkan ulang." });
     }
 
 

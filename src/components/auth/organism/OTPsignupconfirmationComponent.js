@@ -98,7 +98,7 @@ const OTPsignupconfirmationComponent = ({
             </div>
 
             <div className="ml-5 mt-2 mb-2 text-left text-sm">
-              <p>Masukkan kode OTP untuk email <strong style={{ color: "#E17218" }}>{email}</strong> </p>
+              <p>Kode OTP telah terkirim ke email <strong style={{ color: "#E17218" }}>{email}</strong> </p>
             </div>
           </div>
 
@@ -106,7 +106,7 @@ const OTPsignupconfirmationComponent = ({
           <OTPsignupconfirmationForm onSubmit={onSubmit} errorMessage={errorMessage} />
 
           {/* Link Kembali Ke Sign Up */}
-          <div className="flex justify-center items-center mt-6 space-x-4">
+          <div className="flex justify-center items-center mt-2 mr-3 space-x-4">
             <button
               type="button"
               onClick={() => router.push("/signup")}
