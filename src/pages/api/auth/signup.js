@@ -76,7 +76,7 @@ export default async function handler(req, res) {
 
             return res.status(200).json({
                 message: `Data berhasil diperbarui. Silakan cek email Anda (${email}).`,
-                redirectUrl: `/otpsignupconfirmation?email=${email}`, // Menambahkan URL konfirmasi OTP
+                redirectUrl: `/otpsignupconfirmation?email=${email}&nomorPegawai=${nomorPegawai}`, 
             });
         }
 
@@ -121,7 +121,7 @@ export default async function handler(req, res) {
 
         return res.status(200).json({
             message: `Pendaftaran berhasil. Silakan cek email Anda (${email}).`,
-            redirectUrl: `/otpsignupconfirmation?email=${email}`, // Menambahkan URL konfirmasi OTP
+            redirectUrl: `/otpsignupconfirmation?email=${email}&nomorPegawai=${nomorPegawai}`, 
         });
 
     } catch (err) {

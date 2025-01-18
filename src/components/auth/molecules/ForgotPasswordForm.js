@@ -23,18 +23,6 @@ const ForgotPasswordForm = ({ onSubmit = () => {} }) => {
     setShowOtp(true);
   };
 
-  const handleOtpSubmit = (e) => {
-    e.preventDefault();
-    if (!otp) {
-      setErrorMessage("Kode OTP harus diisi");
-      return;
-    }
-
-    setErrorMessage("");
-    onSubmit(otp); // Kirim OTP ke parent component untuk memproses
-    router.push("/reset-password"); // Redirect ke halaman reset-password
-  };
-
   return (
     <form
       onSubmit={showOtp ? handleOtpSubmit : handleSubmit}
@@ -47,15 +35,6 @@ const ForgotPasswordForm = ({ onSubmit = () => {} }) => {
           placeholder="Masukkan Email Anda"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-        />
-      )}
-
-      {/* Input OTP */}
-      {showOtp && (
-        <InputOtpField
-          value={otp}
-          onChange={(e) => setOtp(e.target.value)}
-          placeholder="Masukkan Kode OTP"
         />
       )}
 
