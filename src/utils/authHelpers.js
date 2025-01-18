@@ -13,3 +13,5 @@ export const login = async ({ pegawaiNumber, password }) => {
     return { ok: false, message: "Terjadi kesalahan pada server." };
   }
 };
+
+//untuk authHelper (best practicenya 1 file helpers, but here we separate it)

@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React, { useState } from "react"; 
 import InputField from "../atoms/InputField";
-import Button from "../atoms/Button";
 import { useRouter } from "next/router";
 
 const SignupForm = ({ onSubmit, errorMessage }) => {
@@ -11,23 +10,31 @@ const SignupForm = ({ onSubmit, errorMessage }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // State untuk loading
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false); // State debounce tombol
   const router = useRouter();
 
   const handleTogglePassword = () => setShowPassword(!showPassword);
   const handleToggleConfirmPassword = () =>
     setShowConfirmPassword(!showConfirmPassword);
 
-  const validateForm = () => {
-    return password === confirmPassword;
-  };
+  const validateForm = () => password === confirmPassword;
 
-  const handleSubmit = (e) => {
-    e.preventDefault(); // Mencegah form reload
-    if (!validateForm()) return; // Pastikan password dan konfirmasi password sesuai
-  
-    // Panggil onSubmit dari props untuk mengirimkan data
-    if (onSubmit) {
-      onSubmit({ namaPegawai, nomorPegawai, email, password });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    setIsLoading(true); 
+    try {
+      if (onSubmit) {
+        await onSubmit({ namaPegawai, nomorPegawai, email, password });
+      }
+    } catch (error) {
+      console.error(error);
+      setIsButtonDisabled(true); 
+      setTimeout(() => setIsButtonDisabled(false), 1000); 
+    } finally {
+      setIsLoading(false); 
     }
   };
 
@@ -46,7 +53,12 @@ const SignupForm = ({ onSubmit, errorMessage }) => {
         type="text"
         placeholder="Nomor Pegawai"
         value={nomorPegawai}
-        onChange={(e) => setNomorPegawai(e.target.value)}
+        onChange={(e) => {
+          const value = e.target.value;
+          const onlyNumber = value.replace(/\D/g, "");
+          setNomorPegawai(onlyNumber);
+        }}
+        pattern="[0-9]*"
       />
 
       {/* Input Email */}
@@ -99,8 +111,11 @@ const SignupForm = ({ onSubmit, errorMessage }) => {
 
       {/* Pesan Error */}
       {password && confirmPassword && password !== confirmPassword && (
-        <p className="text-red-500 mt-2">Password dan konfirmasi password tidak sesuai</p>
+        <p className="text-red-500 mt-2">
+          Password dan konfirmasi password tidak sesuai
+        </p>
       )}
+      {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
 
       {/* Link ke halaman login dan Tombol */}
       <div className="flex justify-between items-center mt-4">
@@ -120,17 +135,21 @@ const SignupForm = ({ onSubmit, errorMessage }) => {
         <button
           type="submit"
           className={`w-full px-11 py-3 rounded-md ${
-            !namaPegawai ||
-            !nomorPegawai ||
-            !email ||
-            !password ||
-            !confirmPassword ||
-            password !== confirmPassword
+            isLoading || isButtonDisabled
+              ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+              : !namaPegawai ||
+                !nomorPegawai ||
+                !email ||
+                !password ||
+                !confirmPassword ||
+                password !== confirmPassword
               ? "bg-[#A6A6A6] text-gray-200 cursor-not-allowed border border-gray-400"
               : "bg-[#008C28] text-white hover:bg-green-600 border border-green-700"
           }`}
           style={{ borderRadius: "30px", fontWeight: "normal" }}
           disabled={
+            isLoading ||
+            isButtonDisabled ||
             !namaPegawai ||
             !nomorPegawai ||
             !email ||
@@ -139,7 +158,11 @@ const SignupForm = ({ onSubmit, errorMessage }) => {
             password !== confirmPassword
           }
         >
-          Buat Akun
+          {isLoading ? (
+            <div className="loader"></div> 
+          ) : (
+            "Buat Akun"
+          )}
         </button>
       </div>
     </form>

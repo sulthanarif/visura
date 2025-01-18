@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import LoginComponent from "../../components/auth/organism/LoginComponent";
 
-import { login } from "../../utils/authHelpers"; // Import helper function
+import { login } from "../../utils/authHelpers"; 
 
 const LoginPage = () => {
   const [errorMessage, setErrorMessage] = useState("");
@@ -10,10 +10,10 @@ const LoginPage = () => {
     const response = await login(credentials);
 
     if (response.ok) {
-      // Login berhasil, redirect ke dashboard
+   
       window.location.href = "/dashboard";
     } else {
-      // Tampilkan pesan error
+      
       setErrorMessage(response.message);
     }
   };
