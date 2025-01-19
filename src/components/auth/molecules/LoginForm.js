@@ -37,6 +37,7 @@ const LoginForm = ({ onSubmit, errorMessage }) => {
       }
     } catch (error) {
       console.error(error);
+      
     } finally {
       setTimeout(() => setIsDisabled(false), 1000); // Aktifkan kembali tombol setelah 1 detik
     }

@@ -11,7 +11,7 @@ const LoginPage = () => {
 
     if (response.ok) {
    
-      window.location.href = "/dashboard";
+      window.location.href = "/";
     } else {
       
       setErrorMessage(response.message);

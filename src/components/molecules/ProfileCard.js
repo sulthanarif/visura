@@ -1,5 +1,6 @@
 import Icon from "../atoms/Icon";
 import Button from "../atoms/Button";
+import axios from "axios";
 
 function ProfileCard() {
     return (

@@ -1,5 +1,6 @@
 import supabase from "../../../utils/supabaseClient"; // Import Supabase Client
 
+import crypto from "crypto";
 export default async function handler(req, res) {
     if (req.method !== "POST") {
         return res.status(405).json({ message: "Method not allowed" });
@@ -97,8 +98,9 @@ export default async function handler(req, res) {
                 message: `Email yang Anda masukkan (${email}) telah terdaftar.`,
             });
         }
-
+        const userId = crypto.randomBytes(16).toString('hex');
         const { error: insertError } = await supabase.from("users").insert([{
+            userId :userId,
             nama_pegawai: namaPegawai,
             nomor_pegawai: nomorPegawai,
             email: email,
