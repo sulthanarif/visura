@@ -1,24 +1,58 @@
-import supabase from "../../../utils/supabaseClient"; // Import Supabase Client
-
+import supabase from "../../../utils/supabaseClient";
 import crypto from "crypto";
-import bcrypt from 'bcrypt';
+import bcrypt from "bcrypt";
+
+
+const validatePassword = (password) => {
+    if (password.length < 6) {
+        return "Password minimal harus 6 karakter.";
+    }
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
+    if (!passwordRegex.test(password)) {
+        return "Password harus ada huruf kapital, kecil, dan angka.";
+    }
+    return null; 
+};
+
+
+const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return "Format email tidak valid.";
+    }
+    return null; 
+};
 
 export default async function handler(req, res) {
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(req.body.password, saltRounds);
-    const email = req.body.email.toLowerCase();
-
     if (req.method !== "POST") {
         return res.status(405).json({ message: "Method not allowed" });
     }
 
-    const { namaPegawai, nomorPegawai,  password } = req.body;
+    const { namaPegawai, nomorPegawai, email: rawEmail, password } = req.body;
+    const email = rawEmail?.toLowerCase();
 
     try {
+        
         if (!namaPegawai || !nomorPegawai || !email || !password) {
             return res.status(400).json({ message: "Semua field harus diisi." });
         }
 
+        
+        const emailError = validateEmail(email);
+        if (emailError) {
+            return res.status(400).json({ message: emailError });
+        }
+
+        const passwordError = validatePassword(password);
+        if (passwordError) {
+            return res.status(400).json({ message: passwordError });
+        }
+
+        
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+        
         const { data: existingUser, error: nomorCheckError } = await supabase
             .from("users")
             .select("email, email_verified")
@@ -39,24 +73,7 @@ export default async function handler(req, res) {
                 });
             }
 
-            const { data: allEmailCheck, error: allEmailError } = await supabase
-                .from("users")
-                .select("email_verified")
-                .ilike("email", `%${email}%`);
-
-            if (allEmailError) {
-                console.error("Error All Email Check:", allEmailError);
-                return res.status(500).json({ message: "Terjadi kesalahan pada server." });
-            }
-
-            const isEmailVerifiedElsewhere = allEmailCheck.some((entry) => entry.email_verified);
-
-            if (isEmailVerifiedElsewhere) {
-                return res.status(400).json({
-                    message: `Email yang Anda masukkan (${email}) telah terdaftar.`,
-                });
-            }
-
+            // Update data jika nomor pegawai sudah ada
             const { error: updateError } = await supabase
                 .from("users")
                 .update({
@@ -72,7 +89,7 @@ export default async function handler(req, res) {
                 return res.status(500).json({ message: "Gagal memperbarui data." });
             }
 
-            // Kirim OTP untuk verifikasi ulang
+            // Kirim OTP
             const { error: otpError } = await supabase.auth.signInWithOtp({ email });
             if (otpError) {
                 console.error("Error Sending OTP:", otpError);
@@ -83,10 +100,11 @@ export default async function handler(req, res) {
 
             return res.status(200).json({
                 message: `Data berhasil diperbarui. Silakan cek email Anda (${email}).`,
-                redirectUrl: `/otpsignupconfirmation?email=${email}&nomorPegawai=${nomorPegawai}`, 
+                redirectUrl: `/otpsignupconfirmation?email=${email}&nomorPegawai=${nomorPegawai}`,
             });
         }
 
+        // Cek apakah email sudah terdaftar
         const { data: emailCheck, error: emailCheckError } = await supabase
             .from("users")
             .select("email_verified")
@@ -94,23 +112,23 @@ export default async function handler(req, res) {
 
         if (emailCheckError) {
             console.error("Error Email Check:", emailCheckError);
-            return res.status(500).json({ message: "Terjadi kesalahan pada server." });
+            return res.status(500).json({ message: 'Email yang Anda masukan telah terdaftar' });
         }
 
-        const isEmailVerified = emailCheck.some((entry) => entry.email_verified);
-
-        if (isEmailVerified) {
+        if (emailCheck.some((entry) => entry.email_verified)) {
             return res.status(400).json({
                 message: `Email yang Anda masukkan (${email}) telah terdaftar.`,
             });
         }
-        const userId = crypto.randomBytes(16).toString('hex');
+
+        // Insert data baru
+        const userId = crypto.randomBytes(16).toString("hex");
         const { error: insertError } = await supabase.from("users").insert([{
-            userId :userId,
+            userId,
             nama_pegawai: namaPegawai,
             nomor_pegawai: nomorPegawai,
             email: email,
-            password: hashedPassword, 
+            password: hashedPassword,
             email_verified: false,
         }]);
 
@@ -119,6 +137,7 @@ export default async function handler(req, res) {
             return res.status(500).json({ message: "Gagal melakukan pendaftaran." });
         }
 
+        // Kirim OTP
         const { error: otpError } = await supabase.auth.signInWithOtp({ email });
         if (otpError) {
             console.error("Error Sending OTP:", otpError);
@@ -129,9 +148,8 @@ export default async function handler(req, res) {
 
         return res.status(200).json({
             message: `Pendaftaran berhasil. Silakan cek email Anda (${email}).`,
-            redirectUrl: `/otpsignupconfirmation?email=${email}&nomorPegawai=${nomorPegawai}`, 
+            redirectUrl: `/otpsignupconfirmation?email=${email}&nomorPegawai=${nomorPegawai}`,
         });
-
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: "Terjadi kesalahan pada server." });
