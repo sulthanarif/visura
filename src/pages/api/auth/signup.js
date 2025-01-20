@@ -1,7 +1,12 @@
 import supabase from "../../../utils/supabaseClient"; // Import Supabase Client
 
 import crypto from "crypto";
+import bcrypt from 'bcrypt';
+
 export default async function handler(req, res) {
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(req.body.password, saltRounds);
+
     if (req.method !== "POST") {
         return res.status(405).json({ message: "Method not allowed" });
     }
@@ -104,7 +109,7 @@ export default async function handler(req, res) {
             nama_pegawai: namaPegawai,
             nomor_pegawai: nomorPegawai,
             email: email,
-            password: password, 
+            password: hashedPassword, 
             email_verified: false,
         }]);
 

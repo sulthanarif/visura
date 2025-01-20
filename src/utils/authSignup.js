@@ -1,4 +1,5 @@
-// src/utils/auth/signupHelpers.js
+// src/utils/authSignup.js
+
 export const signup = async ({ namaPegawai, nomorPegawai, email, password }) => {
   try {
     const response = await fetch("/api/auth/signup", {
@@ -21,4 +22,3 @@ export const signup = async ({ namaPegawai, nomorPegawai, email, password }) => 
     return { ok: false, message: "Terjadi kesalahan pada server." };
   }
 };
-//untuk authHelper (best practicenya 1 file helpers, but here we separate it)

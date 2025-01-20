@@ -1,32 +1,33 @@
 export const verifyOtp = async ({ email, nomorPegawai, otp }) => {
   try {
-    const response = await fetch("/api/auth/otpsignupconfirmation", {
-      method: "POST",
+    const response = await fetch('/api/auth/otpsignupconfirmation', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, otp, nomorPegawai }), // Menambahkan nomorPegawai
+      body: JSON.stringify({ email, nomorPegawai, otp }),
     });
 
-    const data = await response.json(); // Parsing respons JSON dari backend
+    const data = await response.json();
 
     if (!response.ok) {
-      // Jika status respons bukan 2xx, anggap sebagai error
       return {
         ok: false,
-        message: data.message || "Terjadi kesalahan saat verifikasi OTP.",
+        message: data.message || 'Verifikasi OTP gagal'
       };
     }
 
     return {
       ok: true,
-      message: data.message || "OTP berhasil diverifikasi.",
+      message: data.message,
+      data: data
     };
+
   } catch (error) {
-    console.error("Error verifying OTP:", error);
+    console.error('Error verifying OTP:', error);
     return {
       ok: false,
-      message: error.message || "Terjadi kesalahan yang tidak terduga.",
+      message: 'Terjadi kesalahan saat verifikasi OTP'
     };
   }
 };

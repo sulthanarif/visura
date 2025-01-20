@@ -1,3 +1,4 @@
+//component/organisms/Header.js
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Icon from '../atoms/Icon';

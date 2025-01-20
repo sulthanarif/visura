@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import supabase from "../../../utils/supabaseClient"; // Import Supabase Client
 
 export default async function handler(req, res) {
@@ -23,9 +24,10 @@ export default async function handler(req, res) {
     if (error || !user) {
       return res.status(401).json({ message: "Nomor atau password salah, coba lagi." });
     }
-
     
-    if (password !== user.password) { 
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordMatch) { 
       return res.status(401).json({ message: "Nomor atau password salah, coba lagi." });
     }
 
@@ -34,10 +36,11 @@ export default async function handler(req, res) {
       return res.status(403).json({ message: "Email belum terverifikasi, silahkan daftarkan ulang." });
     }
 
-
     res.status(200).json({ message: "Login berhasil!" });
   } catch (err) {
     console.error("Error in /api/auth/login:", err);
     res.status(500).json({ message: "Terjadi kesalahan pada server." });
   }
 }
+
+
