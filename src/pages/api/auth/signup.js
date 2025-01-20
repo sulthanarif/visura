@@ -62,7 +62,7 @@ export default async function handler(req, res) {
                 .update({
                     nama_pegawai: namaPegawai,
                     email: email,
-                    password: password,
+                    password: hashedPassword,
                     email_verified: false,
                 })
                 .eq("nomor_pegawai", nomorPegawai);
