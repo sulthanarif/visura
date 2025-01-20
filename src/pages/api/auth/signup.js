@@ -6,12 +6,13 @@ import bcrypt from 'bcrypt';
 export default async function handler(req, res) {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(req.body.password, saltRounds);
+    const email = req.body.email.toLowerCase();
 
     if (req.method !== "POST") {
         return res.status(405).json({ message: "Method not allowed" });
     }
 
-    const { namaPegawai, nomorPegawai, email, password } = req.body;
+    const { namaPegawai, nomorPegawai,  password } = req.body;
 
     try {
         if (!namaPegawai || !nomorPegawai || !email || !password) {
@@ -41,7 +42,7 @@ export default async function handler(req, res) {
             const { data: allEmailCheck, error: allEmailError } = await supabase
                 .from("users")
                 .select("email_verified")
-                .eq("email", email);
+                .ilike("email", `%${email}%`);
 
             if (allEmailError) {
                 console.error("Error All Email Check:", allEmailError);
@@ -89,7 +90,7 @@ export default async function handler(req, res) {
         const { data: emailCheck, error: emailCheckError } = await supabase
             .from("users")
             .select("email_verified")
-            .eq("email", email);
+            .ilike("email", `%${email}%`);
 
         if (emailCheckError) {
             console.error("Error Email Check:", emailCheckError);
