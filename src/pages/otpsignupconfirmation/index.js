@@ -5,8 +5,9 @@ import { useState } from "react";
 
 const OtpSignupConfirmationPage = () => {
   const router = useRouter();
-  const { email, nomorPegawai } = router.query; // Mengambil email dan nomorPegawai dari URL query
-  const [errorMessage, setErrorMessage] = useState(""); // State untuk menyimpan error message
+  const { email: emailFromQuery, nomorPegawai } = router.query; // Mengambil email dan nomorPegawai dari URL query
+  const email = emailFromQuery?.toLowerCase();
+  const [errorMessage, setErrorMessage] = useState(""); // State 
 
   const handleOtpSubmit = async (otp) => {
     if (!email || !nomorPegawai) {
