@@ -1,3 +1,4 @@
+// src/utils/authOTPsignup.js
 export const verifyOtp = async ({ email, nomorPegawai, otp }) => {
   try {
     const response = await fetch('/api/auth/otpsignupconfirmation', {

@@ -1,3 +1,4 @@
+//pages/api/auth/signup.js
 import supabase from "../../../utils/supabaseClient";
 import crypto from "crypto";
 import bcrypt from "bcrypt";

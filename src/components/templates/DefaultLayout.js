@@ -2,7 +2,7 @@
 import React from 'react';
 import Header from '../organisms/Header';
 
-function DefaultLayout({ children }) {
+const DefaultLayout = ({ children }) => {
   return (
     <div>
       <Header />

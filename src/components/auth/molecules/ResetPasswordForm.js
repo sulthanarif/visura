@@ -3,7 +3,7 @@ import InputField from "../atoms/InputField";
 import Button from "../atoms/Button";
 import { useRouter } from "next/router";
 
-function ResetPasswordForm({ onSubmit = () => {} }) {
+const ResetPasswordForm = ({ onSubmit = () => {} }) => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);

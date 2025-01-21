@@ -3,7 +3,7 @@
 import UploadBox from '../../components/organisms/UploadBox/index';
 
 
-function UploadPageTest() {
+const UploadPageTest =()=> {
     return (
             <div className="container">
                 <UploadBox/>

@@ -1,8 +1,9 @@
+//component/molecules/TransmittalModal.js
 import React, { useState, useEffect } from "react";
 import IconWithText from "@/components/molecules/IconWithText";
 import Icon from "@/components/atoms/Icon";
 
-function TransmittalModal({ isOpen, onClose, onSubmit, initialData = {} }) {
+const TransmittalModal =({ isOpen, onClose, onSubmit, initialData = {} }) => {
     const [step, setStep] = useState(1);
     const [modalProjectName, setModalProjectName] = useState(
         initialData.projectName || ""

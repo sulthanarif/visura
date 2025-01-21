@@ -3,7 +3,7 @@ import React from 'react';
 import Label from '../atoms/Label';
 import Input from '../atoms/Input';
 
-function InputWithLabel({ label, type, placeholder, value, onChange, htmlFor, ...props }) {
+const InputWithLabel = ({ label, type, placeholder, value, onChange, htmlFor, ...props }) => {
     return (
         <div>
             <Label htmlFor={htmlFor} {...props}>{label}</Label>

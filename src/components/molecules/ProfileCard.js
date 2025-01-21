@@ -2,7 +2,7 @@ import Icon from "../atoms/Icon";
 import Button from "../atoms/Button";
 import axios from "axios";
 
-function ProfileCard() {
+const ProfileCard = () => {
     return (
         <div className="bg-white rounded-lg shadow-md p-6 w-80">
             <div className="flex items-center mb-4">

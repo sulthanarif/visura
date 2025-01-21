@@ -2,7 +2,7 @@
 import React, { useRef } from "react";
 import Icon from "../../atoms/Icon";
 
-function FileUploadArea({ handleFileChange, fileInputRef }) {
+const FileUploadArea = ({ handleFileChange, fileInputRef }) => {
   const handleUploadAreaClick = () => {
     fileInputRef.current.click();
   };

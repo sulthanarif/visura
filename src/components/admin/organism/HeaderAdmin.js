@@ -1,10 +1,10 @@
 //component/organisms/Header.js
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import Icon from '../atoms/Icon';
-import ProfileCard from '../molecules/ProfileCard';
+import Icon from '../../atoms/Icon';
+import ProfileCard from '../../molecules/ProfileCard';
 
-const Header = () => {
+function HeaderAdmin() {
   const [showProfile, setShowProfile] = useState(false);
   const profileRef = useRef(null);
 
@@ -28,8 +28,8 @@ const Header = () => {
         width={150} 
       />
       <nav>
-        <a href="/upload">Scan Files</a>
-        <a href="/library">Library</a>
+        <a href="/admin/accountmanagement">Account Management</a>
+        <a href="/admin/library">Library</a>
       </nav>
       <div 
         ref={profileRef}
@@ -53,4 +53,4 @@ const Header = () => {
   );
 }
 
-export default Header;
+export default HeaderAdmin;

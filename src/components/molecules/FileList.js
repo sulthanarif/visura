@@ -2,7 +2,7 @@
 import React from 'react';
 import FileListItem from '../atoms/FileListItem';
 
-function FileList({ files, onRemoveFile }) {
+const FileList = ({ files, onRemoveFile }) =>{
     return (
         <ul className="file-list">
             {files && files.map((file, index) => (

@@ -1,3 +1,4 @@
+// component/auth/organism/OTPsignupconfirmationComponent.js
 import React, { useState } from "react";
 import OTPsignupconfirmationForm from "../molecules/OTPsignupconfirmationForm";  // Mengimpor form OTP
 import WallpaperSlider from "../molecules/WallpaperSlider"; // Import WallpaperSlider

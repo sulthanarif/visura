@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Icon from './Icon';
 
-function FileListItem({ file, onRemove, index }) {
+const FileListItem = ({ file, onRemove, index }) => {
     const [show, setShow] = useState(false);
     const [remove, setRemove] = useState(false);
 
@@ -64,6 +64,6 @@ function FileListItem({ file, onRemove, index }) {
             </button>
         </li>
     );
-}
+};
 
 export default FileListItem;

@@ -16,7 +16,7 @@ import axios from "axios";
 const env = require('dotenv').config();
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 
-function UploadBox() {
+const UploadBox = () => {
     const router = useRouter();
     const fileInputRef = useRef(null);
     const {

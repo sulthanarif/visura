@@ -1,7 +1,7 @@
 // src/components/atoms/Label.js
 import React from 'react';
 
-function Label({ children, htmlFor, ...props }) {
+const Label = ({ children, htmlFor, ...props }) => {
   return <label htmlFor={htmlFor} {...props}>{children}</label>;
 }
 
