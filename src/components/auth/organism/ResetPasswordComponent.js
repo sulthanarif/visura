@@ -1,22 +1,27 @@
-import React from "react";
+import React, { useState } from "react";
 import ResetPasswordForm from "../molecules/ResetPasswordForm";
-import WallpaperSlider from "../molecules/WallpaperSlider"; // Import WallpaperSlider
+import OTPsignupconfirmationForm from "../molecules/OTPsignupconfirmationForm";
+import WallpaperSlider from "../molecules/WallpaperSlider";
 import { useRouter } from "next/router";
 
 const ResetPasswordComponent = ({
   onSubmit,
   errorMessage,
+  onResend,
+  email,
   containerStyles = "",
-  titleStyles = "",
-  backgroundStyles = "",
-  showBackgroundImage = false,
-  backgroundImage = "",
 }) => {
   const router = useRouter();
+  const [currentForm, setCurrentForm] = useState(0); // 0: OTP form, 1: Reset Password form
+
+  // Fungsi untuk berpindah antar form
+  const handleSwipe = (index) => {
+    setCurrentForm(index);
+  };
 
   return (
     <div className={`relative min-h-screen`}>
-      {/* Menampilkan WallpaperSlider */}
+      {/* Wallpaper Slider */}
       <WallpaperSlider />
       <div
         className={`absolute inset-0 flex items-start justify-start ${containerStyles}`}
@@ -25,57 +30,12 @@ const ResetPasswordComponent = ({
           className={`w-full max-w-md p-7 bg-[#FDFBF8] shadow-md rounded-lg relative`}
           style={{
             borderRadius: "20px",
-            marginLeft: "75px",
-            marginTop: "50px",
-            paddingTop: "40px", // top only padding
+            marginLeft: "75px", // Posisi kiri
+            marginTop: "50px", // Jarak dari atas
             zIndex: 10, // Form berada di atas wallpaper
           }}
         >
-          {/* Pseudo-element for decoration */}
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              height: "18px", // width of the decoration
-              display: "flex",
-              borderRadius: "20px 20px 0 0", // rad for the element
-            }}
-          >
-            <div
-              style={{
-                flex: "0 0 25%",
-                height: "100%",
-                backgroundColor: "#005919",
-                borderRadius: "20px 0 0 0",
-              }}
-            ></div>
-            <div
-              style={{
-                flex: "0 0 15%",
-                height: "100%",
-                backgroundColor: "#f1de03",
-              }}
-            ></div>
-            <div
-              style={{
-                flex: "0 0 10%",
-                height: "100%",
-                backgroundColor: "#eba900",
-              }}
-            ></div>
-            <div
-              style={{
-                flex: "0 0 50%",
-                height: "100%",
-                backgroundColor: "#e07318",
-                borderRadius: "0 20px 0 0",
-              }}
-            ></div>
-          </div>
-
-          {/* Heading and description */}
+          {/* Header dan Logo */}
           <div className="flex flex-col items-start justify-start">
             <div className="mb-1 ml-4">
               <img
@@ -91,16 +51,40 @@ const ResetPasswordComponent = ({
                 className="w-31 h-15"
               />
             </div>
-
-            <div className="ml-5 mt-2 mb-4 text-left text-sm">
-              <p>Masukkan password baru dan konfirmasi password</p>
-            </div>
           </div>
 
-          {/* Forgot Password Form */}
-          <ResetPasswordForm onSubmit={onSubmit} errorMessage={errorMessage} />
+          {/* Form Swipe */}
+          <div className="mt-6">
+            {currentForm === 0 && (
+              <OTPsignupconfirmationForm
+                onSubmit={onSubmit}
+                onResend={onResend}
+                email={email}
+                initialErrorMessage={errorMessage}
+              />
+            )}
+            {currentForm === 1 && (
+              <ResetPasswordForm onSubmit={onSubmit} errorMessage={errorMessage} />
+            )}
+          </div>
 
-          {/* Link Kembali ke Login */}
+          {/* Navigation Indicators */}
+          <div className="flex justify-center items-center mt-4 space-x-2">
+            <button
+              className={`w-3 h-3 rounded-full ${
+                currentForm === 0 ? "bg-blue-500" : "bg-gray-300"
+              }`}
+              onClick={() => handleSwipe(0)}
+            ></button>
+            <button
+              className={`w-3 h-3 rounded-full ${
+                currentForm === 1 ? "bg-blue-500" : "bg-gray-300"
+              }`}
+              onClick={() => handleSwipe(1)}
+            ></button>
+          </div>
+
+          {/* Link Back to Signup */}
           <div className="flex justify-center items-center mt-6 space-x-4">
             <button
               type="button"
