@@ -12,8 +12,8 @@ export default function App({ Component, pageProps }) {
   const isAuthPage = 
      router.pathname === '/login' 
   || router.pathname === '/signup' 
-  || router.pathname === '/forgot-password' 
-  || router.pathname === '/reset-password'
+  || router.pathname === '/forgotpassword' 
+  || router.pathname === '/resetpassword'
   || router.pathname === '/otpsignupconfirmation'
   || router.pathname === '/otpforgotpasswordconfirmation';
 

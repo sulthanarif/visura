@@ -1,58 +1,59 @@
 import React, { useState } from "react";
 import InputField from "../atoms/InputField";
-import InputOtpField from "../atoms/InputOtpField";
-import Button from "../atoms/Button";
-import { useRouter } from "next/router";
 
-const ForgotPasswordForm = ({ onSubmit = () => {} }) => {
+const ForgotPasswordForm = ({ onSubmit, errorMessage }) => {
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
-  const [showOtp, setShowOtp] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false); // State untuk loading
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false); // State debounce tombol
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email) {
-      setErrorMessage("Email harus diisi");
-      return;
-    }
 
-    setErrorMessage("");
-    onSubmit(email); // Kirim email ke parent component untuk memproses pengiriman OTP
-    setShowOtp(true);
+    setIsLoading(true);
+    try {
+      if (onSubmit) {
+        await onSubmit({ email });
+      }
+    } catch (error) {
+      console.error(error);
+      setIsButtonDisabled(true); // Disable tombol jika ada error
+      setTimeout(() => setIsButtonDisabled(false), 1000); // Aktifkan lagi setelah 1 detik
+    } finally {
+      setIsLoading(false); // Reset state loading
+    }
   };
 
   return (
-    <form
-      onSubmit={showOtp ? handleOtpSubmit : handleSubmit}
-      className="p-4"
-    >
+    <form onSubmit={handleSubmit} className="p-2">
+
       {/* Input Email */}
-      {!showOtp && (
-        <InputField
-          type="email"
-          placeholder="Masukkan Email Anda"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      )}
+      <InputField
+        type="email"
+        placeholder="Masukkan Email Anda"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
 
       {/* Pesan Error */}
       {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
 
-      <div className="flex justify-center items-center mt-6">
+      {/* Tombol Kirim */}
+      <div className="flex justify-center items-center mt-6 space-x-4">
         <button
           type="submit"
           className={`w-full px-11 py-3 rounded-md ${
-            !email && !showOtp
-              ? "bg-[#A6A6A6] text-gray-200 cursor-not-allowed border border-gray-400"
-              : "bg-[#008C28] text-white hover:bg-green-600 border border-green-700"
+            isLoading || isButtonDisabled || !email
+              ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+              : "bg-[#008C28] text-white hover:bg-green-600"
           }`}
           style={{ borderRadius: "30px", fontWeight: "normal" }}
-          disabled={!email && !showOtp}
+          disabled={isLoading || isButtonDisabled || !email}
         >
-          {showOtp ? "Verifikasi Kode OTP" : "Kirim Kode OTP Lewat Email"}
+          {isLoading ? (
+            <div className="loader"></div> // Loader untuk indikator loading
+          ) : (
+            "Kirim OTP"
+          )}
         </button>
       </div>
     </form>
@@ -60,4 +61,3 @@ const ForgotPasswordForm = ({ onSubmit = () => {} }) => {
 };
 
 export default ForgotPasswordForm;
-
