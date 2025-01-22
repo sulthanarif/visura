@@ -1,95 +1,111 @@
-// src/components/auth/molecules/OTPsignupconfirmationForm.js
 import React, { useState, useEffect } from "react";
 import InputOtpField from "../atoms/InputOtpField";
 import { useRouter } from "next/router";
 
-const OTPsignupconfirmationForm = ({ onSubmit = () => {}, email = "" }) => {
+const OTPsignupconfirmationForm = ({
+  onSubmit,
+  onResend,
+  email, 
+  initialErrorMessage = ""
+}) => {
   const [otp, setOtp] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isLinkDisabled, setIsLinkDisabled] = useState(true);
-  const [timer, setTimer] = useState(30);
+  const [errorMessage, setErrorMessage] = useState(initialErrorMessage);
+  const [isLinkDisabled, setIsLinkDisabled] = useState(false); 
+  const [timer, setTimer] = useState(45);
   const router = useRouter();
 
+  // Reset timer ketika komponen dimount
   useEffect(() => {
-    let interval;
-    if (isLinkDisabled) {
-      interval = setInterval(() => {
-        setTimer((prev) => {
-          if (prev === 1) {
-            clearInterval(interval);
-            setIsLinkDisabled(false);
-            return 30;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(interval); 
+    if (!isLinkDisabled) return;
+
+    const interval = setInterval(() => {
+      setTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setIsLinkDisabled(false);
+          return 45;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, [isLinkDisabled]);
 
-  const handleResendOtp = () => {
-    setIsLinkDisabled(true); 
-    setTimer(30); 
-    // kirim ulang OTP ke email
-    
+  // Handle resend OTP
+  const handleResendOtp = async (e) => {
+    e.preventDefault();
+
+    if (!email) {
+      setErrorMessage("Email tidak ditemukan.");
+      return;
+    }
+
+    try {
+      setIsLinkDisabled(true);
+      setErrorMessage("");
+      
+      const response = await onResend(email);
+      
+      if (response?.ok) {
+        setErrorMessage(<span style={{color: "green"}}>OTP telah dikirim ulang ke email Anda.</span>);
+        setTimer(45); 
+      } else {
+        setErrorMessage(<span style={{color: "green"}}>OTP telah dikirim ulang ke email Anda.</span>);
+      }
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+      setIsLinkDisabled(false); // Enable button jika gagal
+      setErrorMessage(error.message || "Terjadi kesalahan pada server.");
+    }
   };
 
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (!otp || otp.length !== 6) {
       setErrorMessage("Kode OTP harus terdiri dari 6 digit.");
       return;
     }
-  
-    setErrorMessage(""); // Reset pesan error sebelum memulai
-    setIsLinkDisabled(true); // Disable link untuk resend OTP sementara
-  
+
+    setErrorMessage("Kode OTP tidak valid atau sudah expired.");
+    
+
     try {
-      const result = await onSubmit(otp, email); // Menunggu hasil dari fungsi onSubmit
-  
-      console.log("Result from onSubmit:", result); // Log hasil dari onSubmit
-  
-      if (result && !result.ok) {
-        console.error("Error result:", result.message); // Log error result jika ada masalah
-        setErrorMessage(result.message || "Terjadi kesalahan saat verifikasi OTP.");
-        setIsLinkDisabled(false); // Re-enable resend link jika error
+      const result = await onSubmit(otp, email);
+
+      if (!result.ok) {
+        setErrorMessage( "Kode OTP tidak valid atau sudah expired.");
+    
       }
     } catch (error) {
-      console.error("Error submitting OTP:", error);
-      setErrorMessage(error.message || "Terjadi kesalahan yang tidak terduga.");
-      setIsLinkDisabled(false); // Re-enable resend link jika error
+      setErrorMessage("Kode OTP tidak valid atau sudah expired.");
+   
     }
   };
-  
-  
 
- return (
-  <form onSubmit={handleOtpSubmit} className="p-4">
-    {/* Input OTP */}
-    <InputOtpField
-      type="tel"
-      inputMode="numeric"
-      placeholder="Masukkan Kode OTP"
-      value={otp}
-      onChange={(e) => {
-        // Hanya menerima angka, menghapus karakter yang tidak diinginkan
-        const input = e.target.value.replace(/[^0-9]/g, '').slice(0, 6); // Menghapus karakter non-angka
-        setOtp(input);
-      }}
-      maxLength={6}
-    />
-  
+  return (
+    <form onSubmit={handleOtpSubmit} className="p-4">
+      <InputOtpField
+        type="tel"
+        inputMode="numeric"
+        placeholder="Masukkan Kode OTP"
+        value={otp}
+        onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
+        maxLength={6}
+      />
 
-      {/* Pesan Error */}
-      {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
+      {errorMessage && (
+        <p className="text-red-500 mt-2 ml-1">{errorMessage}</p>
+      )}
 
-      {/* Resend OTP Link */}
       <div className="text-left mt-2 ml-1">
         <button
           type="button"
           className={`text-[#E17218] underline ${
-            isLinkDisabled ? "cursor-not-allowed text-gray-400" : "hover:text-orange-600"
+            isLinkDisabled 
+              ? "cursor-not-allowed text-gray-400" 
+              : "hover:text-orange-600"
           }`}
           onClick={handleResendOtp}
           disabled={isLinkDisabled}
@@ -98,7 +114,6 @@ const OTPsignupconfirmationForm = ({ onSubmit = () => {}, email = "" }) => {
         </button>
       </div>
 
-      {/* Tombol Submit */}
       <div className="flex justify-center items-center mt-6 space-x-4">
         <button
           type="submit"

@@ -3,6 +3,7 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import { useRouter } from 'next/router';
 import DefaultLayout from "@/components/templates/DefaultLayout";
 import AdminLayout from "@/components/templates/AdminLayout";
+import { Toaster } from 'react-hot-toast'; // Import Toaster
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
@@ -19,21 +20,26 @@ export default function App({ Component, pageProps }) {
   // Admin pages that use AdminLayout
   const isAdminPage = router.pathname.startsWith('/admin');
 
-  if (isAuthPage) {
-    return <Component {...pageProps} />;
-  }
-
-  if (isAdminPage) {
-    return (
-      <AdminLayout>
-        <Component {...pageProps} />
-      </AdminLayout>
-    );
-  }
-
   return (
-    <DefaultLayout>
-      <Component {...pageProps} />
-    </DefaultLayout>
+    <>
+      {/* Toaster for notifications */}
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+      />
+
+      {/* Conditional Layout Rendering */}
+      {isAuthPage ? (
+        <Component {...pageProps} />
+      ) : isAdminPage ? (
+        <AdminLayout>
+          <Component {...pageProps} />
+        </AdminLayout>
+      ) : (
+        <DefaultLayout>
+          <Component {...pageProps} />
+        </DefaultLayout>
+      )}
+    </>
   );
 }

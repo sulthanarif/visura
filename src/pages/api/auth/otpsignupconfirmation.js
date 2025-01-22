@@ -13,7 +13,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: "Email, OTP, dan Nomor Pegawai harus diisi." });
     }
 
-    // Verifikasi OTP menggunakan Supabase
+    // Verifikasi OTP menggunakan Supabase //
     const { data: session, error: otpError } = await supabase.auth.verifyOtp({
       email,
       token: otp,
