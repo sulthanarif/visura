@@ -20,9 +20,11 @@ const LoginPage = () => {
         setErrorMessage('');
         router.push("/upload-test");
       } else {
-        setErrorMessage(response?.message || "Terjadi kesalahan, coba lagi.");
-      }
-    } catch (error) {
+        toast.error(response?.message || "Terjadi kesalahan, coba lagi.", {
+          duration: 5000,
+          position: "top-center",
+        });
+      }    } catch (error) {
       setErrorMessage("Terjadi kesalahan pada server.");
     }
   };
