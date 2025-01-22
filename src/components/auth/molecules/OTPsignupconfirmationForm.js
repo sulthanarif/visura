@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import InputOtpField from "../atoms/InputOtpField";
 import { useRouter } from "next/router";
-import { error } from "pdf-lib";
 
 const OTPsignupconfirmationForm = ({
   onSubmit,

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import InputField from "../atoms/InputField";
-import Button from "../atoms/Button";
 import { useRouter } from "next/router";
 
 const ResetPasswordForm = ({ onSubmit = () => {} }) => {
