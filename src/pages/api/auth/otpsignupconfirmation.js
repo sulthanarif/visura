@@ -26,6 +26,21 @@ export default async function handler(req, res) {
         message: "OTP tidak valid atau sudah kedaluwarsa. Silakan coba lagi.",
       });
     }
+    const { data: emailCheck, error: emailCheckError } = await supabase
+    .from("users")
+    .select("email_verified")
+    .ilike("email", `%${email}%`);
+
+if (emailCheckError) {
+    console.error("Error Email Check:", emailCheckError);
+    return res.status(500).json({ message: 'Email yang Anda masukan telah terdaftar' });
+}
+
+if (emailCheck.some((entry) => entry.email_verified)) {
+    return res.status(400).json({
+        message: `Email yang Anda masukkan (${email}) telah terdaftar.`,
+    });
+}
 
     // Cek apakah nomor pegawai sudah digunakan dengan email yang statusnya verified
     const { data: existingPegawai, error: existingPegawaiError } = await supabase

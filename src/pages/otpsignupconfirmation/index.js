@@ -1,4 +1,3 @@
-// pages/otpSignupConfirmation.js
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import OTPsignupconfirmationComponent from "../../components/auth/organism/OTPsignupconfirmationComponent";
@@ -11,77 +10,102 @@ const OtpSignupConfirmationPage = () => {
   const [nomorPegawai, setNomorPegawai] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [isLinkDisabled, setIsLinkDisabled] = useState(true);
+  const [timer, setTimer] = useState(60);
 
   useEffect(() => {
-    // Redirect ke halaman signup jika tidak ada email atau nomorPegawai
-    if (router.isReady && (!router.query?.email || !router.query?.nomorPegawai)) {
+    if (!router.isReady) return;
+
+    if (!router.query?.email || !router.query?.nomorPegawai) {
+      toast.error("Data tidak lengkap. Silakan daftar ulang.");
       router.push("/signup");
       return;
     }
 
-    if (router.query?.email && router.query?.nomorPegawai) {
-      setEmail(router.query.email.toLowerCase());
-      setNomorPegawai(router.query.nomorPegawai);
-    }
-  }, [router.isReady, router.query]);
+    setEmail(router.query.email.toLowerCase());
+    setNomorPegawai(router.query.nomorPegawai);
+});
 
   const handleOtpSubmit = async (otp) => {
-    if (!email || !nomorPegawai) {
-      setErrorMessage("Email dan nomor pegawai tidak ditemukan.");
+   
+    setErrorMessage("");
+   
+    if (!otp || otp.length !== 6) {
+      setErrorMessage("Kode OTP harus terdiri dari 6 digit.");
       return;
     }
 
-    const response = await verifyOtp({ email, nomorPegawai, otp });
+    setIsLoading(true);
 
-    if (response.ok) {
-      
-      toast.success('Akun berhasil terdaftar!', {
-        duration: 3000,
-        position: 'top-center',
-        style: {
-          background: '#008C28',
-          color: '#fff',
-          padding: '16px',
-          borderRadius: '10px',
-        },
-      });
-      
-      // Tunggu sebentar sebelum redirect
-      setTimeout(() => {
-        router.push("/login");
-      },0);
-    } else {
-      setErrorMessage(response.message);
-    }
-  };
-
-  const handleResendOtp = async () => {
     try {
-      setIsLoading(true);
-      setErrorMessage("");
+      const response = await verifyOtp({ 
+        email, 
+        nomorPegawai, 
+        otp 
+      });
 
-      if (!email) {
-        throw new Error("Email tidak ditemukan.");
+      if (response.ok) {
+       
+        toast.success("Akun berhasil terdaftar! Silakan login.", {
+          duration: 8000,
+          position: "top-center",
+          
+        });
+        
+       
+        setTimeout(() => router.push("/login"));
+      } else {
+        toast.error("Kode OTP tidak valid atau sudah expired", {
+          duration: 5000,
+          position: "top-center",
+        });
       }
-
-      console.log('Sending OTP to:', email);
-      
-      const response = await resendOtp({ email });
-
-      if (!response?.ok) {
-        setErrorMessage(response?.message || "Gagal mengirim ulang OTP.");
-      }
-
-      setErrorMessage("OTP telah berhasil dikirim ulang ke email Anda.");
-      
     } catch (error) {
-      setErrorMessage(error.message);
+      // Error network/server
+      setErrorMessage("Terjadi gangguan koneksi. Silakan coba beberapa saat lagi.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Jika masih loading initial data
+  const handleResendOtp = async () => {
+   
+    if (!email) {
+      setErrorMessage("Email tidak valid. Silakan daftar ulang.");
+      router.push("/signup");
+      return;
+    }
+
+    setErrorMessage("");
+    setIsResending(true);
+
+    try {
+      const response = await resendOtp({ email });
+
+      if (response?.ok) {
+      
+        toast.success("Kode OTP baru telah dikirim ke email Anda.", {
+          duration: 5000,
+          position: "top-center",
+        });
+        
+        setIsLinkDisabled(true);
+      } else {
+       
+        toast.error("Gagal mengirim ulang OTP. Coba lagi.", {
+          duration: 5000,
+          position: "top-center",
+        });
+      }
+    } catch (error) {
+      
+      setErrorMessage("Terjadi gangguan koneksi. Silakan coba beberapa saat lagi.");
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   if (!router.isReady) {
     return null;
   }
@@ -92,7 +116,9 @@ const OtpSignupConfirmationPage = () => {
       onResend={handleResendOtp}
       email={email}
       errorMessage={errorMessage}
-      isLoading={isLoading}
+      isLinkDisabled={isLinkDisabled || isResending}
+      isLoading={isLoading || isResending}
+      timer={timer}
     />
   );
 };

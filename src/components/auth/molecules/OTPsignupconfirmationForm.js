@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import InputOtpField from "../atoms/InputOtpField";
 import { useRouter } from "next/router";
+import { error } from "pdf-lib";
 
 const OTPsignupconfirmationForm = ({
   onSubmit,
@@ -10,11 +11,11 @@ const OTPsignupconfirmationForm = ({
 }) => {
   const [otp, setOtp] = useState("");
   const [errorMessage, setErrorMessage] = useState(initialErrorMessage);
-  const [isLinkDisabled, setIsLinkDisabled] = useState(false); 
-  const [timer, setTimer] = useState(45);
+  const [isLinkDisabled, setIsLinkDisabled] = useState(true); 
+  const [timer, setTimer] = useState(60);
   const router = useRouter();
 
-  // Reset timer ketika komponen dimount
+  
   useEffect(() => {
     if (!isLinkDisabled) return;
 
@@ -23,7 +24,7 @@ const OTPsignupconfirmationForm = ({
         if (prev <= 1) {
           clearInterval(interval);
           setIsLinkDisabled(false);
-          return 45;
+          return 60;
         }
         return prev - 1;
       });
@@ -35,7 +36,7 @@ const OTPsignupconfirmationForm = ({
   // Handle resend OTP
   const handleResendOtp = async (e) => {
     e.preventDefault();
-
+    
     if (!email) {
       setErrorMessage("Email tidak ditemukan.");
       return;
@@ -48,14 +49,12 @@ const OTPsignupconfirmationForm = ({
       const response = await onResend(email);
       
       if (response?.ok) {
-        setErrorMessage(<span style={{color: "green"}}>OTP telah dikirim ulang ke email Anda.</span>);
-        setTimer(45); 
-      } else {
-        setErrorMessage(<span style={{color: "green"}}>OTP telah dikirim ulang ke email Anda.</span>);
-      }
+        
+        setTimer(60); 
+      } 
     } catch (error) {
       console.error("Error sending OTP:", error);
-      setIsLinkDisabled(false); // Enable button jika gagal
+      setIsLinkDisabled(false); 
       setErrorMessage(error.message || "Terjadi kesalahan pada server.");
     }
   };
@@ -67,20 +66,20 @@ const OTPsignupconfirmationForm = ({
       setErrorMessage("Kode OTP harus terdiri dari 6 digit.");
       return;
     }
-
-    setErrorMessage("Kode OTP tidak valid atau sudah expired.");
-    
-
     try {
       const result = await onSubmit(otp, email);
 
-      if (!result.ok) {
-        setErrorMessage( "Kode OTP tidak valid atau sudah expired.");
-    
+      if (result?.ok) {
+        setErrorMessage(<span style={{color: "green"}}>Verfikasi berhasil, silahkan login.</span>);
+
+       
+      } else {
+        setErrorMessage( result.message );
       }
     } catch (error) {
-      setErrorMessage("Kode OTP tidak valid atau sudah expired.");
-   
+    
+    //  setErrorMessage("Kode OTP tidak valid atau sudah expired.");
+    
     }
   };
 

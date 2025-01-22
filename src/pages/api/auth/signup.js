@@ -53,7 +53,24 @@ export default async function handler(req, res) {
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        
+          // Cek apakah email sudah terdaftar
+          const { data: emailCheck, error: emailCheckError } = await supabase
+          .from("users")
+          .select("email_verified")
+          .ilike("email", `%${email}%`);
+
+      if (emailCheckError) {
+          console.error("Error Email Check:", emailCheckError);
+          return res.status(500).json({ message: 'Email yang Anda masukan telah terdaftar' });
+      }
+
+      if (emailCheck.some((entry) => entry.email_verified)) {
+          return res.status(400).json({
+              message: `Email yang Anda masukkan (${email}) telah terdaftar.`,
+          });
+      }
+
+
         const { data: existingUser, error: nomorCheckError } = await supabase
             .from("users")
             .select("email, email_verified")
@@ -89,6 +106,22 @@ export default async function handler(req, res) {
                 console.error("Error Updating Data:", updateError);
                 return res.status(500).json({ message: "Gagal memperbarui data." });
             }
+   // Cek apakah email sudah terdaftar
+          const { data: emailCheck, error: emailCheckError } = await supabase
+          .from("users")
+          .select("email_verified")
+          .ilike("email", `%${email}%`);
+
+      if (emailCheckError) {
+          console.error("Error Email Check:", emailCheckError);
+          return res.status(500).json({ message: 'Email yang Anda masukan telah terdaftar' });
+      }
+
+      if (emailCheck.some((entry) => entry.email_verified)) {
+          return res.status(400).json({
+              message: `Email yang Anda masukkan (${email}) telah terdaftar.`,
+          });
+      }
 
             // Kirim OTP
             const { error: otpError } = await supabase.auth.signInWithOtp({ email });
@@ -105,23 +138,7 @@ export default async function handler(req, res) {
             });
         }
 
-        // Cek apakah email sudah terdaftar
-        const { data: emailCheck, error: emailCheckError } = await supabase
-            .from("users")
-            .select("email_verified")
-            .ilike("email", `%${email}%`);
-
-        if (emailCheckError) {
-            console.error("Error Email Check:", emailCheckError);
-            return res.status(500).json({ message: 'Email yang Anda masukan telah terdaftar' });
-        }
-
-        if (emailCheck.some((entry) => entry.email_verified)) {
-            return res.status(400).json({
-                message: `Email yang Anda masukkan (${email}) telah terdaftar.`,
-            });
-        }
-
+      
         // Insert data baru
         const userId = crypto.randomBytes(16).toString("hex");
         const { error: insertError } = await supabase.from("users").insert([{
