@@ -1,78 +1,139 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import ResetPasswordPage from "../../components/auth/organism/ResetPasswordComponent"; 
+import { verifyOtp } from "../../utils/authResetpassword"; 
+import { resendOtp } from "../../utils/authResetpassword"; 
+import { toast } from "react-hot-toast";
 import { useRouter } from "next/router";
-import { verifyOtp, resendOtp } from "../../utils/authResetpassword";
-import ResetPasswordComponent from "../../components/auth/organism/ResetPasswordComponent";
-import { toast } from "react-hot-toast"; // Untuk notifikasi
 
-const ResetPasswordPage = () => {
+const ResetPassword = () => {
   const router = useRouter();
-  const { email } = router.query; // Mengambil email dari query URL
   const [errorMessage, setErrorMessage] = useState("");
-  const [isResending, setIsResending] = useState(false);
+  const [email, setEmail] = useState(router.query.email || ""); 
+  const [isResending, setIsResending] = useState(false); 
 
-  useEffect(() => {
-    if (!email) {
-      setErrorMessage("Email tidak ditemukan. Silakan coba lagi.");
-    }
-  }, [email]);
+  const handleResetPassword = async (data) => {
+    const { otp, password } = data; 
 
-  // Handler saat tombol submit ditekan
-  const handleSubmit = async (formData) => {
-    if (formData.password !== formData.confirmPassword) {
-      setErrorMessage("Password tidak cocok.");
+    if (!email || !otp || !password) {
+      setErrorMessage("Semua kolom harus diisi.");
       return;
     }
 
     try {
-      const response = await verifyOtp({
-        email,
-        otp: formData.otp,
-        password: formData.password,
-      });
+      const { ok, message, redirectUrl } = await verifyOtp({ email, otp, password });
 
-      if (response?.ok) {
-        toast.success("Password berhasil diubah. Silakan login.", {
-          duration: 5000,
-          position: "top-center",
-        });
-        router.push("/login");
+      if (ok) {
+        toast.success(
+          <div
+            style={{
+              minWidth: "350px",
+              maxWidth: "600px",
+              whiteSpace: "nowrap",
+              textAlign: "center",
+              textOverflow: "ellipsis",
+            }}
+          >
+            Password berhasil diubah untuk akun {email.toLowerCase()}
+          </div>,
+          {
+            duration: 8000,
+            position: "top-center",
+            style: {
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              minWidth: "400px",
+              maxWidth: "600px",
+            },
+          }
+        );
+
+        if (redirectUrl) {
+          setTimeout(() => router.push(redirectUrl), 0);
+        }
       } else {
-        toast.error(response?.message || "Gagal memverifikasi OTP.", {
-          duration: 5000,
-          position: "top-center",
-        });
+        toast.error(
+          <div
+            style={{
+              minWidth: "350px",
+              maxWidth: "600px",
+              whiteSpace: "nowrap",
+              textAlign: "center",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {message || "Kode OTP tidak valid atau sudah kadaluarsa. "}
+          </div>,
+          {
+            duration: 8000,
+            position: "top-center",
+            style: {
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              minWidth: "350px",
+              maxWidth: "600px",
+            },
+          }
+        );
       }
     } catch (error) {
-      console.error("Error during reset password:", error);
-      setErrorMessage("Terjadi kesalahan. Silakan coba beberapa saat lagi.");
+      setErrorMessage("Terjadi kesalahan pada server.");
     }
   };
 
-  // Handler untuk mengirim ulang OTP
   const handleResendOTP = async () => {
     if (!email) {
       setErrorMessage("Email tidak valid. Silakan daftar ulang.");
       return;
     }
-  
-    console.log("Memulai pengiriman ulang OTP untuk email:", email); // Debug log
+
+    console.log("Memulai pengiriman ulang OTP untuk email:", email); 
     setErrorMessage("");
     setIsResending(true);
-  
+
     try {
       const response = await resendOtp({ email });
-      console.log("Respon dari API:", response); // Debug log
-  
+      console.log("Respon dari API:", response); 
+
       if (response?.ok) {
-        toast.success("Kode OTP baru telah dikirim ke email Anda.", {
-          duration: 5000,
-          position: "top-center",
-        });
+        toast.success(
+          <div style={{ minWidth: "300px", maxWidth: "600px" ,  whiteSpace: "nowrap", textAlign :"center", 
+            textOverflow: "ellipsis",}}>
+            Kode OTP telah dikirim ke email Anda.
+          </div>,
+          {
+            duration: 8000,
+            position: "top-center",
+            style: {
+              
+              whiteSpace: "nowrap", 
+              overflow: "hidden", 
+              textOverflow: "ellipsis", 
+              minWidth: "300px", 
+              maxWidth: "600px", 
+            },
+          }
+        );
       } else {
-        toast.error(response?.message || "Gagal mengirim ulang OTP.", {
-          duration: 5000,
-          position: "top-center",
-        });
+        toast.success(
+          <div style={{ minWidth: "300px", maxWidth: "600px" ,  whiteSpace: "nowrap", textAlign :"center", 
+            textOverflow: "ellipsis",}}>
+            {response?.message }
+          </div>,
+          {
+            duration: 8000,
+            position: "top-center",
+            style: {
+              
+              whiteSpace: "nowrap", 
+              overflow: "hidden", 
+              textOverflow: "ellipsis", 
+              minWidth: "300px", 
+              maxWidth: "600px", 
+            },
+          }
+        );
       }
     } catch (error) {
       console.error("Error during resend OTP:", error);
@@ -81,23 +142,18 @@ const ResetPasswordPage = () => {
       setIsResending(false);
     }
   };
-  
 
   return (
     <div>
-      {email ? (
-        <ResetPasswordComponent
-          email={email}
-          onSubmit={handleSubmit}
-          onResend={handleResendOTP}
-          errorMessage={errorMessage}
-          isResending={isResending}
-        />
-      ) : (
-        <p>Loading...</p>
-      )}
+      <ResetPasswordPage
+        onSubmit={handleResetPassword}
+        onResend={handleResendOTP}
+        errorMessage={errorMessage}
+        email={email} // Kirim email yang sudah didefinisikan
+        isResending={isResending} // Kirim status pengiriman ulang OTP
+      />
     </div>
   );
 };
 
-export default ResetPasswordPage;
+export default ResetPassword;

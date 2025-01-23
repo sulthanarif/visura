@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
 import InputField from "../atoms/InputField";
 import InputOtpField from "../atoms/InputOtpField";
+import { CheckCircle, XCircle } from "lucide-react";
 
-const ResetPasswordForm = ({ email, onResend, onSubmit }) => {
-  // State untuk OTP, password, dan konfirmasi password
+const ResetPasswordForm = ({ email, onResend, onSubmit, errorMessage }) => {
   const [otp, setOtp] = useState("");
-  const [newPassword, setNewPassword] = useState("");
+  const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLinkDisabled, setIsLinkDisabled] = useState(true);
-  const [timer, setTimer] = useState(60);
+  const [timer, setTimer] = useState(5);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Timer countdown logic
   useEffect(() => {
     if (!isLinkDisabled) return;
 
@@ -29,97 +30,67 @@ const ResetPasswordForm = ({ email, onResend, onSubmit }) => {
     return () => clearInterval(interval);
   }, [isLinkDisabled]);
 
-  // Validasi password
-  const validatePassword = (password) => {
-    if (password.length < 6) {
-      return "Password harus minimal 6 karakter.";
-    }
-    if (!/[A-Z]/.test(password)) {
-      return "Password harus ada huruf kapital, kecil, dan angka.";
-    }
-    if (!/[a-z]/.test(password)) {
-      return "Password harus ada huruf kapital, kecil, dan angka.";
-    }
-    if (!/\d/.test(password)) {
-      return "Password harus ada huruf kapital, kecil, dan angka.";
-    }
-    return "";
-  };
+  const validatePassword = (pwd) => ({
+    length: pwd.length >= 6,
+    uppercase: /[A-Z]/.test(pwd),
+    lowercase: /[a-z]/.test(pwd),
+    number: /\d/.test(pwd),
+    match: pwd === confirmPassword,
+  });
 
-  // Menangani perubahan OTP
-  const handleOtpChange = (e) => {
-    setOtp(e.target.value.replace(/[^0-9]/g, "").slice(0, 6));
-  };
+  const passwordValidation = validatePassword(password);
 
-  // Menangani perubahan password
-  const handlePasswordChange = (e) => {
-    const value = e.target.value;
-    setNewPassword(value);
+  const renderValidationIcon = (isValid) =>
+    isValid ? (
+      <CheckCircle className="text-green-500 inline-block ml-2" size={20} />
+    ) : (
+      <XCircle className="text-red-500 inline-block ml-2" size={20} />
+    );
 
-    const validationError = validatePassword(value);
-    if (validationError) {
-      setErrorMessage(validationError);
-    } else if (confirmPassword && value !== confirmPassword) {
-      setErrorMessage("Password dan konfirmasi password tidak sesuai.");
-    } else {
-      setErrorMessage("");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!otp || !password || !confirmPassword || !Object.values(passwordValidation).every((v) => v)) return;
+
+    setIsLoading(true);
+    try {
+      if (onSubmit) {
+        await onSubmit({ otp, password });
+      }
+    } catch (error) {
+      console.error("Reset Password Error:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Menangani perubahan confirm password
-  const handleConfirmPasswordChange = (e) => {
-    const value = e.target.value;
-    setConfirmPassword(value);
-
-    if (newPassword && value !== newPassword) {
-      setErrorMessage("Password dan konfirmasi password tidak sesuai.");
-    } else {
-      const validationError = validatePassword(newPassword);
-      setErrorMessage(validationError || "");
-    }
-  };
-
-  // Menangani pengiriman OTP
-  const handleResendOtp = (e) => {
+  const handleResendOtp = async (e) => {
     e.preventDefault();
     if (!email) return;
+
     try {
       setIsLinkDisabled(true);
       setTimer(60);
-      onResend(email);
+      await onResend(email);
     } catch (error) {
-      console.error("Error sending OTP:", error);
-    }
-  };
-
-  // Menangani submit form
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (otp && newPassword && confirmPassword && newPassword === confirmPassword) {
-      onSubmit(otp, newPassword);
+      console.error("Resend OTP Error:", error);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4">
-      {/* Input OTP */}
+    <form onSubmit={handleSubmit} className="p-4 space-y-4">
       <InputOtpField
         type="tel"
         inputMode="numeric"
         placeholder="Masukkan Kode OTP"
         value={otp}
-        onChange={handleOtpChange}
+        onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
         maxLength={6}
       />
-
-      {/* Tombol Kirim Ulang OTP */}
-      <div className="text-left mt-2">
+      <div className="text-left ml-1 mt-2">
         <button
           type="button"
           className={`text-[#E17218] underline ${
-            isLinkDisabled
-              ? "cursor-not-allowed text-gray-400"
-              : "hover:text-orange-600"
+            isLinkDisabled ? "cursor-not-allowed text-gray-400" : "hover:text-orange-600"
           }`}
           onClick={handleResendOtp}
           disabled={isLinkDisabled}
@@ -128,42 +99,81 @@ const ResetPasswordForm = ({ email, onResend, onSubmit }) => {
         </button>
       </div>
 
-      {/* Input Password Baru */}
-      <div className="relative mt-4">
+      <h1 className="text-2xl text-left ml-1">Buat Password baru</h1>
+      <p className="text-left ml-1 mt-1 text-sm">
+        Buat Password baru untuk nomor pegawai . ..... 
+        <strong style={{ color: "#E17218" }}>{email}</strong>
+      </p>
+
+      <div className="relative space-y-2">
         <InputField
-          type="password"
+          type={showPassword ? "text" : "password"}
           placeholder="Masukkan Password Baru"
-          value={newPassword}
-          onChange={handlePasswordChange}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
         />
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute top-2 right-3"
+        >
+          <img
+            src={showPassword ? "/assets/eye_close.svg" : "/assets/eye_open.svg"}
+            className="w-6 h-6"
+            alt="Toggle Password Visibility"
+          />
+        </button>
       </div>
 
-      {/* Input Konfirmasi Password Baru */}
-      <div className="relative mt-4">
+      <div className="relative space-y-2">
         <InputField
-          type="password"
+          type={showConfirmPassword ? "text" : "password"}
           placeholder="Konfirmasi Password Baru"
           value={confirmPassword}
-          onChange={handleConfirmPasswordChange}
+          onChange={(e) => setConfirmPassword(e.target.value)}
         />
+        <button
+          type="button"
+          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+          className="absolute top-2 right-3"
+        >
+          <img
+            src={showConfirmPassword ? "/assets/eye_close.svg" : "/assets/eye_open.svg"}
+            className="w-6 h-6"
+            alt="Toggle Confirm Password Visibility"
+          />
+        </button>
       </div>
 
-      {/* Pesan Error */}
-      {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
+      {password && (
+        <div className="space-y-0">
+          <p className={`flex items-center ${passwordValidation.length ? "text-green-600" : "text-red-500"}`}>
+            ◉ Minimal 6 karakter {renderValidationIcon(passwordValidation.length)}
+          </p>
+          <p className={`flex items-center ${passwordValidation.uppercase ? "text-green-600" : "text-red-500"}`}>
+            ◉ Mengandung huruf kapital {renderValidationIcon(passwordValidation.uppercase)}
+          </p>
+          <p className={`flex items-center ${passwordValidation.lowercase ? "text-green-600" : "text-red-500"}`}>
+            ◉ Mengandung huruf kecil {renderValidationIcon(passwordValidation.lowercase)}
+          </p>
+          <p className={`flex items-center ${passwordValidation.number ? "text-green-600" : "text-red-500"}`}>
+            ◉ Mengandung angka {renderValidationIcon(passwordValidation.number)}
+          </p>
+        </div>
+      )}
 
-      {/* Tombol Reset Password */}
+      {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+
       <button
         type="submit"
-        className={`w-full px-11 py-3 mt-6 rounded-md  ${
-          !otp || !newPassword || !confirmPassword || newPassword !== confirmPassword
-            ? "bg-gray-400 text-gray-200 cursor-not-allowed"
-            :  "bg-[#008C28] text-white hover:bg-green-600"
+        className={`w-full px-11 py-3 rounded-full text-white transition-colors duration-300 ${
+          isLoading || otp.length < 6 || !Object.values(passwordValidation).every((v) => v)
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-[#008C28] hover:bg-green-700"
         }`}
-        style={{ borderRadius: "30px" }}
-        disabled={!otp || !newPassword || !confirmPassword || newPassword !== confirmPassword}
+        disabled={isLoading || otp.length < 6 || !Object.values(passwordValidation).every((v) => v)}
       >
-        Reset Password
-       
+        {isLoading ? <div className="loader"></div> : "Reset Password"}
       </button>
     </form>
   );

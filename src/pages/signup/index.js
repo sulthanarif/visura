@@ -45,6 +45,7 @@ const SignupPage = () => {
 
   return (
     <div>
+   
       <SignupComponent onSubmit={handleSignup} errorMessage={errorMessage} />
     </div>
   );

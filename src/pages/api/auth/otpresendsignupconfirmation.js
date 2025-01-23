@@ -57,7 +57,7 @@ export default async function handler(req, res) {
     const { error: otpError } = await supabase.auth.signInWithOtp({ 
       email,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/login`,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}`
       }
     });
 

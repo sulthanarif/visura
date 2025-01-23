@@ -1,79 +1,85 @@
-// pages/api/auth/otpresendresetpassword.js
 import supabase from "../../../utils/supabaseClient";
+
+const validateEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return "Format email tidak valid.";
+  }
+  return null;
+};
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({ 
-      ok: false, 
-      message: "Method not allowed" 
-    });
+    return res.status(405).json({ message: "Method not allowed" });
   }
 
   const { email: rawEmail } = req.body;
-  
+  const email = rawEmail?.toLowerCase();
+
+  if (!email) {
+    return res.status(400).json({ message: "Email harus diisi." });
+  }
+
+  const emailError = validateEmail(email);
+  if (emailError) {
+    return res.status(400).json({ message: emailError });
+  }
+
   try {
-    // Validasi email
-    if (!rawEmail) {
-      return res.status(400).json({ 
-        ok: false, 
-        message: "Email harus diisi." 
-      });
-    }
-
-    const email = rawEmail.toLowerCase();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ 
-        ok: false, 
-        message: "Format email tidak valid." 
-      });
-    }
-
-    // Cek user di database
-    const { data: userData, error: userError } = await supabase
+    // Query semua pengguna dengan email tersebut
+    const { data: users, error: userError } = await supabase
       .from("users")
-      .select("email_verified, nama_pegawai, nomor_pegawai")
-      .eq("email", email)
-      .single();
+      .select("nomor_pegawai, email_verified")
+      .ilike("email", email);
 
-    if (userError || !userData) {
-      console.error("Database query error:", userError);
-      return res.status(404).json({ 
-        ok: false, 
-        message: "Email tidak terdaftar dalam sistem." 
+    if (userError) {
+      console.error("Error fetching users:", userError);
+      return res.status(500).json({ message: "Kesalahan server." });
+    }
+
+    if (!users || users.length === 0) {
+      return res.status(400).json({ message: `Email ${email} tidak ditemukan.` });
+    }
+
+    // Pisahkan berdasarkan status verifikasi
+    const verifiedUsers = users.filter((user) => user.email_verified);
+    const unverifiedUsers = users.filter((user) => !user.email_verified);
+
+    // Logika keputusan
+    if (verifiedUsers.length > 1) {
+      return res.status(400).json({
+        message: `Terdapat lebih dari satu pengguna dengan email ${email} dan status verifikasi. Periksa data pengguna.`,
       });
     }
 
+    if (verifiedUsers.length === 0) {
+      return res.status(400).json({
+        message: `Tidak ada pengguna dengan email ${email} yang telah terverifikasi.`,
+      });
+    }
 
+    if (verifiedUsers.length === 1 && unverifiedUsers.length >= 0) {
+      const verifiedUser = verifiedUsers[0];
 
-    // Kirim OTP
-    const { error: otpError } = await supabase.auth.signInWithOtp({ 
-      email,
-      options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/login`,
+      // Kirim OTP ke pengguna yang terverifikasi
+      const { error: otpError } = await supabase.auth.signInWithOtp({ email });
+
+      if (otpError) {
+        console.error("Error sending OTP:", otpError);
+        return res.status(500).json({
+          message: `Gagal mengirim OTP ke email. Penyebab: ${otpError.message}`,
+        });
       }
-    });
 
-    if (otpError) {
-      console.error("OTP sending error:", otpError);
-      return res.status(500).json({
-        ok: false,
-        message: "Gagal mengirim OTP. Silakan coba lagi dalam beberapa saat.",
+      return res.status(200).json({
+        message: `OTP berhasil dikirim ke email ${email}.`,
+        
       });
     }
-
-    // Success response
-    return res.status(200).json({
-      ok: true,
-      message: "Kode OTP telah berhasil dikirim ke email Anda.",
-    });
-
-  } catch (error) {
-    console.error("Unexpected error:", error);
-    return res.status(500).json({ 
-      ok: false, 
-      message: "Terjadi kesalahan pada server. Silakan coba lagi." 
+  } catch (err) {
+    console.error("Server error:", err);
+    return res.status(500).json({
+      message: "Terjadi kesalahan pada server. Silakan coba lagi beberapa saat.",
     });
   }
 }
