@@ -17,9 +17,13 @@ const ProfileCard = ({ user, onLogout }) => {
                         </div>
                     <div className="text-yellow-500 text-sm">NIP: {user?.nomor_pegawai}</div>
                 </div>
-                <div className="flex items-center ml-auto">
-                <Badge size="sm" color="info">{user?.role}</Badge>                
-            </div>
+                {isThisAdmin ? (
+                    <div className="flex items-center ml-auto">
+                        <Badge size="sm" color="success">Admin</Badge>
+                    </div>
+                ) : (<div className="flex items-center ml-auto">
+                    <Badge size="sm" color="info">User</Badge>
+                </div>) }
             </div>
         
             <hr className="border-gray-300 mb-4" />
