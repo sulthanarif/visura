@@ -130,16 +130,16 @@ const SignupForm = ({ onSubmit, errorMessage }) => {
       {password && (
         <div className="space-y-0">
           <p className={`flex items-center ${passwordValidation.length ? 'text-green-600' : 'text-red-500'}`}>
-            Minimal 6 karakter {renderValidationIcon(passwordValidation.length)}
+          • Minimal 6 karakter {renderValidationIcon(passwordValidation.length)}
           </p>
           <p className={`flex items-center ${passwordValidation.uppercase ? 'text-green-600' : 'text-red-500'}`}>
-            Mengandung huruf kapital {renderValidationIcon(passwordValidation.uppercase)}
+          • Mengandung huruf kapital {renderValidationIcon(passwordValidation.uppercase)}
           </p>
           <p className={`flex items-center ${passwordValidation.lowercase ? 'text-green-600' : 'text-red-500'}`}>
-            Mengandung huruf kecil {renderValidationIcon(passwordValidation.lowercase)}
+          • Mengandung huruf kecil {renderValidationIcon(passwordValidation.lowercase)}
           </p>
           <p className={`flex items-center ${passwordValidation.number ? 'text-green-600' : 'text-red-500'}`}>
-            Mengandung angka {renderValidationIcon(passwordValidation.number)}
+          • Mengandung angka {renderValidationIcon(passwordValidation.number)}
           </p>
         </div>
       )}
