@@ -56,10 +56,24 @@ const OtpSignupConfirmationPage = () => {
        
         setTimeout(() => router.push("/login"));
       } else {
-        toast.error("Kode OTP tidak valid atau sudah expired", {
-          duration: 5000,
-          position: "top-center",
-        });
+        toast.error(
+          <div style={{ minWidth: "300px", maxWidth: "600px" ,  whiteSpace: "nowrap", textAlign :"center", 
+            textOverflow: "ellipsis",}}>
+            Kode OTP tidak valid atau link ini sudah expired.
+          </div>,
+          {
+            duration: 8000,
+            position: "top-center",
+            style: {
+              
+              whiteSpace: "nowrap", 
+              overflow: "hidden", 
+              textOverflow: "ellipsis", 
+              minWidth: "300px", 
+              maxWidth: "600px", 
+            },
+          }
+        );
       }
     } catch (error) {
       // Error network/server

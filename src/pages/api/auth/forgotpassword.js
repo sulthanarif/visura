@@ -29,7 +29,7 @@ export default async function handler(req, res) {
       const { data: user, error: userError } = await supabase
         .from("users")
         .select("email_verified")
-        .eq("email", email)
+        .ilike("email", email)
         .single();
   
       if (userError) {

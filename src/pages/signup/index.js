@@ -14,9 +14,9 @@ const SignupPage = () => {
 
       if (ok) {
         toast.success(
-          <div style={{ minWidth: "400px", maxWidth: "600px" ,  whiteSpace: "nowrap", textAlign :"center", 
+          <div style={{ minWidth: "350px", maxWidth: "600px" ,  whiteSpace: "nowrap", textAlign :"center", 
             textOverflow: "ellipsis",}}>
-            kode otp sukses terkirim ke {credentials.email.toLowerCase()}
+            Kode OTP sukses terkirim ke {credentials.email.toLowerCase()}
           </div>,
           {
             duration: 8000,

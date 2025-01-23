@@ -14,9 +14,9 @@ const ForgotPasswordPage = () => {
 
       if (ok) {
         toast.success(
-          <div style={{ minWidth: "400px", maxWidth: "600px" ,  whiteSpace: "nowrap", textAlign :"center", 
-            textOverflow: "ellipsis",}}>
-            Kode OTP sukses terkirim ke {email}
+          <div style={{ minWidth: "350px", maxWidth: "600px" ,  whiteSpace: "nowrap", textAlign :"center", 
+            textOverflow: "ellipsis" }}>
+            Kode OTP sukses terkirim ke {email.toLowerCase()}
           </div>,
           {
             duration: 8000,
@@ -26,7 +26,7 @@ const ForgotPasswordPage = () => {
               whiteSpace: "nowrap", 
               overflow: "hidden", 
               textOverflow: "ellipsis", 
-              minWidth: "400px", 
+              minWidth: "350px", 
               maxWidth: "600px", 
             },
           }
@@ -38,9 +38,9 @@ const ForgotPasswordPage = () => {
         }
       } else {
         toast.error(
-          <div style={{ minWidth: "400px", maxWidth: "600px" ,  whiteSpace: "nowrap", textAlign :"center", 
+          <div style={{ minWidth: "350px", maxWidth: "600px" ,  whiteSpace: "nowrap", textAlign :"center", 
             textOverflow: "ellipsis",}}>
-            Email {email} belum terdaftar atau terverifikasi.
+            Email {email.toLowerCase()} belum terdaftar atau terverifikasi.
           </div>,
           {
             duration: 8000,
@@ -50,7 +50,7 @@ const ForgotPasswordPage = () => {
               whiteSpace: "nowrap", 
               overflow: "hidden", 
               textOverflow: "ellipsis", 
-              minWidth: "400px", 
+              minWidth: "350px", 
               maxWidth: "600px", 
             },
           }

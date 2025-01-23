@@ -83,7 +83,7 @@ const SignupForm = ({ onSubmit, errorMessage }) => {
         <InputField
           type="email"
           placeholder="Masukkan Email"
-          value={email}
+          value={email.toLowerCase()}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full"
         />

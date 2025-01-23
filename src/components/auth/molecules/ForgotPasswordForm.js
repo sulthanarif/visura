@@ -30,7 +30,7 @@ const ForgotPasswordForm = ({ onSubmit, errorMessage }) => {
       <InputField
         type="email"
         placeholder="Masukkan Email Anda"
-        value={email}
+        value={email.toLowerCase()}
         onChange={(e) => setEmail(e.target.value)}
       />
 
