@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import LoginComponent from "../../components/auth/organism/LoginComponent";
-import { login } from "../../utils/authHelpers"; 
-import { useRouter } from 'next/router';
-import { toast } from 'react-hot-toast';
+import { login } from "../../utils/authHelpers";
+import { useRouter } from "next/router";
+import { toast } from "react-hot-toast";
 
 const LoginPage = () => {
   const [errorMessage, setErrorMessage] = useState("");
@@ -13,18 +13,26 @@ const LoginPage = () => {
       const response = await login(credentials);
 
       if (response.ok) {
-        toast.success("Anda berhasil login!", {
-          duration: 5000,
-          position: "top-center",
-        });
-        setErrorMessage('');
-        router.push("/upload-test");
-      } else {
+          toast.success("Anda berhasil login!", {
+              duration: 5000,
+              position: "top-center",
+          });
+          setErrorMessage("");
+         const { user } = response;
+        if (user.role === "admin") {
+            router.push("/admin");
+        } else if (user.role === "user") {
+            router.push("/upload-test");
+        } else {
+            router.push("/");
+        }
+        } else {
         toast.error(response?.message || "Terjadi kesalahan, coba lagi.", {
           duration: 5000,
           position: "top-center",
         });
-      }    } catch (error) {
+      }
+    } catch (error) {
       setErrorMessage("Terjadi kesalahan pada server.");
     }
   };
