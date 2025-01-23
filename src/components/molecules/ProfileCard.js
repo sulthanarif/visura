@@ -2,12 +2,9 @@ import Icon from "../atoms/Icon";
 import Button from "../atoms/Button";
 import { Badge } from "flowbite-react";
 
-import axios from "axios";
-
-const ProfileCard = ({ user, onLogout }) => {
-
+const ProfileCard = ({ user, onLogout, onProfileClick }) => {
     const isThisAdmin = user?.role === "admin";
-    
+
     return (
         <div className="bg-white rounded-lg shadow-md p-6 w-80">
             <div className="flex items-center mb-4">
@@ -27,12 +24,15 @@ const ProfileCard = ({ user, onLogout }) => {
             </div>
         
             <hr className="border-gray-300 mb-4" />
-
-            <div className="flex justify-between items-center">
+            
+                <Button onClick={onProfileClick} className="w-full bg-white text-red-600 flex justify-between items-center p-2 hover:bg-white"> Profile
+                    <Icon name="user" className="text-red-600" />
+                </Button>
+          
             <Button onClick={onLogout} className="w-full bg-white text-red-600 flex justify-between items-center p-2 hover:bg-white"> Logout
                 <Icon name="sign-out" className="text-red-600" />
             </Button>
-            </div>
+            
         </div>
     );
 }

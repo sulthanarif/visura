@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
     const { data: user, error } = await supabase
       .from("users")
-      .select("userId, password, email_verified, role, nama_pegawai, nomor_pegawai") // Ambil data yg dibutuhkan
+      .select("userId, password, email_verified, role, nama_pegawai, nomor_pegawai, email") // Ambil data yg dibutuhkan
       .eq("nomor_pegawai", pegawaiNumber)
       .single();
 
@@ -38,6 +38,7 @@ export default async function handler(req, res) {
     const token = jwt.sign(
       {
         userId: user.userId,
+        email: user.email,
         role: user.role,
         nama_pegawai: user.nama_pegawai,
         nomor_pegawai: user.nomor_pegawai,

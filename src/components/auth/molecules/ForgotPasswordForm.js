@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import InputField from "../atoms/InputField";
 
+
 const ForgotPasswordForm = ({ onSubmit, errorMessage }) => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false); // State untuk loading

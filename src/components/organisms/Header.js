@@ -4,12 +4,15 @@ import Icon from '../atoms/Icon';
 import ProfileCard from '../molecules/ProfileCard';
 import { useRouter } from 'next/router';
 import { decodeToken } from '../../utils/authHelpers';
+import ProfileModalTailwind from '../molecules/ProfileModal';
 
 
 const Header = () => {
     const [showProfile, setShowProfile] = useState(false);
+    const [showProfileModal, setShowProfileModal] = useState(false);
     const profileRef = useRef(null);
     const [user, setUser] = useState(null);
+        const [updateTrigger, setUpdateTrigger] = useState(0);
     const router = useRouter();
 
 
@@ -19,7 +22,18 @@ const Header = () => {
           const decoded = decodeToken(token);
             setUser(decoded);
         }
-    }, []);
+        const handleStorageChange = () => {
+          const token = localStorage.getItem('token');
+          if (token) {
+            const decoded = decodeToken(token);
+            setUser(decoded);
+          }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+    
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, [updateTrigger]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -31,6 +45,16 @@ const Header = () => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+      const handleProfileClick = () => {
+      setShowProfileModal(true);
+    };
+       const handleModalClose = () => {
+        setShowProfileModal(false);
+      };
+       const handleUpdateUser = () => {
+        setUpdateTrigger(prev => prev + 1); // Update state untuk memicu re-render
+       };
 
     const handleLogout = () => {
       localStorage.removeItem('token');
@@ -76,19 +100,19 @@ const Header = () => {
                     className="user-info cursor-pointer hover:bg-gray-100 rounded-lg p-2 transition-colors"
                     onClick={() => setShowProfile(!showProfile)}
                 >
-                  <div className="flex items-center space-x-2">
                     <Icon name='user-circle'/>
                     <span>Halo, {user?.nama_pegawai || 'Guest'}</span>
-                    <Icon name='chevron-down'/>
-                  </div>
                 </div>
 
                 {showProfile && (
                     <div className="absolute right-1 mt-4 w-100 rounded-lg shadow-xl transition-all duration-200 ease-in-out transform origin-top">
-                        <ProfileCard user={user} onLogout={handleLogout}/>
+                        <ProfileCard user={user} onLogout={handleLogout} onProfileClick={handleProfileClick}/>
                     </div>
                 )}
             </div>
+            {showProfileModal && (
+                    <ProfileModalTailwind user={user} onClose={handleModalClose} onUpdateUser={handleUpdateUser}/>
+                )}
         </header>
     );
 }
