@@ -5,7 +5,7 @@ import { forgotPassword } from "../../utils/authForgotpassword";
 import { toast } from "react-hot-toast";
 
 const ForgotPasswordPage = () => {
-  const router = useRouter(); // Inisialisasi useRouter
+  const router = useRouter(); 
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleForgotPassword = async ({ email }) => {
@@ -37,10 +37,25 @@ const ForgotPasswordPage = () => {
           setTimeout(() => router.push(redirectUrl), 0);
         }
       } else {
-        toast.error(message, {
-          duration: 5000,
-          position: "top-center",
-        });
+        toast.error(
+          <div style={{ minWidth: "400px", maxWidth: "600px" ,  whiteSpace: "nowrap", textAlign :"center", 
+            textOverflow: "ellipsis",}}>
+            Email {email} belum terdaftar atau terverifikasi.
+          </div>,
+          {
+            duration: 8000,
+            position: "top-center",
+            style: {
+              
+              whiteSpace: "nowrap", 
+              overflow: "hidden", 
+              textOverflow: "ellipsis", 
+              minWidth: "400px", 
+              maxWidth: "600px", 
+            },
+          }
+        );
+
       }
     } catch (error) {
       toast.error("Email tidak valid atau belum terverifikasi.", {

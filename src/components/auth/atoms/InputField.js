@@ -12,8 +12,8 @@ export default function InputField({
 
   const handleInputChange = (e) => {
     const newValue = e.target.value;
-    onChange(e); // Mengirimkan perubahan ke komponen induk
-    setIsFilled(newValue !== ""); // Set state apakah input sudah diisi
+    onChange(e); 
+    setIsFilled(newValue !== ""); 
   };
 
   return (

@@ -52,7 +52,7 @@ const ForgotPasswordForm = ({ onSubmit, errorMessage }) => {
           {isLoading ? (
             <div className="loader"></div> // Loader untuk indikator loading
           ) : (
-            "Kirim OTP"
+            "Kirim Kode OTP"
           )}
         </button>
       </div>

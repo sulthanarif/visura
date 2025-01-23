@@ -66,7 +66,7 @@ export default async function handler(req, res) {
 
       if (emailCheck.some((entry) => entry.email_verified)) {
           return res.status(400).json({
-              message: `Email yang Anda masukkan (${email}) telah terdaftar.`,
+              message: `Email (${email}) telah terpakai.`,
           });
       }
 

@@ -1,6 +1,7 @@
 import React, { useState } from "react"; 
 import InputField from "../atoms/InputField";
 import { useRouter } from "next/router";
+import { CheckCircle, XCircle } from "lucide-react";
 
 const SignupForm = ({ onSubmit, errorMessage }) => {
   const [namaPegawai, setNamaPegawai] = useState("");
@@ -8,21 +9,34 @@ const SignupForm = ({ onSubmit, errorMessage }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(true);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // State untuk loading
-  const [isButtonDisabled, setIsButtonDisabled] = useState(false); // State debounce tombol
+  const [isLoading, setIsLoading] = useState(false);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const router = useRouter();
 
-  const handleTogglePassword = () => setShowPassword(!showPassword);
-  const handleToggleConfirmPassword = () =>
-    setShowConfirmPassword(!showConfirmPassword);
+  const validatePassword = (pwd) => {
+    return {
+      length: pwd.length >= 6,
+      uppercase: /[A-Z]/.test(pwd),
+      lowercase: /[a-z]/.test(pwd),
+      number: /\d/.test(pwd),
+      match: password === confirmPassword
+    };
+  };
 
-  const validateForm = () => password === confirmPassword;
+  const passwordValidation = validatePassword(password);
+
+  const renderValidationIcon = (isValid) => 
+    isValid 
+      ? <CheckCircle className="text-green-500 inline-block ml-2" size={20} /> 
+      : <XCircle className="text-red-500 inline-block ml-2" size={20} />;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    
+    const isValid = Object.values(passwordValidation).every(v => v);
+    if (!isValid) return;
 
     setIsLoading(true); 
     try {
@@ -39,48 +53,54 @@ const SignupForm = ({ onSubmit, errorMessage }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4">
-      {/* Input Nama Pegawai */}
-      <InputField
-        type="text"
-        placeholder="Nama Pegawai"
-        value={namaPegawai}
-        onChange={(e) => setNamaPegawai(e.target.value)}
-      />
+    <form onSubmit={handleSubmit} className="p-4 space-y-4">
+      <div className="space-y-2">
+        <InputField
+          type="text"
+          placeholder="Nama Pegawai"
+          value={namaPegawai}
+          onChange={(e) => setNamaPegawai(e.target.value)}
+          className="w-full"
+        />
+      </div>
 
-      {/* Input Nomor Pegawai */}
-      <InputField
-        type="text"
-        placeholder="Nomor Pegawai"
-        value={nomorPegawai}
-        onChange={(e) => {
-          const value = e.target.value;
-          const onlyNumber = value.replace(/\D/g, "");
-          setNomorPegawai(onlyNumber);
-        }}
-        pattern="[0-9]*"
-      />
+      <div className="space-y-2">
+        <InputField
+          type="text"
+          placeholder="Nomor Pegawai"
+          value={nomorPegawai}
+          onChange={(e) => {
+            const value = e.target.value;
+            const onlyNumber = value.replace(/\D/g, "");
+            setNomorPegawai(onlyNumber);
+          }}
+          pattern="[0-9]*"
+          className="w-full"
+        />
+      </div>
 
-      {/* Input Email */}
-      <InputField
-        type="email"
-        placeholder="Masukkan Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+      <div className="space-y-2">
+        <InputField
+          type="email"
+          placeholder="Masukkan Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full"
+        />
+      </div>
 
-      {/* Input Password */}
-      <div className="relative">
+      <div className="relative space-y-2">
         <InputField
           type={showPassword ? "text" : "password"}
           placeholder="Masukkan Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          className="w-full"
         />
         <button
           type="button"
-          onClick={handleTogglePassword}
-          className="absolute top-4 right-3"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute top-2 right-3"
         >
           <img
             src={showPassword ? "/assets/eye_close.svg" : "/assets/eye_open.svg"}
@@ -88,19 +108,18 @@ const SignupForm = ({ onSubmit, errorMessage }) => {
           />
         </button>
       </div>
-
-      {/* Input Konfirmasi Password */}
-      <div className="relative">
+<div className="relative space-y-2">
         <InputField
           type={showConfirmPassword ? "text" : "password"}
           placeholder="Konfirmasi Password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
+          className="w-full"
         />
         <button
           type="button"
-          onClick={handleToggleConfirmPassword}
-          className="absolute top-4 right-3"
+          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+          className="absolute top-2 right-3"
         >
           <img
             src={showConfirmPassword ? "/assets/eye_close.svg" : "/assets/eye_open.svg"}
@@ -108,17 +127,32 @@ const SignupForm = ({ onSubmit, errorMessage }) => {
           />
         </button>
       </div>
+      {password && (
+        <div className="space-y-0">
+          <p className={`flex items-center ${passwordValidation.length ? 'text-green-600' : 'text-red-500'}`}>
+            Minimal 6 karakter {renderValidationIcon(passwordValidation.length)}
+          </p>
+          <p className={`flex items-center ${passwordValidation.uppercase ? 'text-green-600' : 'text-red-500'}`}>
+            Mengandung huruf kapital {renderValidationIcon(passwordValidation.uppercase)}
+          </p>
+          <p className={`flex items-center ${passwordValidation.lowercase ? 'text-green-600' : 'text-red-500'}`}>
+            Mengandung huruf kecil {renderValidationIcon(passwordValidation.lowercase)}
+          </p>
+          <p className={`flex items-center ${passwordValidation.number ? 'text-green-600' : 'text-red-500'}`}>
+            Mengandung angka {renderValidationIcon(passwordValidation.number)}
+          </p>
+        </div>
+      )}
 
-      {/* Pesan Error */}
-      {password && confirmPassword && password !== confirmPassword && (
-        <p className="text-red-500 mt-2">
+      {password && confirmPassword && !passwordValidation.match && (
+        <p className="text-red-500">
           Password dan konfirmasi password tidak sesuai
         </p>
       )}
-      {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
 
-      {/* Link ke halaman login dan Tombol */}
-      <div className="flex justify-between items-center mt-4">
+      {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+
+      <div className="flex justify-between items-center">
         <p>
           Sudah punya akun?{" "}
           <button
@@ -130,41 +164,38 @@ const SignupForm = ({ onSubmit, errorMessage }) => {
           </button>
         </p>
       </div>
+      <button
+  type="submit"
+  className={`w-full px-11 py-3 rounded-full text-white transition-colors duration-300 ${
+    isLoading || isButtonDisabled
+      ? "bg-gray-400 cursor-not-allowed"
+      : (namaPegawai &&
+          nomorPegawai &&
+          email &&
+          password &&
+          confirmPassword &&
+          Object.values(passwordValidation).every((v) => v)) // Memastikan semua field terisi dan validasi password
+      ? "bg-[#008C28] hover:bg-green-700"
+      : "bg-[#A6A6A6] cursor-not-allowed"
+  }`}
+  disabled={
+    isLoading ||
+    isButtonDisabled ||
+    !namaPegawai ||
+    !nomorPegawai ||
+    !email ||
+    !password ||
+    !confirmPassword ||
+    !Object.values(passwordValidation).every((v) => v) // Pastikan validasi password terpenuhi
+  }
+>
+  {isLoading ? (
+    <div className="loader"></div>
+  ) : (
+    "Buat Akun"
+  )}
+</button>
 
-      <div className="flex justify-center items-center mt-6 space-x-4">
-        <button
-          type="submit"
-          className={`w-full px-11 py-3 rounded-md ${
-            isLoading || isButtonDisabled
-              ? "bg-gray-400 text-gray-200 cursor-not-allowed"
-              : !namaPegawai ||
-                !nomorPegawai ||
-                !email ||
-                !password ||
-                !confirmPassword ||
-                password !== confirmPassword
-              ? "bg-[#A6A6A6] text-gray-200 cursor-not-allowed border border-gray-400"
-              : "bg-[#008C28] text-white hover:bg-green-600 border border-green-700"
-          }`}
-          style={{ borderRadius: "30px", fontWeight: "normal" }}
-          disabled={
-            isLoading ||
-            isButtonDisabled ||
-            !namaPegawai ||
-            !nomorPegawai ||
-            !email ||
-            !password ||
-            !confirmPassword ||
-            password !== confirmPassword
-          }
-        >
-          {isLoading ? (
-            <div className="loader"></div> 
-          ) : (
-            "Buat Akun"
-          )}
-        </button>
-      </div>
     </form>
   );
 };
