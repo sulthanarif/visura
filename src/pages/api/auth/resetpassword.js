@@ -1,3 +1,4 @@
+//pages/api/auth/resetpassword.js
 import supabase from "../../../utils/supabaseClient";
 import bcrypt from "bcrypt";
 

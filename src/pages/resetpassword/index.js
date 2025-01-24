@@ -1,3 +1,4 @@
+//pages/resetpassword/index.js
 import React, { useState } from "react";
 import ResetPasswordPage from "../../components/auth/organism/ResetPasswordComponent"; 
 import { verifyOtp } from "../../utils/authResetpassword"; 

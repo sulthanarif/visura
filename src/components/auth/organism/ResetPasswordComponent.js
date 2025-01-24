@@ -1,5 +1,6 @@
-// src/components/auth/pages/ResetPasswordPage.js
+// src/components/auth/organism/ResetPasswordPage.js
 import React from "react";
+import router from "next/router"; // Import router
 import ResetPasswordForm from "../molecules/ResetPasswordForm"; // Import ResetPasswordForm
 import WallpaperSlider from "../molecules/WallpaperSlider"; // Import WallpaperSlider
 
