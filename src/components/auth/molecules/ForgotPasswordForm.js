@@ -30,7 +30,7 @@ const ForgotPasswordForm = ({ onSubmit, errorMessage }) => {
       {/* Input Email */}
       <InputField
         type="email"
-        placeholder="Masukkan Email Anda"
+        placeholder="Masukkan Email anda"
         value={email.toLowerCase()}
         onChange={(e) => setEmail(e.target.value)}
       />
@@ -53,7 +53,7 @@ const ForgotPasswordForm = ({ onSubmit, errorMessage }) => {
           {isLoading ? (
             <div className="loader"></div> // Loader untuk indikator loading
           ) : (
-            "Kirim Kode OTP"
+            "Kirim Kode OTP ke email"
           )}
         </button>
       </div>

@@ -87,7 +87,7 @@ const OTPsignupconfirmationForm = ({
       <InputOtpField
         type="tel"
         inputMode="numeric"
-        placeholder="Masukkan Kode OTP"
+        placeholder="Masukkan Kode OTP (6 Digit)"
         value={otp}
         onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
         maxLength={6}

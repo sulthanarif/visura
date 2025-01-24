@@ -92,11 +92,11 @@ const ForgotPasswordComponent = ({
               />
             </div>
 
-            <div className="ml-5 mt-2 mb-2">
-              <h1 className="text-2xl text-left">Lupa Password?</h1>
+            <div className="ml-3 mt-2 mb-2">
+              <h1 className="text-2xl text-left">Lupa Password</h1>
             </div>
 
-            <div className="ml-5 mt-2 mb-4 text-left text-sm">
+            <div className="ml-3 mt-2 mb-4 text-left text-sm">
               <p>Masukkan email anda yang terdaftar untuk reset password.</p>
             </div>
           </div>

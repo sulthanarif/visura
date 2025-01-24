@@ -2,7 +2,7 @@
 import React from "react";
 import ResetPasswordForm from "../molecules/ResetPasswordForm"; // Import ResetPasswordForm
 import WallpaperSlider from "../molecules/WallpaperSlider"; // Import WallpaperSlider
-
+import { useRouter } from "next/router";
 const ResetPasswordPage = ({
   onSubmit,
   onResend,
@@ -11,7 +11,9 @@ const ResetPasswordPage = ({
   titleStyles = "",
   backgroundStyles = "",
   email,
+  nomorPegawai, 
 }) => {
+  const router = useRouter();
   return (
     <div className={`relative min-h-screen`}>
       {/* Menampilkan WallpaperSlider secara langsung tanpa pengecekan */}
@@ -91,10 +93,7 @@ const ResetPasswordPage = ({
             </div>
           </div>
           
-          <div className="ml-5 mt-2 mb-1">
-              <h1 className="text-2xl text-left">Masukkan Kode OTP 6 Digit</h1>
-            </div>
-
+     
     
 
           {/* Form Reset Password */}
@@ -103,6 +102,8 @@ const ResetPasswordPage = ({
             onResend={onResend}
             errorMessage={errorMessage}
             email={email}
+         
+            nomorPegawai={nomorPegawai || ""}
           />
 
  {/* Link Kembali ke Login */}

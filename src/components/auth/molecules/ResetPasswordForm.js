@@ -3,14 +3,14 @@ import InputField from "../atoms/InputField";
 import InputOtpField from "../atoms/InputOtpField";
 import { CheckCircle, XCircle } from "lucide-react";
 
-const ResetPasswordForm = ({ email, onResend, onSubmit, errorMessage }) => {
+const ResetPasswordForm = ({ email, nomorPegawai, onResend, onSubmit, errorMessage }) => {
   const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLinkDisabled, setIsLinkDisabled] = useState(true);
-  const [timer, setTimer] = useState(5);
+  const [timer, setTimer] = useState(60);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -78,10 +78,15 @@ const ResetPasswordForm = ({ email, onResend, onSubmit, errorMessage }) => {
 
   return (
     <form onSubmit={handleSubmit} className="p-4 space-y-4">
+  <h1 className="text-2xl text-left ml-1">Masukkan Kode 6 Digit (OTP)</h1>
+      <p className="text-left ml-1 mt-1 text-sm">
+       Kode Anda telah terkirim ke email yang terdaftar <strong style={{ color: "#E17218" }}>{email}</strong>. 
+      </p>
+
       <InputOtpField
         type="tel"
         inputMode="numeric"
-        placeholder="Masukkan Kode OTP"
+        placeholder="Masukkan Kode OTP (6 Digit)"
         value={otp}
         onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
         maxLength={6}
@@ -99,10 +104,9 @@ const ResetPasswordForm = ({ email, onResend, onSubmit, errorMessage }) => {
         </button>
       </div>
 
-      <h1 className="text-2xl text-left ml-1">Buat Password baru</h1>
+      <h1 className="text-2xl text-left ml-1">Buat Password Baru</h1>
       <p className="text-left ml-1 mt-1 text-sm">
-        Buat Password baru untuk nomor pegawai . ..... 
-        <strong style={{ color: "#E17218" }}>{email}</strong>
+        Buat Password untuk <strong style={{ color: "#E17218" }}>{email}</strong>, terdaftar dengan nomor pegawai <strong style={{ color: "#E17218" }}>{nomorPegawai}</strong>.
       </p>
 
       <div className="relative space-y-2">
@@ -173,7 +177,7 @@ const ResetPasswordForm = ({ email, onResend, onSubmit, errorMessage }) => {
         }`}
         disabled={isLoading || otp.length < 6 || !Object.values(passwordValidation).every((v) => v)}
       >
-        {isLoading ? <div className="loader"></div> : "Reset Password"}
+        {isLoading ? <div className="loader"></div> : "Submit"}
       </button>
     </form>
   );

@@ -65,12 +65,12 @@ const OTPsignupconfirmationComponent = ({
             </div>
 
             <div className="ml-5 mt-2 mb-2">
-              <h1 className="text-2xl text-left">Masukkan Kode OTP 6 Digit</h1>
+              <h1 className="text-2xl text-left">Masukkan Kode 6 Digit (OTP)</h1>
             </div>
 
             <div className="ml-5 mt-2 mb-2 text-left text-sm">
               <p>
-                Kode OTP telah terkirim ke email{" "}
+                Kode Anda telah terkirim ke email yang terdaftar{" "}
                 <strong style={{ color: "#E17218" }}>{email}</strong>
               </p>
             </div>
@@ -94,7 +94,7 @@ const OTPsignupconfirmationComponent = ({
                 className="w-6 h-6 mr-2"
                 alt="Arrow Left"
               />
-              Kembali Ke Sign Up
+              Kembali Ke Daftar Akun
             </button>
           </div>
         </div>

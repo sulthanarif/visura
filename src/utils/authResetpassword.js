@@ -1,4 +1,4 @@
-// Fungsi untuk memverifikasi OTP
+
 export const verifyOtp = async ({ email, otp, password }) => {
     try {
       const response = await fetch("/api/auth/resetpassword", {
@@ -14,7 +14,7 @@ export const verifyOtp = async ({ email, otp, password }) => {
     }
   };
   
-  // Fungsi untuk mengirim ulang OTP
+
   export const resendOtp = async ({ email }) => {
     try {
       const response = await fetch("/api/auth/otpresendresetpassword", {
@@ -30,3 +30,17 @@ export const verifyOtp = async ({ email, otp, password }) => {
     }
   };
   
+export const fetchEmployeeData = async (email) => {
+  try {
+    const response = await fetch("/api/auth/fetchEmployeeData", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching employee data:", error);
+    return { ok: false, message: "Gagal mengambil data pegawai." };
+  }
+};
