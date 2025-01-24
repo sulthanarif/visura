@@ -13,10 +13,22 @@ const LoginPage = () => {
       const response = await login(credentials);
 
       if (response.ok) {
-          toast.success("Anda berhasil login!", {
-              duration: 5000,
-              position: "top-center",
-          });
+        toast.success("Anda berhasil login!", {
+            duration: 5000,
+            position: "top-center",
+            style: {
+                backgroundColor: "#34C759", // Hijau lembut untuk latar belakang
+                color: "#FFFFFF", // Putih untuk teks agar kontras
+                borderRadius: "8px", // Memberikan sudut melengkung
+                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)", // Memberikan bayangan lembut
+                padding: "16px", // Memberikan ruang lebih pada konten
+            },
+            iconTheme: {
+                primary: "#FFFFFF", // Warna ikon
+                secondary: "#34C759", // Latar belakang ikon
+            },
+        });
+    
           setErrorMessage("");
          const { user } = response;
         if (user.role === "admin") {
