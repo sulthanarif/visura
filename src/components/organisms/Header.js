@@ -1,3 +1,4 @@
+// components/organisms/Header.js
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Icon from '../atoms/Icon';
@@ -5,33 +6,33 @@ import ProfileCard from '../molecules/ProfileCard';
 import { useRouter } from 'next/router';
 import { decodeToken } from '../../utils/authHelpers';
 import ProfileModalTailwind from '../molecules/ProfileModal';
-
+import ChangePasswordModal from '../molecules/ChangePasswordModal';
 
 const Header = () => {
     const [showProfile, setShowProfile] = useState(false);
     const [showProfileModal, setShowProfileModal] = useState(false);
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
     const profileRef = useRef(null);
     const [user, setUser] = useState(null);
-        const [updateTrigger, setUpdateTrigger] = useState(0);
+    const [updateTrigger, setUpdateTrigger] = useState(0);
     const router = useRouter();
-
 
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
-          const decoded = decodeToken(token);
+            const decoded = decodeToken(token);
             setUser(decoded);
         }
         const handleStorageChange = () => {
-          const token = localStorage.getItem('token');
-          if (token) {
-            const decoded = decodeToken(token);
-            setUser(decoded);
-          }
+            const token = localStorage.getItem('token');
+            if (token) {
+                const decoded = decodeToken(token);
+                setUser(decoded);
+            }
         };
 
         window.addEventListener('storage', handleStorageChange);
-    
+
         return () => window.removeEventListener('storage', handleStorageChange);
     }, [updateTrigger]);
 
@@ -46,30 +47,47 @@ const Header = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-      const handleProfileClick = () => {
-      setShowProfileModal(true);
+    const handleProfileClick = () => {
+        setShowProfileModal(true);
+        setShowProfile(false);
     };
-       const handleModalClose = () => {
+
+   const handlePasswordChangeClick = () => {
+         setShowPasswordModal(true);
+          setShowProfile(false);
+     };
+
+    const handleModalClose = () => {
         setShowProfileModal(false);
-      };
-       const handleUpdateUser = () => {
-        setUpdateTrigger(prev => prev + 1); // Update state untuk memicu re-render
-       };
+    };
+
+     const handlePasswordModalClose = () => {
+          setShowPasswordModal(false);
+     };
+
+     const handlePasswordUpdated = () => {
+         localStorage.removeItem('token');
+         router.push('/login');
+     };
+
+    const handleUpdateUser = () => {
+        setUpdateTrigger(prev => prev + 1);
+    };
 
     const handleLogout = () => {
-      localStorage.removeItem('token');
-      router.push('/login');
+        localStorage.removeItem('token');
+        router.push('/login');
     };
 
     const renderNavItems = () => {
         if (user?.role === 'admin') {
-          return (
-              <>
-                  <a href="/admin">Dashboard</a>
-                  <a href="/admin/users">Users</a>
-                  <a href="/admin/library">Library</a>
-              </>
-          );
+            return (
+                <>
+                    <a href="/admin">Dashboard</a>
+                    <a href="/admin/users">Users</a>
+                    <a href="/admin/library">Library</a>
+                </>
+            );
         } else if (user?.role === 'user') {
             return (
                 <>
@@ -89,8 +107,8 @@ const Header = () => {
                 src="/assets/Summarecon_Agung 1.svg"
                 width={150}
             />
-             <nav>
-               {renderNavItems()}
+            <nav>
+                {renderNavItems()}
             </nav>
             <div
                 ref={profileRef}
@@ -106,15 +124,18 @@ const Header = () => {
 
                 {showProfile && (
                     <div className="absolute right-1 mt-4 w-100 rounded-lg shadow-xl transition-all duration-200 ease-in-out transform origin-top">
-                        <ProfileCard user={user} onLogout={handleLogout} onProfileClick={handleProfileClick}/>
+                        <ProfileCard user={user} onLogout={handleLogout} onProfileClick={handleProfileClick} onPasswordChangeClick={handlePasswordChangeClick} />
                     </div>
                 )}
             </div>
             {showProfileModal && (
-                    <ProfileModalTailwind user={user} onClose={handleModalClose} onUpdateUser={handleUpdateUser}/>
-                )}
+                <ProfileModalTailwind user={user} onClose={handleModalClose} onUpdateUser={handleUpdateUser} />
+            )}
+            {showPasswordModal && (
+                <ChangePasswordModal user={user} onClose={handlePasswordModalClose} onPasswordUpdated={handlePasswordUpdated} />
+            )}
         </header>
     );
-}
+};
 
 export default Header;
