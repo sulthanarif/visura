@@ -108,7 +108,7 @@ const ResetPasswordPage = ({
           />
 
  {/* Link Kembali ke Login */}
- <div className="flex justify-center items-center mt-3 space-x-4">
+ <div className="flex justify-center items-center mt-5 space-x-4">
             <button
               type="button"
               onClick={() => router.push("login")}
