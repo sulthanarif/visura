@@ -1,4 +1,4 @@
-// pages/api/users/updatePassword.js
+// pages/api/user/updatePassword.js
 import bcrypt from "bcrypt";
 import jwt from 'jsonwebtoken';
 import supabase from "../../../utils/supabaseClient";
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
     
         res.status(200).json({ message: "Password updated successfully!", token:newToken });
     } catch (err) {
-        console.error("Error in /api/users/updatePassword:", err);
+        console.error("Error in /api/user/updatePassword:", err);
         res.status(500).json({ message: "Internal server error." });
     }
 }

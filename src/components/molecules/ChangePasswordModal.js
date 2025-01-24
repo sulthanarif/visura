@@ -64,7 +64,7 @@ const ChangePasswordModal = ({ user, onClose, onPasswordUpdated }) => {
      setLoading(true);
 
      try {
-         const response = await fetch('/api/users/updatePassword', {
+         const response = await fetch('/api/user/updatePassword', {
              method: 'PUT',
              headers: { 'Content-Type': 'application/json' },
              body: JSON.stringify({
