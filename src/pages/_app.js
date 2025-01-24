@@ -3,7 +3,7 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import { useRouter } from 'next/router';
 import DefaultLayout from "@/components/templates/DefaultLayout";
 import AdminLayout from "@/components/templates/AdminLayout";
-import { toast } from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
 import { useEffect, useState } from 'react';
 import { decodeToken } from '@/utils/authHelpers';
 
@@ -82,10 +82,10 @@ export default function App({ Component, pageProps }) {
   return (
     <>
       {/* Toaster for notifications */}
-      <toast
-        position="top-center"
-        reverseOrder={false}
-      />
+      <Toaster
+  position="top-center"
+  reverseOrder={false}
+/>
 
       {/* Conditional Layout Rendering */}
       {isAuthPage ? (
