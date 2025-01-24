@@ -3,7 +3,7 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import { useRouter } from 'next/router';
 import DefaultLayout from "@/components/templates/DefaultLayout";
 import AdminLayout from "@/components/templates/AdminLayout";
-import { Toaster } from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 import { useEffect, useState } from 'react';
 import { decodeToken } from '@/utils/authHelpers';
 
@@ -28,28 +28,43 @@ export default function App({ Component, pageProps }) {
   const isAdminPage = router.pathname.startsWith('/admin');
 
 
-    useEffect(() => {
-        const checkAuth = async () => {
-            setLoading(true);
-            const token = localStorage.getItem('token');
-            if (token) {
-                const decoded = decodeToken(token);
-                if (decoded) {
-                    setUser(decoded);
-                    setIsTokenValid(true);
-                  } else {
-                     setIsTokenValid(false);
-                    }
-               
-            } else {
-              setIsTokenValid(false);
-            }
-                
-             setLoading(false);
+  useEffect(() => {
+    const checkAuth = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          if (!isAuthPage) {
+            router.push('/login');
+          }
+          return;
+        }
 
-        };
-        checkAuth();
-    }, []);
+        const decoded = decodeToken(token);
+        setUser(decoded);
+        setIsTokenValid(true);
+
+        // Check admin access
+        if (isAdminPage && decoded.role !== 'admin') {
+          toast.error('Anda tidak memiliki akses ke halaman ini');
+          router.push('/');
+          return;
+        }
+
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        setIsTokenValid(false);
+        if (!isAuthPage) {
+          router.push('/login');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [router.pathname]);
 
   useEffect(() => {
       if(!isAuthPage && !loading){
@@ -67,7 +82,7 @@ export default function App({ Component, pageProps }) {
   return (
     <>
       {/* Toaster for notifications */}
-      <Toaster
+      <toast
         position="top-center"
         reverseOrder={false}
       />
@@ -76,7 +91,7 @@ export default function App({ Component, pageProps }) {
       {isAuthPage ? (
         <Component {...pageProps} />
       ) : isAdminPage ? (
-           isTokenValid ? (
+           isTokenValid && user?.role === 'admin' ? (
               <AdminLayout>
                  <Component {...pageProps} />
               </AdminLayout>

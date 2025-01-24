@@ -1,4 +1,4 @@
-
+// Fungsi untuk memverifikasi OTP
 export const verifyOtp = async ({ email, otp, password }) => {
     try {
       const response = await fetch("/api/auth/resetpassword", {
