@@ -103,6 +103,7 @@ const UsersPage = () => {
                 <Table hoverable={true}>
                     <Table.Head>
                         <Table.HeadCell>No</Table.HeadCell>
+                        <Table.HeadCell>UUID</Table.HeadCell>
                         <Table.HeadCell>Nomor Pegawai</Table.HeadCell>
                         <Table.HeadCell>Nama Pegawai</Table.HeadCell>
                         <Table.HeadCell>Email</Table.HeadCell>
@@ -116,6 +117,7 @@ const UsersPage = () => {
                                 <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
                                     {index + 1}
                                 </Table.Cell>
+                                <Table.Cell>{user.userId}</Table.Cell>
                                 <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
                                     {user.nomor_pegawai}
                                 </Table.Cell>

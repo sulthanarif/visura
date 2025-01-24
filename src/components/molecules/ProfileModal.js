@@ -70,7 +70,7 @@ import { Spinner } from "flowbite-react";
             id="authentication-modal"
             tabIndex="-1"
             aria-hidden="true"
-            className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden"
+            className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-gray-900 bg-opacity-50 md:inset-0 h-modal md:h-full"
         >
             <div className="relative w-full max-w-md max-h-full p-4">
                 <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
