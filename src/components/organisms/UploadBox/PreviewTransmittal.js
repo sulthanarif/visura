@@ -3,7 +3,7 @@ import Icon from "../../atoms/Icon";
 import Button from "../../atoms/Button";
 import IconWithText from "@/components/molecules/IconWithText";
 
-function PreviewTransmittal({
+const PreviewTransmittal = ({
   showPreview,
   projectName,
   results,
@@ -13,7 +13,7 @@ function PreviewTransmittal({
   handlePrev,
   handleNext,
   handleGenerateTransmittal,
-}) {
+}) =>{
   const formatDateForInput = (dateStr) => {
     if (!dateStr) return "";
 

@@ -16,7 +16,7 @@ import axios from "axios";
 const env = require('dotenv').config();
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 
-function UploadBox() {
+const UploadBox = () => {
     const router = useRouter();
     const fileInputRef = useRef(null);
     const {
@@ -378,9 +378,10 @@ function UploadBox() {
                 fileListContainerRef={fileListContainerRef}
             />
             
-            <p className="note">
-                *Mendukung file PDF (Maximal 10Mb per file, maksimal 10 file)
-            </p>
+            <div className="note">
+                <IconWithText icon="info-circle" text="Maximum 10 files allowed and 10MB per file. Only PDF files are allowed." />
+            </div>
+            
             <p className="upload-status" id="uploadStatus">{uploadStatus}</p>
             <p className="error-message" id="errorMessage">{errorMessage}</p>
             <Button onClick={handleScanButton} id="scanButton">

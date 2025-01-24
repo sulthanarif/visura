@@ -2,7 +2,7 @@
 import React, { useRef } from "react";
 import Icon from "../../atoms/Icon";
 
-function FileUploadArea({ handleFileChange, fileInputRef }) {
+const FileUploadArea = ({ handleFileChange, fileInputRef }) => {
   const handleUploadAreaClick = () => {
     fileInputRef.current.click();
   };
@@ -10,11 +10,11 @@ function FileUploadArea({ handleFileChange, fileInputRef }) {
     <>
       <h2>
         <Icon name="file-upload" />
-        Upload File PDF Anda disini
+        Upload File Here
       </h2>
       <div className="upload-area" onClick={handleUploadAreaClick}>
         <Icon name="cloud-upload-alt" />
-        <p>Tambahkan Dokumen Disini</p>
+        <p>Click to upload</p>
       </div>
         <input
           type="file"

@@ -3,15 +3,15 @@ import React from "react";
 import Icon from "../../atoms/Icon";
 import Input from "../../atoms/Input";
 
-function ProjectInput({ projectName, setProjectName }) {
+const ProjectInput = ({ projectName, setProjectName }) => {
   return (
     <div className="title-container" id="titleContainer">
       <h2>
         <Icon name="folder" />
-        Nama Project
+        Name of Project
       </h2>
       <Input
-        placeholder="Tulis nama projek"
+        placeholder="Enter project name"
         type="text"
         value={projectName}
         onChange={(e) => setProjectName(e.target.value)}

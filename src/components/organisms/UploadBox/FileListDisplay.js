@@ -2,7 +2,7 @@
 import React from "react";
 import FileList from "../../molecules/FileList";
 
-function FileListDisplay({ files, onRemoveFile, fileListContainerRef }) {
+const FileListDisplay = ({ files, onRemoveFile, fileListContainerRef }) => {
   return (
     <div className="file-list-container" id="fileListContainer" ref={fileListContainerRef}>
       <FileList files={files} onRemoveFile={onRemoveFile} />
