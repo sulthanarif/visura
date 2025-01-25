@@ -9,8 +9,9 @@ body {
     font-family: 'Dax-Regular', sans-serif;
     background-image: url('/assets/Property 1=Frame 48.png');
     background-size: cover;
+    width: 100%;
     height: 100vh;
-    /* overflow: hidden; */
+    overflow: hidden;
     
 }
 
