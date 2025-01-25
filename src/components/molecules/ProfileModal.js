@@ -66,17 +66,18 @@ import { Spinner } from "flowbite-react";
 
 
     return (
+        
         <div
             id="authentication-modal"
             tabIndex="-1"
             aria-hidden="true"
-            className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-gray-900 bg-opacity-50 md:inset-0 h-modal md:h-full"
+            className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-gray-900 bg-opacity-50"
         >
             <div className="relative w-full max-w-md max-h-full p-4">
                 <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
                     <div className="flex items-center justify-between p-4 border-b rounded-t md:p-5 dark:border-gray-600">
                         <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                            Update Profile
+                            Update My Profile
                         </h3>
                         <button
                             onClick={onClose}

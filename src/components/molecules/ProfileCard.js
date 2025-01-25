@@ -7,7 +7,7 @@ const ProfileCard = ({ user, onLogout, onProfileClick, onPasswordChangeClick }) 
     const isThisAdmin = user?.role === "admin";
 
     return (
-        <div className="bg-white rounded-lg shadow-md p-6 w-80">
+        <div className="bg-white rounded-lg shadow-md p-6 w-70">
             <div className="flex items-center mb-4">
                 <i className="fas fa-user-circle text-orange-500 text-3xl"></i>
                 <div className="ml-3">
