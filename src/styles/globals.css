@@ -8,8 +8,7 @@ body {
     margin: 0;
     font-family: 'Dax-Regular', sans-serif;
     background-image: url('/assets/Property 1=Frame 48.png');
-    background-size: cover;
-    width: 100%;
+    background-size: fixed;
     height: 100vh;
     overflow: hidden;
     
@@ -61,7 +60,7 @@ input[type="date"] {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
+    padding: 10px 0;
     background-color: #fff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -412,7 +411,7 @@ input[type="date"] {
 
 .upload-queue {
     position: absolute;
-    right: 25%;
+    right: 100%;
     top: 0;
     width: 300px;
     max-height: 900px;

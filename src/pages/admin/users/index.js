@@ -7,7 +7,7 @@ import ModalConfirmation from '@/components/molecules/ModalConfirmation';
 const UsersPage = () => {
     const [users, setUsers] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const [usersPerPage] = useState(7);
+     const [usersPerPage, setUsersPerPage] = useState(7);
     const [openModal, setOpenModal] = useState(null);
     const [selectedUser, setSelectedUser] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -22,27 +22,43 @@ const UsersPage = () => {
         email_verified: false
     });
 
+     useEffect(() => {
+        const handleResize = () => {
+            setUsersPerPage(window.innerWidth < 740 ? 5 : 7); // sm breakpoint
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     useEffect(() => {
         fetchUsers();
-    }, [currentPage, searchTerm]);
+    }, [currentPage, searchTerm, usersPerPage]);
+
 
     const fetchUsers = async () => {
-        try {
-            const response = await fetch(`/api/users?page=${currentPage}&limit=${usersPerPage}&search=${searchTerm}`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            if (data.length > 0) {
-                setUsers(data);
-                setTotalUsers(data[0].total);
-            } else {
+         try {
+             const response = await fetch(`/api/users?page=${currentPage}&limit=${usersPerPage}&search=${searchTerm}`);
+             if (!response.ok) {
+                 throw new Error(`HTTP error! status: ${response.status}`);
+             }
+             const data = await response.json();
+             if (data.length > 0) {
+                 setUsers(data);
+                 setTotalUsers(data[0].total);
+             } else {
                 setUsers([]);
                 setTotalUsers(0);
             }
-        } catch (error) {
-            console.error("Error fetching users:", error);
-        }
+         } catch (error) {
+             console.error("Error fetching users:", error);
+              toast.error("Terjadi kesalahan saat mengambil data user.", {
+                duration: 5000,
+                position: "top-center",
+            });
+         }
     };
 
     const handleEditClick = (user) => {
@@ -160,7 +176,7 @@ const UsersPage = () => {
         setUserToDelete(null);
     };
     const renderTable = () => (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto w-full">
             <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
@@ -170,7 +186,7 @@ const UsersPage = () => {
                         <th scope="col" className="px-4 py-3">Email</th>
                         <th scope="col" className="px-4 py-3">Role</th>
                         <th scope="col" className="px-4 py-3">Email Verified</th>
-                        <th scope="col" className="px-4 py-3">
+                        <th scope="col" className="px-4 py-3 text-center">
                             <span className="sr-only">Actions</span>
                         </th>
                     </tr>
@@ -183,14 +199,13 @@ const UsersPage = () => {
                             <td className="px-4 py-3 text-gray-900 dark:text-white">{user.nama_pegawai}</td>
                             <td className="px-4 py-3 text-gray-900 dark:text-white">{user.email}</td>
                             <td className="px-4 py-3 text-gray-900 dark:text-white">{user.role}</td>
-                            <td className="px-4 py-3 text-gray-900 dark:text-white">
-                                {user.email_verified ? <Icon name="check" className="text-green-500" /> : <Icon name="times" className="text-red-500" />}
+                            <td className="px-4 py-3 text-gray-900 dark:text-white text-center">
+                                {user.email_verified ? <Icon name="check" className="text-green-500 mx-auto" /> : <Icon name="times" className="text-red-500 mx-auto" />}
                             </td>
-                            <td className="px-4 py-3 flex items-center justify-end">
-                                <button onClick={() => handleEditClick(user)} className="bg-[#EBA801] text-white font-bold py-2 px-4 rounded"><IconWithText icon="edit" text={"Edit"} /></button>
-                                <button onClick={() => handleDeleteClick(user)} className="text-white font-bold py-2 px-4 rounded ml-2"><Icon name="trash" className={"text-red-500"} /></button>
-                            </td>
-
+                            <td className="px-4 py-3 flex items-center justify-center space-x-2">
+                                 <button onClick={() => handleEditClick(user)} className="bg-[#EBA801] text-white font-bold py-2 px-4 rounded flex items-center"><IconWithText icon="edit" text={"Edit"} /></button>
+                                  <button onClick={() => handleDeleteClick(user)} className="text-white font-bold py-2 px-4 rounded flex items-center"><Icon name="trash" className={"text-red-500"} /></button>
+                           </td>
                         </tr>
                     ))}
                 </tbody>
@@ -274,12 +289,12 @@ const UsersPage = () => {
     );
 
     return (
-        <section className="p-6 min-h-screen">
-            <div className="mx-auto max-w-7xl px-4 lg:px-8">
-                <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden">
+        <section className="p-3 sm:p-5">
+            <div className="mx-auto max-w-screen-xl px-4 lg:px-12">
+                <div className="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-xl overflow-hidden rounded-xl">
                     <header className="flex flex-col md:flex-row items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                         <h1 className="text-2xl font-semibold text-gray-800 dark:text-white">Kelola Akun</h1>
-                        <div className=" mt-4 md:mt-0">
+                        <div className="mt-4 md:mt-0">
                             <input
                                 type="text"
                                 id="simple-search"
@@ -290,7 +305,7 @@ const UsersPage = () => {
                         </div>
                     </header>
 
-                    <div className="p-4">
+                    <div>
                         {renderTable()}
                     </div>
 
