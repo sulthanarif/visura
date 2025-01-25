@@ -28,8 +28,10 @@ async function pdfToPng(pdfPath, tempDir) {
                 return reject(resp.error);
             }
             const defaultPngPath = resp.data;
-            const fileName = path.basename(defaultPngPath);
-            const tempPngPath = path.join(tempDir, fileName); // Save to temp first
+            const pdfFileName = path.parse(pdfPath).base; // Extract filename without extension
+            const tempPngPath = path.join(tempDir, `${pdfFileName}.png`); // Use the same filename with .png extension
+
+            console.log(defaultPngPath, pdfFileName, tempPngPath);
 
             fs.rename(defaultPngPath, tempPngPath, (err) => {
                 if (err) {
@@ -137,10 +139,15 @@ async function processPDF(pdfPath, tempDir, targetDPI, originalFilename) {
 
         const baseName = path.parse(tempPngPath).base;
         const timestamp = Date.now();
-        const outputBaseName = `${baseName}-${timestamp}`;
+        // const outputBaseName = `${baseName}-${timestamp}`;
+        const outputBaseName = `${baseName}`;
         const highDpiImagePath = path.join(tempHiDpiDir, `${outputBaseName}-high-dpi.png`);
         const rotatedImagePath = path.join(tempRotateDir, `${outputBaseName}-rotated.png`);
         const croppedImagePath = path.join(tempCutResultDir, `${outputBaseName}-cropped.png`);
+
+        // console.log(outputBaseName);
+        // console.log(highDpiImagePath);
+        // return;
 
         const jsonData = {
             filename: originalFilename, // Save original filename here
@@ -356,7 +363,7 @@ export default async function handler(req, res) {
 
                             // Generate the CSV file
                             const csvFileName = await generateDataFiles(
-                                [result], // Transmittal data should be in an array
+                                [result],
                                 fields.projectName, // Assuming you have projectName in fields
                                 fields.documentName, // Assuming you have documentName in fields
                                 fields.transmittalNumber, // Assuming you have transmittalNumber in fields
@@ -377,7 +384,7 @@ export default async function handler(req, res) {
                 .then(results => {
                     return res.status(200).json({
                         message: 'All files processed successfully!',
-                        results,
+                        result,
                     });
                 })
                 .catch(error => {

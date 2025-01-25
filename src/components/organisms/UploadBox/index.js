@@ -180,6 +180,8 @@ const UploadBox = () => {
                 }
     
                 const data = await responseData;
+                console.log("test");
+                console.log(data);
     
                 // Update results and preview data if available
                 if (data.data) {
@@ -189,14 +191,11 @@ const UploadBox = () => {
                             newResult.push({ ...item, id: prev.length + index });
                             initialPreviewData.current[prev.length + index] = {
                                 project: projectName,
-                                drawing: item.title,
+                                title: item.title,
                                 revision: item.revision,
                                 drawingCode: item.drawingCode,
                                 date: item.date,
                                 filename: item.filename,
-                                titleImage: item.titleImage,
-                                revisionImage: item.revisionImage,
-                                drawingCodeImage: item.drawingCodeImage,
                                 dateImage: item.dateImage,
                             };
                         });
