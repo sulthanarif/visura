@@ -50,7 +50,7 @@ next-env.d.ts
 
 /src/temp/upload/*
 
-public/output/*.csv
+/public/output/*.csv
 
 !/src/temp/ocr/cut/
 !/src/temp/ocr/cut/part/
