@@ -180,7 +180,6 @@ const UploadBox = () => {
                 }
     
                 const data = await responseData;
-                console.log("test");
                 console.log(data);
     
                 // Update results and preview data if available
