@@ -31,7 +31,7 @@ const UserManagementTemplate = ({
         <div className="mx-auto max-w-screen-xl px-4 lg:px-12">
             <div className="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-xl overflow-hidden rounded-xl">
                <SectionHeader title="Kelola Akun" onSearchChange={handleSearchChange} />
-                <div>
+                <div className="p-4 bg-white"> {/* Added padding and white background */}
                      <UsersTable
                          users={users}
                         currentPage={currentPage}
