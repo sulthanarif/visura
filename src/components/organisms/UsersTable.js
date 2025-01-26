@@ -1,4 +1,3 @@
-// UsersTable.js
 import React from 'react';
 import Icon from '../atoms/Icon';
 import { Badge } from 'flowbite-react';
@@ -7,36 +6,39 @@ import Button from '../atoms/Button';
 import Popover from '../atoms/Popover';
 
 const UsersTable = ({ users, currentPage, usersPerPage, handleEditClick, handleDeleteClick, loggedInUserId }) => (
-  <div className="overflow-x-auto w-ful">
+  <div className="overflow-x-auto w-full">
     <div className="max-h-[370px] sm:max-h-[500px] overflow-y-auto">
-      <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-        <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+      <table className="w-full text-sm text-left text-gray-900 border-collapse border border-orange-500">
+        <thead className="bg-white text-black">
           <tr>
-            <th scope="col" className="px-4 py-3">No</th>
-            <th scope="col" className="px-4 py-3">Nomor Pegawai</th>
-            <th scope="col" className="px-4 py-3">Nama Pegawai</th>
-            <th scope="col" className="px-4 py-3">Email</th>
-            <th scope="col" className="px-4 py-3">Role</th>
-            <th scope="col" className="px-4 py-3">Email Verified</th>
-            <th scope="col" className="px-4 py-3 text-center">
-              <span className="sr-only">Actions</span>
-            </th>
+            <th scope="col" className="px-4 py-3 border border-orange-500">No</th>
+            <th scope="col" className="px-4 py-3 border border-orange-500">Nomor Pegawai</th>
+            <th scope="col" className="px-4 py-3 border border-orange-500">Nama Pegawai</th>
+            <th scope="col" className="px-4 py-3 border border-orange-500">Email</th>
+            <th scope="col" className="px-4 py-3 border border-orange-500">Role</th>
+            <th scope="col" className="px-4 py-3 border border-orange-500">Email Verified</th>
+            <th scope="col" className="px-4 py-3 border border-orange-500 text-center">Actions</th>
           </tr>
         </thead>
         <tbody>
           {users.map((user, index) => {
             const isCurrentUser = loggedInUserId === user.userId;
             return (
-              <tr key={user.userId} className="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700">
-                <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">{index + 1 + (currentPage - 1) * usersPerPage}</td>
-                <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">{user.nomor_pegawai}</td>
-                <td className="px-4 py-3 text-gray-900 dark:text-white">
+              <tr
+                key={user.userId}
+                className={`${index % 2 === 0 ? 'bg-orange-50' : 'bg-orange-100'}`}
+              >
+                <td className="px-4 py-3 border border-orange-500 bg-white">
+                  {index + 1 + (currentPage - 1) * usersPerPage}
+                </td>
+                <td className="px-4 py-3 border border-orange-500">{user.nomor_pegawai}</td>
+                <td className="px-4 py-3 border border-orange-500">
                   <div className="flex items-center gap-2">
                     {isCurrentUser ? (
                       <div>
-                        <span className='cursor-pointer flex items-center gap-2'>
+                        <span className="cursor-pointer flex items-center gap-2">
                           {user.nama_pegawai}
-                          <Badge className='font-bold' color="success">You</Badge>
+                          <Badge className="font-bold" color="success">You</Badge>
                         </span>
                       </div>
                     ) : (
@@ -44,24 +46,34 @@ const UsersTable = ({ users, currentPage, usersPerPage, handleEditClick, handleD
                     )}
                   </div>
                 </td>
-                <td className="px-4 py-3 text-gray-900 dark:text-white">{user.email}</td>
-                <td className="px-4 py-3 text-gray-900 dark:text-white">{user.role}</td>
-                <td className="px-4 py-3 text-gray-900 dark:text-white text-center">
-                  {user.email_verified ? <Icon name="check" className="text-green-500 mx-auto" /> : <Icon name="times" className="text-red-500 mx-auto" />}
+                <td className="px-4 py-3 border border-orange-500">{user.email}</td>
+                <td className="px-4 py-3 border border-orange-500">{user.role}</td>
+                <td className="px-4 py-3 border border-orange-500 text-center">
+                  {user.email_verified ? (
+                    <Icon name="check" className="text-green-500 mx-auto" />
+                  ) : (
+                    <Icon name="times" className="text-red-500 mx-auto" />
+                  )}
                 </td>
-                <td className="px-4 py-3 flex items-center justify-center space-x-2">
+                <td className="px-4 py-3 border border-orange-500 text-center">
                   {!isCurrentUser && (
-                    <>
-                      <Button onClick={() => handleEditClick(user)} className="bg-[#EBA801] text-white font-bold py-2 px-4 rounded flex items-center">
-                        <IconWithText icon="edit" text={"Edit"} />
+                    <div className="flex items-center justify-center space-x-2">
+                      <Button
+                        onClick={() => handleEditClick(user)}
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded"
+                      >
+                        Edit
                       </Button>
-                      <Button onClick={() => handleDeleteClick(user)} className="text-white font-bold py-2 px-4 rounded flex items-center">
-                        <Icon name="trash" className={"text-red-500"} />
+                      <Button
+                        onClick={() => handleDeleteClick(user)}
+                        className="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded"
+                      >
+                        Remove Account
                       </Button>
-                    </>
+                    </div>
                   )}
                   {isCurrentUser && (
-                    <Popover content="Tidak dapat diubah/hapus, karena ini adalah akun anda" className="relative">
+                    <Popover content="Tidak dapat diubah/hapus, karena ini adalah akun anda">
                       <Icon name="info-circle" className="text-gray-500" />
                     </Popover>
                   )}
