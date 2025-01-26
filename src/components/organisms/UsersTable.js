@@ -60,7 +60,7 @@ const UsersTable = ({ users, currentPage, usersPerPage, handleEditClick, handleD
                     <div className="flex items-center justify-center space-x-2">
                       <Button
                         onClick={() => handleEditClick(user)}
-                        className="bg-[#EBA801] hover:bg-orange-500 text-white font-bold py-1 px-3 rounded"
+                        className="bg-[#EBA801] hover:bg-[#F5C076]/90 text-white font-bold py-1 px-3 rounded"
                       >
                         <Icon name="edit" className="text-white mr-2" /> Edit
                       </Button>

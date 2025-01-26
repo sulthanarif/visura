@@ -31,7 +31,8 @@ const UserManagementTemplate = ({
         <div className="mx-auto max-w-screen-xl px-4 lg:px-12 border-none">
         <div className="bg-white dark:bg-gray-800 relative shadow-none sm:rounded-xl overflow-hidden rounded-xl border-none">
 
-               <SectionHeader title="Kelola Akun" onSearchChange={handleSearchChange} />
+        <SectionHeader title="Kelola Akun" onSearchChange={handleSearchChange} className="ml-30" />
+
                 <div className="px-10 py-0 bg-white border-none"> 
                      <UsersTable
                          users={users}
