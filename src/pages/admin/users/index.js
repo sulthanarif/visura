@@ -1,3 +1,4 @@
+// UsersPage.js
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import UserManagementTemplate from '@/components/templates/UserManagementTemplate';
@@ -6,7 +7,7 @@ import { decodeToken } from '@/utils/authHelpers';
 const UsersPage = () => {
     const [users, setUsers] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const [usersPerPage, setUsersPerPage] = useState(7);
+    const [usersPerPage, setUsersPerPage] = useState(10);
     const [openModal, setOpenModal] = useState(null);
     const [selectedUser, setSelectedUser] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -29,14 +30,7 @@ const UsersPage = () => {
            const decoded = decodeToken(token)
            setLoggedInUserId(decoded.userId);
         }
-          const handleResize = () => {
-            setUsersPerPage(window.innerWidth < 740 ? 5 : 7);
-        };
 
-        handleResize();
-        window.addEventListener('resize', handleResize);
-
-        return () => window.removeEventListener('resize', handleResize);
     }, []);
 
     useEffect(() => {

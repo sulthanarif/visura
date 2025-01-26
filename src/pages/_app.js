@@ -3,8 +3,8 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import { useRouter } from 'next/router';
 import DefaultLayout from "@/components/templates/DefaultLayout";
 import AdminLayout from "@/components/templates/AdminLayout";
-import LoadingRefresh from "@/components/atoms/LoadingRefresh";
 import { Toaster } from 'react-hot-toast';
+import LoadingRefresh from "@/components/atoms/LoadingRefresh";
 import { useEffect, useState } from 'react';
 import { decodeToken } from '@/utils/authHelpers';
 
@@ -76,7 +76,9 @@ export default function App({ Component, pageProps }) {
   }, [isTokenValid, router, loading, isAuthPage]);
 
     if(loading) {
-        return <LoadingRefresh />;
+        return (
+            <LoadingRefresh />
+        );
     }
 
 
