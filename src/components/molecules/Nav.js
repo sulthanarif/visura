@@ -78,9 +78,8 @@ const Nav = ({ user }) => {
                     label: 'Library',
                     subItems: [
                         { href: '/admin/library', label: 'All Files' },
-                        { href: '/admin/library/add', label: 'Add Files' },
-                        { href: '/admin/categories', label: 'Categories' },
-                       { href: '/admin/subcategories', label: 'Subcategories' },
+                        { href: '/admin/library/scanfile', label: 'Scan File' },
+                        
                     ],
                 },
             ],

@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { decodeToken } from '../../utils/authHelpers';
-import ProfileModalTailwind from '../molecules/ProfileModal';
+import ProfileModal from '../molecules/ProfileModal';
 import ChangePasswordModal from '../molecules/ChangePasswordModal';
 import Logo from '../molecules/Logo';
 import Nav from '../molecules/Nav';
@@ -109,7 +109,7 @@ const Header = () => {
             {/* Modals */}
            {showProfileModal && (
                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                    <ProfileModalTailwind user={user} onClose={handleModalClose} onUpdateUser={handleUpdateUser} />
+                    <ProfileModal user={user} onClose={handleModalClose} onUpdateUser={handleUpdateUser} />
                  </div>
             )}
             {showPasswordModal && (
