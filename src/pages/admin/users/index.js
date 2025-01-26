@@ -17,6 +17,7 @@ const UsersPage = () => {
 
 
     const [editedUserData, setEditedUserData] = useState({
+        ...selectedUser,
         userId: '',
         role: '',
         email_verified: false
@@ -64,6 +65,7 @@ const UsersPage = () => {
     const handleEditClick = (user) => {
         setSelectedUser(user);
         setEditedUserData({
+            ...user,
             userId: user.userId,
             role: user.role,
             email_verified: user.email_verified,
@@ -74,6 +76,7 @@ const UsersPage = () => {
     const handleModalClose = () => {
         setOpenModal(null);
         setEditedUserData({
+            ...selectedUser,
             userId: '',
             role: '',
             email_verified: false
@@ -99,6 +102,11 @@ const UsersPage = () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
+                    userId: editedUserData.userId,
+                    password: editedUserData.password,
+                    email: editedUserData.email,
+                    nomor_pegawai: editedUserData.nomor_pegawai,
+                    nama_pegawai: editedUserData.nama_pegawai,
                     role: editedUserData.role,
                     email_verified: editedUserData.email_verified,
                 }),
@@ -215,8 +223,8 @@ const UsersPage = () => {
 
     const renderModal = () => (
         openModal === 'update-modal' && (
-            <div className="fixed top-0 left-0 w-full h-full z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                <div className="mx-4 w-full max-w-md bg-white rounded-xl shadow-2xl dark:bg-gray-800 p-6">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+                <div className="w-full max-w-lg p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
                     <div className="flex items-center justify-between pb-4 border-b dark:border-gray-700">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                             Update User
@@ -246,6 +254,45 @@ const UsersPage = () => {
                     {selectedUser && (
                         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
                             <div>
+                                <label htmlFor="nama_pegawai" className="block text-sm font-medium text-gray-800 dark:text-gray-200">
+                                    Nama Pegawai
+                                </label>
+                                <input
+                                    type="text"
+                                    id="nama_pegawai"
+                                    name="nama_pegawai"
+                                    value={editedUserData.nama_pegawai}
+                                    onChange={handleInputChange}
+                                    className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-sm focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="email" className="block text-sm font-medium text-gray-800 dark:text-gray-200">
+                                    Email
+                                </label>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    value={editedUserData.email}
+                                    onChange={handleInputChange}
+                                    className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-sm focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="nomor_pegawai" className="block text-sm font-medium text-gray-800 dark:text-gray-200">
+                                    Nomor Pegawai
+                                </label>
+                                <input
+                                    type="text"
+                                    id="nomor_pegawai"
+                                    name="nomor_pegawai"
+                                    value={editedUserData.nomor_pegawai}
+                                    onChange={handleInputChange}
+                                    className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-sm focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+                            <div>
                                 <label htmlFor="role" className="block text-sm font-medium text-gray-800 dark:text-gray-200">
                                     Role
                                 </label>
@@ -260,18 +307,18 @@ const UsersPage = () => {
                                     <option value="admin">Admin</option>
                                 </select>
                             </div>
-                            <div>
-                                <label htmlFor="email_verified" className="block text-sm font-medium text-gray-800 dark:text-gray-200">
-                                    Email Verified
-                                </label>
+                            <div className="flex items-center">
                                 <input
                                     type="checkbox"
                                     id="email_verified"
                                     name="email_verified"
                                     checked={editedUserData.email_verified}
                                     onChange={handleInputChange}
-                                    className="mt-2 w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
                                 />
+                                <label htmlFor="email_verified" className="ml-2 block text-sm font-medium text-gray-800 dark:text-gray-200">
+                                    Email Verified
+                                </label>
                             </div>
                             <div className="flex justify-end">
                                 <button
