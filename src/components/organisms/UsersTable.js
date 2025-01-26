@@ -8,16 +8,16 @@ import Popover from '../atoms/Popover';
 const UsersTable = ({ users, currentPage, usersPerPage, handleEditClick, handleDeleteClick, loggedInUserId }) => (
   <div className="overflow-x-auto w-full">
     <div className="max-h-[370px] sm:max-h-[500px] overflow-y-auto">
-      <table className="w-full text-sm text-left text-gray-900 border-collapse border border-orange-500">
+      <table className="w-full text-sm text-left text-gray-900 border-collapse border border-orange-300">
         <thead className="bg-white text-black">
           <tr>
-            <th scope="col" className="px-4 py-3 border border-orange-500">No</th>
-            <th scope="col" className="px-4 py-3 border border-orange-500">Nomor Pegawai</th>
-            <th scope="col" className="px-4 py-3 border border-orange-500">Nama Pegawai</th>
-            <th scope="col" className="px-4 py-3 border border-orange-500">Email</th>
-            <th scope="col" className="px-4 py-3 border border-orange-500">Role</th>
-            <th scope="col" className="px-4 py-3 border border-orange-500">Email Verified</th>
-            <th scope="col" className="px-4 py-3 border border-orange-500 text-center">Actions</th>
+            <th scope="col" className="px-4 py-3 border border-orange-300">No</th>
+            <th scope="col" className="px-4 py-3 border border-orange-300">Nomor Pegawai</th>
+            <th scope="col" className="px-4 py-3 border border-orange-300">Nama Pegawai</th>
+            <th scope="col" className="px-4 py-3 border border-orange-300">Email</th>
+            <th scope="col" className="px-4 py-3 border border-orange-300">Role</th>
+            <th scope="col" className="px-4 py-3 border border-orange-300">Email Verified</th>
+            <th scope="col" className="px-4 py-3 border border-orange-300 text-center">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -26,13 +26,13 @@ const UsersTable = ({ users, currentPage, usersPerPage, handleEditClick, handleD
             return (
               <tr
                 key={user.userId}
-                className={`${index % 2 === 0 ? 'bg-orange-50' : 'bg-orange-100'}`}
+                className={`${index % 2 === 0 ? 'bg-orange-100' : 'bg-orange-200'}`}  
               >
-                <td className="px-4 py-3 border border-orange-500 bg-white">
+                <td className="px-4 py-3 border border-orange-300 bg-white">
                   {index + 1 + (currentPage - 1) * usersPerPage}
                 </td>
-                <td className="px-4 py-3 border border-orange-500">{user.nomor_pegawai}</td>
-                <td className="px-4 py-3 border border-orange-500">
+                <td className="px-4 py-3 border border-orange-300">{user.nomor_pegawai}</td>
+                <td className="px-4 py-3 border border-orange-300">
                   <div className="flex items-center gap-2">
                     {isCurrentUser ? (
                       <div>
@@ -46,23 +46,23 @@ const UsersTable = ({ users, currentPage, usersPerPage, handleEditClick, handleD
                     )}
                   </div>
                 </td>
-                <td className="px-4 py-3 border border-orange-500">{user.email}</td>
-                <td className="px-4 py-3 border border-orange-500">{user.role}</td>
-                <td className="px-4 py-3 border border-orange-500 text-center">
+                <td className="px-4 py-3 border border-orange-300">{user.email}</td>
+                <td className="px-4 py-3 border border-orange-300">{user.role}</td>
+                <td className="px-4 py-3 border border-orange-300 text-center">
                   {user.email_verified ? (
                     <Icon name="check" className="text-green-500 mx-auto" />
                   ) : (
                     <Icon name="times" className="text-red-500 mx-auto" />
                   )}
                 </td>
-                <td className="px-4 py-3 border border-orange-500 text-center">
+                <td className="px-4 py-3 border border-orange-300 text-center">
                   {!isCurrentUser && (
                     <div className="flex items-center justify-center space-x-2">
                       <Button
                         onClick={() => handleEditClick(user)}
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded"
+                        className="bg-[#EBA801] hover:bg-orange-500 text-white font-bold py-1 px-3 rounded"
                       >
-                        Edit
+                        <Icon name="edit" className="text-white mr-2" /> Edit
                       </Button>
                       <Button
                         onClick={() => handleDeleteClick(user)}
