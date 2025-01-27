@@ -38,7 +38,7 @@ const UsersTable = ({ users, currentPage, usersPerPage, handleEditClick, handleD
                       <div>
                         <span className="cursor-pointer flex items-center gap-2">
                           {user.nama_pegawai}
-                          <Badge className="font-bold" color="info">You</Badge>
+                          <Badge className="font-bold" color="dark">You</Badge>
                         </span>
                       </div>
                     ) : (
