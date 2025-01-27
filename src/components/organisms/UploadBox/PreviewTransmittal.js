@@ -33,6 +33,12 @@ const PreviewTransmittal = ({
         return `${year}-${month.toString().padStart(2, "0")}-${day
           .toString()
           .padStart(2, "0")}`;
+      } else if (dateStr.length === 8) {
+        const day = dateStr.substring(0, 2);
+        const month = dateStr.substring(2, 4);
+        const year = dateStr.substring(4, 8);
+
+        return `${year}-${month}-${day}`;
       }
 
       return "";
@@ -87,11 +93,11 @@ const PreviewTransmittal = ({
               type="text"
               id={`previewTitle-${currentPage - 1}`}
               placeholder="Title"
-              value={previewData[results[currentPage - 1]?.id]?.drawing || ""}
+              value={previewData[results[currentPage - 1]?.id]?.title || ""}
               onChange={(e) =>
                 handlePreviewChange(
                   results[currentPage - 1]?.id,
-                  "drawing",
+                  "title",
                   e.target.value
                 )
               }
