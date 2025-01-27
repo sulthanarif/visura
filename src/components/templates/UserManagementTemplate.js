@@ -33,7 +33,7 @@ const UserManagementTemplate = ({
 
         <SectionHeader title="Kelola Akun" onSearchChange={handleSearchChange} className="ml-30" />
 
-                <div className="px-10 py-0 bg-white border-none"> 
+                <div className="px-1 sm:px-10 py-0 bg-white border-none "> 
                      <UsersTable
                          users={users}
                         currentPage={currentPage}

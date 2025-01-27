@@ -7,7 +7,7 @@ import Popover from '../atoms/Popover';
 
 const UsersTable = ({ users, currentPage, usersPerPage, handleEditClick, handleDeleteClick, loggedInUserId }) => (
   <div className="overflow-x-auto w-full">
-    <div className="max-h-[45vh] sm:max-h-[500px] overflow-y-auto">
+    <div className="max-h-[45vh] sm:max-h-[65vh] overflow-y-auto">
       <table className="w-full text-sm text-left text-gray-900 border-collapse border border-orange-300">
       <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
           <tr>
