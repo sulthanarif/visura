@@ -7,9 +7,9 @@ import Popover from '../atoms/Popover';
 
 const UsersTable = ({ users, currentPage, usersPerPage, handleEditClick, handleDeleteClick, loggedInUserId }) => (
   <div className="overflow-x-auto w-full">
-    <div className="max-h-[370px] sm:max-h-[500px] overflow-y-auto">
+    <div className="max-h-[45vh] sm:max-h-[500px] overflow-y-auto">
       <table className="w-full text-sm text-left text-gray-900 border-collapse border border-orange-300">
-        <thead className="bg-white text-black">
+      <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
           <tr>
             <th scope="col" className="px-4 py-3 border border-orange-300">No</th>
             <th scope="col" className="px-4 py-3 border border-orange-300">Nomor Pegawai</th>
@@ -38,7 +38,7 @@ const UsersTable = ({ users, currentPage, usersPerPage, handleEditClick, handleD
                       <div>
                         <span className="cursor-pointer flex items-center gap-2">
                           {user.nama_pegawai}
-                          <Badge className="font-bold" color="success">You</Badge>
+                          <Badge className="font-bold" color="info">You</Badge>
                         </span>
                       </div>
                     ) : (
