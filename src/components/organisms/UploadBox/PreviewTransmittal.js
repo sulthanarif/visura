@@ -1,3 +1,4 @@
+//src/components/organisms/UploadBox/PreviewTransmittal.js
 import React from "react";
 import Icon from "../../atoms/Icon";
 import Button from "../../atoms/Button";

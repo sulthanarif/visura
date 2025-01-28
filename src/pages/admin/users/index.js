@@ -7,7 +7,7 @@ import { decodeToken } from '@/utils/authHelpers';
 const UsersPage = () => {
     const [users, setUsers] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const [usersPerPage, setUsersPerPage] = useState(8);
+    const [usersPerPage, setUsersPerPage] = useState(10);
     const [openModal, setOpenModal] = useState(null);
     const [selectedUser, setSelectedUser] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
