@@ -14,18 +14,18 @@ const LoginPage = () => {
 
       if (response.ok) {
         toast.success("Anda berhasil login!", {
-            duration: 5000,
+            duration: 2000,
             position: "top-center",
             style: {
-                backgroundColor: "#34C759", // Hijau lembut untuk latar belakang
-                color: "#FFFFFF", // Putih untuk teks agar kontras
-                borderRadius: "8px", // Memberikan sudut melengkung
-                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)", // Memberikan bayangan lembut
-                padding: "16px", // Memberikan ruang lebih pada konten
+                backgroundColor: "#34C759", 
+                color: "#FFFFFF",
+                borderRadius: "8px", 
+                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)", 
+                padding: "16px", 
             },
             iconTheme: {
-                primary: "#FFFFFF", // Warna ikon
-                secondary: "#34C759", // Latar belakang ikon
+                primary: "#FFFFFF", 
+                secondary: "#34C759", 
             },
         });
     
