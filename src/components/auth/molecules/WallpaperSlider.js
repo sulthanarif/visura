@@ -25,7 +25,7 @@ const WallpaperSlider = () => {
         }
         return nextIndex;
       });
-    }, 6000);
+    }, 3600);
 
     return () => clearInterval(interval);
   }, []);
