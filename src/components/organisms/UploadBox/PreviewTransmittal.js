@@ -1,4 +1,3 @@
-//src/components/organisms/UploadBox/PreviewTransmittal.js
 import React from "react";
 import Icon from "../../atoms/Icon";
 import Button from "../../atoms/Button";
@@ -14,7 +13,8 @@ const PreviewTransmittal = ({
   handlePrev,
   handleNext,
   handleGenerateTransmittal,
-}) =>{
+    projectId
+}) => {
   const formatDateForInput = (dateStr) => {
     if (!dateStr) return "";
 
@@ -76,6 +76,7 @@ const PreviewTransmittal = ({
     }
   };
 
+
   return (
     <div
       className={`preview-transmittal ${showPreview ? "show" : "remove"}`}
@@ -85,7 +86,16 @@ const PreviewTransmittal = ({
         <Icon name="file-csv" />
         Preview Transmittal
       </h2>
-      <br />
+       <div className="field">
+           <label htmlFor="previewProjectName">Project Name</label>
+            <input
+              type="text"
+               id="previewProjectName"
+              placeholder="Project Name"
+              value={projectName}
+                readOnly
+            />
+        </div>
       {results && results[currentPage - 1] && (
         <div key={results[currentPage - 1]?.id}>
           <div className="field">
@@ -180,6 +190,6 @@ const PreviewTransmittal = ({
       </div>
     </div>
   );
-}
+};
 
 export default PreviewTransmittal;

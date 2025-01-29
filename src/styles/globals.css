@@ -323,7 +323,7 @@ input[type="date"] {
 
 .preview-transmittal.show {
     left: 0;
-    top: 0;
+    top: -5rem;
     transform: translateX(-105%);
     transition: all 0.5s ease;
     /* Move to the left of the upload box */

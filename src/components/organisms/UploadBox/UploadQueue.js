@@ -1,4 +1,3 @@
-// src/components/organisms/UploadBox/UploadQueue.js
 import React from "react";
 import Icon from "../../atoms/Icon";
 import IconWithText from "@/components/molecules/IconWithText";
@@ -9,6 +8,7 @@ const UploadQueue = ({
   uploadQueueRef,
   uploadQueueFileListContainerRef,
 }) => {
+  
   const getProgressColor = (status) => {
     switch (status) {
       case "Done":

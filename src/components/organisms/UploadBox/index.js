@@ -1,4 +1,3 @@
-// src/components/organisms/UploadBox/index.js
 import React, { useState, useRef, useEffect } from "react";
 import Button from "../../atoms/Button";
 import { useUpload } from "@/models/upload";
@@ -12,6 +11,9 @@ import IconWithText from "@/components/molecules/IconWithText";
 import Icon from "@/components/atoms/Icon";
 import TransmittalModal from "@/components/molecules/TransmittalModal";
 import axios from "axios";
+import supabase from "@/utils/supabaseClient";
+import { v4 as uuidv4 } from "uuid";
+import { decodeToken } from "@/utils/authHelpers";
 
 const env = require('dotenv').config();
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
@@ -47,6 +49,9 @@ const UploadBox = () => {
     const uploadQueueFileListContainerRef = useRef(null);
     const initialPreviewData = useRef({});
     const [errorMessageModal, setErrorMessageModal] = useState('');
+    const [projectId, setProjectId] = useState(null);
+    const [userId, setUserId] = useState(null)
+
 
     const MAX_FILES = 10;
 
@@ -76,6 +81,14 @@ const UploadBox = () => {
 
     useEffect(() => {
         resetState();
+          // Get the token from local storage and decode it
+        const token = localStorage.getItem('token');
+        if (token) {
+            const decodedToken = decodeToken(token);
+            if (decodedToken) {
+               setUserId(decodedToken.userId)
+            }
+        }
     }, []);
 
     useEffect(() => {
@@ -114,13 +127,13 @@ const UploadBox = () => {
     const handleFileChange = (e) => {
       e.preventDefault();
       const newFiles = Array.from(e.target.files);
-      
+
       // Check if adding new files would exceed limit
       if (files.length + newFiles.length > MAX_FILES) {
           setErrorMessage(`Maximum ${MAX_FILES} files allowed`);
           return;
       }
-      
+
       handleAddFile(newFiles);
       setFileCount(files.length + newFiles.length);
       setErrorMessage("");
@@ -128,17 +141,16 @@ const UploadBox = () => {
 
     const handleScanButton = async (e) => {
         e.preventDefault();
-    
+
         if (files.length === 0) {
             setErrorMessage("No files uploaded");
             return;
         }
-    
-        setShowQueue(true);
+         setShowQueue(true);
         const filesTemp = [...files];
         setFiles([]);
-    
-        // Initialize queue items
+
+           // Initialize queue items
         const queueItems = filesTemp.map(file => ({
             file: {
                 name: file.name,
@@ -147,9 +159,40 @@ const UploadBox = () => {
             status: "Waiting...",
             progress: 0
         }));
-        setUploadQueueFiles(queueItems);
-    
-        for (let i = 0; i < filesTemp.length; i++) {
+          setUploadQueueFiles(queueItems);
+
+
+           // Check if a project name is provided
+        if (!projectName.trim()) {
+            setErrorMessage("Project name is required");
+            setShowQueue(false);
+            setFiles(filesTemp); // Restore files in case of error
+            return;
+        }
+
+        let currentProjectId = projectId;
+
+         // Create a new project if projectId is not set
+        if (!currentProjectId) {
+             const { data, error } = await supabase
+              .from("projects")
+              .insert([{ projectName, userId }]) // include userId here
+              .select();
+
+             if (error) {
+               console.error("Error creating project:", error);
+               setErrorMessage(`Failed to create project ${error.message}`);
+              setShowQueue(false);
+               setFiles(filesTemp);
+               return;
+             }
+
+          currentProjectId = data?.[0]?.projectId;
+          setProjectId(currentProjectId);
+
+            }
+
+           for (let i = 0; i < filesTemp.length; i++) {
             const file = filesTemp[i];
             try {
                 // Update queue status to processing
@@ -158,32 +201,32 @@ const UploadBox = () => {
                         idx === i ? { ...item, status: "Processing...", progress: 0 } : item
                     )
                 );
-    
                 const formData = new FormData();
                 formData.append("pdfFile", file);
-    
-                const response = await fetch(`${SERVER_URL}/api/ocr`, {
+               
+
+                const response = await fetch(`${SERVER_URL}/api/ocr?projectId=${currentProjectId}`, {
                     method: "POST",
                     body: formData,
                 });
-    
+
                 const responseData = await response.json();
-    
-                if (!response.ok) {
+
+                  if (!response.ok) {
                     setUploadQueueFiles(prev =>
                         prev.map((item, idx) =>
                             idx === i ? { ...item, status: "Failed", progress: 100 } : item
                         )
                     );
                     setUploadStatus(`${responseData.message}`);
-                    continue;
-                }
-    
+                     continue;
+                    }
+
                 const data = await responseData;
-                console.log(data);
-    
+                 console.log(data);
+
                 // Update results and preview data if available
-                if (data.data) {
+                  if (data.data) {
                     setResults(prev => {
                         const newResult = [...prev];
                         data.data.forEach((item, index) => {
@@ -195,15 +238,14 @@ const UploadBox = () => {
                                 drawingCode: item.drawingCode,
                                 date: item.date,
                                 filename: item.filename,
-                                dateImage: item.dateImage,
                             };
                         });
                         return newResult;
                     });
-    
+
                     setPreviewData(prev => ({ ...prev, ...initialPreviewData.current }));
                 }
-    
+
                 // Update queue status to done
                 setUploadQueueFiles(prev =>
                     prev.map((item, idx) =>
@@ -211,39 +253,39 @@ const UploadBox = () => {
                     )
                 );
 
-                // Check if any file processing failed or succeeded
-                if (data.uploadQueueFiles) {
-                    const hasFailed = data.uploadQueueFiles.some(file => file.status === "Failed");
-                    const hasDone = data.uploadQueueFiles.some(file => file.status === "Done");
-    
-                    if (hasFailed) {
-                        setErrorMessage("Some files failed to process");
-                        setUploadQueueFiles(prev =>
-                            prev.map((item, idx) =>
-                                idx === i ? { ...item, status: "Failed", progress: 100 } : item
-                            )
-                        );
-                    }
-    
-                    if (hasDone) {
-                        setShowPreview(true);
-                    }
-                }
-    
-                // Handle success message
-                if (data.csvFileName) {
-                    setCsvFileName(data.csvFileName);
-    
-                    if (data.uploadQueueFiles?.some(file => file.status === "Failed")) {
-                        setUploadStatus("Processing completed with errors");
+                   // Check if any file processing failed or succeeded
+                    if (data.uploadQueueFiles) {
+                        const hasFailed = data.uploadQueueFiles.some(file => file.status === "Failed");
+                        const hasDone = data.uploadQueueFiles.some(file => file.status === "Done");
 
-                    } else {
-                        setUploadStatus("Upload and scanning successful.");
+                         if (hasFailed) {
+                            setErrorMessage("Some files failed to process");
+                            setUploadQueueFiles(prev =>
+                                prev.map((item, idx) =>
+                                    idx === i ? { ...item, status: "Failed", progress: 100 } : item
+                                )
+                            );
+                        }
+
+                         if (hasDone) {
+                            setShowPreview(true);
+                        }
                     }
-                }
+
+                     // Handle success message
+                    if (data.csvFileName) {
+                        setCsvFileName(data.csvFileName);
+
+                        if (data.uploadQueueFiles?.some(file => file.status === "Failed")) {
+                            setUploadStatus("Processing completed with errors");
+                        } else {
+                            setUploadStatus("Upload and scanning successful.");
+                        }
+                    }
+
             } catch (error) {
-                console.error(`Error processing file ${file.name}:`, error);
-    
+                 console.error(`Error processing file ${file.name}:`, error);
+
                 setUploadQueueFiles(prev =>
                     prev.map((item, idx) =>
                         idx === i
@@ -256,15 +298,12 @@ const UploadBox = () => {
                             : item
                     )
                 );
-    
-                setErrorMessage(`Failed to scan file ${file.name}: ${error.message || ""}`);
+                 setErrorMessage(`Failed to scan file ${file.name}: ${error.message || ""}`);
             }
-        }
-    
-        setIsUploading(false);
-        setIsScanning(false);
+          }
+          setIsUploading(false);
+          setIsScanning(false);
     };
-    
 
     const handlePrev = () => {
         if (currentPage > 1) {
@@ -315,8 +354,12 @@ const UploadBox = () => {
             link.click();
             document.body.removeChild(link);
             // we can use this cleanup function to remove the file from the server
-            setCleanupStatus("Cleaning up files, please wait...");
-            const cleanupResponse = await fetch("/api/cleanup", { method: "POST" });
+             setCleanupStatus("Cleaning up files, please wait...");
+            const cleanupResponse = await fetch("/api/cleanup", {
+                 method: "POST",
+                 headers: { "Content-Type": "application/json" },
+                 body: JSON.stringify({ projectId }),
+             });
 
             setShowTransmittalModal(false);
 
@@ -375,20 +418,20 @@ const UploadBox = () => {
                 onRemoveFile={handleRemoveFile}
                 fileListContainerRef={fileListContainerRef}
             />
-            
+
             <div className="note">
                 <IconWithText icon="info-circle" text="Maximum 10 files allowed and 10MB per file. Only PDF files are allowed." />
             </div>
-            
+
             <p className="upload-status" id="uploadStatus">{uploadStatus}</p>
             <p className="error-message" id="errorMessage">{errorMessage}</p>
             <Button onClick={handleScanButton} id="scanButton">
                 <IconWithText icon="wand-magic-sparkles" text="Start Scan" />
             </Button>
-            
+
             <PreviewTransmittal
                 showPreview={showPreview}
-                projectName={projectName}
+                 projectName={projectName}
                 results={results}
                 currentPage={currentPage}
                 previewData={previewData}
@@ -396,7 +439,7 @@ const UploadBox = () => {
                 handlePrev={handlePrev}
                 handleNext={handleNext}
                 handleGenerateTransmittal={handleGenerateTransmittal}
-
+                  projectId={projectId}
             />
              <TransmittalModal
                 isOpen={showTransmittalModal}
