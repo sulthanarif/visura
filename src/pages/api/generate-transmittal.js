@@ -1,5 +1,5 @@
 //src/pages/api/generate-transmittal.js
-import ocrController from "../../../server/controller/ocrController";
+import ocrController from "../../lib/ocr/server/controller/ocrController";
 
 export const config = {
     api: {

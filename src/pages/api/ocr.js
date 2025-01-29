@@ -1,4 +1,5 @@
-import ocrController from "../../../server/controller/ocrController";
+//pages/api/ocr.js
+import ocrController from "../../lib/ocr/server/controller/ocrController";
 
 export const config = {
     api: {
