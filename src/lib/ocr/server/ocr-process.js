@@ -13,6 +13,8 @@ const tempDir = path.join(process.cwd(), "src/temp/ocr");
 const outputDir = path.join(process.cwd(), "public/output");
 const targetDPI = 800;
 
+
+
 // Fungsi untuk convert PDF ke PNG
 async function pdfToPng(pdfPath, tempDir) {
   return new Promise((resolve, reject) => {
@@ -23,7 +25,10 @@ async function pdfToPng(pdfPath, tempDir) {
       }
       const defaultPngPath = resp.data;
       const fileName = path.basename(defaultPngPath);
-      const tempPngPath = path.join(tempDir, fileName); // Simpan di temp dulu
+      const tempPngPath = path.join(
+        tempDir, 
+        `${path.parse(pdfPath).name}-${Date.now()}.png` // Pastikan ekstensi .png
+      ); // Simpan di temp dulu
 
       fs.rename(defaultPngPath, tempPngPath, (err) => {
         if (err) {
@@ -39,6 +44,8 @@ async function pdfToPng(pdfPath, tempDir) {
     });
   });
 }
+
+
 
 // Fungsi untuk meningkatkan DPI
 async function increaseDPI(inputPath, outputPath, dpi) {
@@ -140,9 +147,18 @@ const cropCoordinates = {
 };
 
 async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilename) {
+  const sanitizeFilename = (filename) => {
+    return filename
+      .replace(/[^a-zA-Z0-9-_.]/g, '_')
+      .replace(/\s+/g, '_');
+  };
+
   try {
+    // Sanitize filename sebelum digunakan
+    const sanitizedFilename = sanitizeFilename(originalFilename); // <-- Gunakan variabel baru
+    
     // 1. Convert PDF ke PNG
-    const tempPngPath = await pdfToPng(pdfPath, tempDir); // Dapatkan path di temp
+    const tempPngPath = await pdfToPng(pdfPath, tempDir);
 
     const baseName = path.parse(tempPngPath).name;
     const timestamp = Date.now();
@@ -162,11 +178,18 @@ async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilena
 
     // Simpan filename asli
     const jsonData = {
-      filename: originalFilename, // <---- Simpan nama file di sini
+      filename: sanitizedFilename,
       title: null,
       revision: null,
       drawingCode: null,
       date: null,
+      images: {
+        original: tempPngPath,
+        hidpi: highDpiImagePath,
+        rotated: rotatedImagePath,
+        cropped: croppedImagePath,
+        parts: [],
+      },
     };
 
     // 2. Tingkatkan DPI
@@ -185,6 +208,7 @@ async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilena
         tempCutDir,
         `${outputBaseName}-${key}.png`
       );
+      jsonData.images.parts.push(sectionImagePath);
       await sharp(croppedImagePath)
         .extract({
           left: coords.x,

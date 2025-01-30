@@ -13,7 +13,11 @@ import fs from "fs";
 import path from "path";
 import formidable from "formidable";
 import supabase from "@/utils/supabaseClient";
+// Di bagian atas controller
+import { fileTypeFromBuffer } from 'file-type';
 import { v4 as uuidv4 } from "uuid";
+
+
 
 const ocrController = {
     handleFormData: async (req, res) => {
@@ -75,7 +79,14 @@ const ocrController = {
                 req,
                 res
             );
-              const projectId = req.query.projectId;
+            const projectId = req.query.projectId;
+
+            // Tambahkan validasi
+            if (!projectId) {
+              return res.status(400).json({ 
+                message: "projectId is required" 
+              });
+            }
 
 
             let allResults = [];
@@ -101,23 +112,83 @@ const ocrController = {
                         targetDPI,
                         originalFilename
                     );
+
+                    // Upload gambar ke Supabase
+const imagesToUpload = [
+    result.images.original,
+    result.images.hidpi,
+    result.images.rotated,
+    result.images.cropped,
+    ...result.images.parts,
+  ];
+  
+  for (const imagePath of imagesToUpload) {
+    let storagePath;
+    const fileName = path.basename(imagePath);
+    
+    const fileBuffer = fs.readFileSync(imagePath);
+  
+  
+
+    if (imagePath.startsWith(tempHiDpiDir)) {
+      storagePath = `png/ocr/hidpi/${fileName}`;
+    } else if (imagePath.startsWith(tempRotateDir)) {
+      storagePath = `png/ocr/rotate/${fileName}`;
+    } else if (imagePath.startsWith(tempCutResultDir)) {
+      storagePath = `png/ocr/cuts/${fileName}`;
+    } else if (imagePath.startsWith(tempCutDir)) {
+      storagePath = `png/ocr/cuts/part/${fileName}`;
+    } else if (imagePath.startsWith(tempDir)) {
+      storagePath = `png/ocr/original/${fileName}`;
+    } else {
+      console.error(`Unknown image path: ${imagePath}`);
+      continue;
+    }
+  
+    // Validasi MIME type di sini
+  const mimeType = await fileTypeFromBuffer(fileBuffer);
+  if (!mimeType || mimeType.mime !== 'image/png') {
+    console.error(`Invalid file type: ${storagePath}`);
+    continue; // Gunakan continue bukan return
+  }
+
+    if (!fileName.endsWith('.png')) {
+        const newFileName = `${fileName}.png`;
+        storagePath = storagePath.replace(fileName, newFileName);
+      }
+      const { error } = await supabase.storage
+      .from('ocr-storage')
+      .upload(storagePath, fileBuffer, {
+        contentType: 'image/png', // Tambahkan Content-Type
+        upsert: true
+      });
+  
+    if (error) console.error(`Upload gagal: ${storagePath}`, error);
+  }
                     uploadQueueFiles[fileIndex].status = "Done";
                     allResults.push(result);
 
                   // Insert into ocr_results table
-                    const { data, error } = await supabase
-                      .from("ocr_results")
-                      .insert([
-                        {
-                          projectId: projectId,
-                          filename: result.filename,
-                          title: result.title,
-                          revision: result.revision,
-                          drawingCode: result.drawingCode,
-                          date: result.date,
-                        },
-                      ])
-                      .select();
+                  const { data, error } = await supabase
+                  .from("ocr_results")
+                  .insert([{
+                    projectId: projectId, // <-- Tambahkan ini
+                    filename: result.filename,
+                    title: result.title,
+                    revision: result.revision,
+                    drawingCode: result.drawingCode,
+                    date: result.date,
+                    image_paths: {
+                      original: `png/ocr/original/${path.basename(result.images.original)}`,
+                      hidpi: `png/ocr/hidpi/${path.basename(result.images.hidpi)}`,
+                      rotated: `png/ocr/rotate/${path.basename(result.images.rotated)}`,
+                      cropped: `png/ocr/cuts/${path.basename(result.images.cropped)}`,
+                      parts: result.images.parts.map(p => 
+                        `png/ocr/cuts/part/${path.basename(p)}`
+                      )
+                    }
+                  }])
+                  .select();
 
                   if (error) {
                     console.error("Error inserting ocr results:", error);
@@ -269,94 +340,68 @@ const ocrController = {
         }
     },
     cleanup: async (req, res) => {
-      const { projectId } = req.body;
-
+        const { projectId } = req.body;
+      
         try {
-            const { data: filesData, error: filesError } = await supabase
-              .from("ocr_results")
-              .select("filename")
-              .eq("projectId", projectId);
-            if (filesError) throw filesError;
-            const { error } = await supabase.from('ocr_results').delete().eq('projectId', projectId);
-            if (error) throw error;
-
-            const { error: projectError } = await supabase.from('projects').delete().eq('projectId', projectId);
-            if (projectError) throw projectError;
-
-
-            const fileNames = filesData?.map(item => item.filename);
-
-            if (fileNames && fileNames.length > 0) {
-             for( const fileName of fileNames) {
-                  const pngFileName = path.parse(fileName).name;
-                   const highDpiFileName = `${pngFileName}-high-dpi.png`
-                   const rotatedFileName = `${pngFileName}-rotated.png`
-
-                 const pngPath = path.join(tempDir,`${pngFileName}.png` );
-                   const highDpiPath = path.join(tempHiDpiDir,highDpiFileName );
-                const rotatePath = path.join(tempRotateDir, rotatedFileName);
-
-                 try {
-                       await fs.promises.unlink(pngPath);
-                  }
-                   catch (e) {
-                    console.error(`Error cleaning up  ${pngFileName}.png`);
-                  }
-                 try {
-                        await fs.promises.unlink(highDpiPath);
-                  }
-                    catch (e) {
-                    console.error(`Error cleaning up  ${highDpiFileName}`);
-                  }
-                 try {
-                        await fs.promises.unlink(rotatePath);
-                  }
-                   catch (e) {
-                    console.error(`Error cleaning up  ${rotatedFileName}`);
-                   }
-
-
-                  const supabaseStoragePath = `png/ocr/original/${pngFileName}.png`
-                  const supabaseStorageHiDpiPath = `png/ocr/hidpi/${highDpiFileName}`
-                  const supabaseStorageRotatePath = `png/ocr/rotate/${rotatedFileName}`
-
-
-                const { error: originalError } = await supabase
-                    .storage
-                    .from('ocr-storage')
-                    .remove([supabaseStoragePath]);
-
-                if (originalError) {
-                     console.error(`Error deleting original image from storage:`, originalError);
-                }
-                 const { error: hidpiError } = await supabase
-                    .storage
-                    .from('ocr-storage')
-                    .remove([supabaseStorageHiDpiPath]);
-
-                  if (hidpiError) {
-                     console.error(`Error deleting hidpi image from storage:`, hidpiError);
-                   }
-
-                const { error: rotateError } = await supabase
-                    .storage
-                    .from('ocr-storage')
-                    .remove([supabaseStorageRotatePath]);
-
-                 if (rotateError) {
-                     console.error(`Error deleting rotate image from storage:`, rotateError);
-                   }
-                  }
-             }
-
-
-
-            return res.status(200).json({ message: "Cleanup completed successfully." });
+          // Dapatkan data file dari database
+          const { data: filesData, error: filesError } = await supabase
+            .from("ocr_results")
+            .select("filename, image_paths")
+            .eq("projectId", projectId);
+          
+          if (filesError) throw filesError;
+      
+          // Hapus dari database
+          const { error: deleteError } = await supabase
+            .from('ocr_results')
+            .delete()
+            .eq('projectId', projectId);
+          
+          if (deleteError) throw deleteError;
+      
+          // Hapus dari storage
+          if (filesData && filesData.length > 0) {
+            const filesToDelete = filesData.flatMap(file => 
+              Object.values(file.image_paths).flat()
+            );
+            
+            // Hapus semua file sekaligus
+            const { error: storageError } = await supabase
+              .storage
+              .from('ocr-storage')
+              .remove(filesToDelete);
+            
+            if (storageError) console.error("Storage cleanup error:", storageError);
+          }
+      
+          // Hapus file lokal dengan error handling
+          const cleanupLocalFile = async (filePath) => {
+            try {
+              await fs.promises.unlink(filePath);
+            } catch (e) {
+              if (e.code !== 'ENOENT') { // Abaikan error jika file tidak ada
+                console.error(`Error cleaning up ${path.basename(filePath)}:`, e.message);
+              }
+            }
+          };
+      
+          // Hapus file temporary
+          await Promise.all([
+            ...fs.readdirSync(tempDir).map(f => cleanupLocalFile(path.join(tempDir, f))),
+            ...fs.readdirSync(tempHiDpiDir).map(f => cleanupLocalFile(path.join(tempHiDpiDir, f))),
+            ...fs.readdirSync(tempRotateDir).map(f => cleanupLocalFile(path.join(tempRotateDir, f))),
+          ]);
+      
+          return res.status(200).json({ message: "Cleanup completed successfully." });
+      
         } catch (error) {
-            console.error("Error during cleanup:", error);
-            res.status(500).json({ message: "Cleanup failed.", error: error.message });
+          console.error("Error during cleanup:", error);
+          return res.status(500).json({ 
+            message: "Cleanup failed.", 
+            error: error.message 
+          });
         }
-    },
+      }
 };
 
 export default ocrController;

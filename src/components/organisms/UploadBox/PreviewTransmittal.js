@@ -1,20 +1,29 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Icon from "../../atoms/Icon";
 import Button from "../../atoms/Button";
 import IconWithText from "@/components/molecules/IconWithText";
 
 const PreviewTransmittal = ({
-  showPreview,
-  projectName,
-  results,
-  currentPage,
-  previewData,
-  handlePreviewChange,
-  handlePrev,
-  handleNext,
-  handleGenerateTransmittal,
-    projectId
+    showPreview,
+    projectName,
+    results,
+    currentPage,
+    previewData,
+    handlePreviewChange,
+    handlePrev,
+    handleNext,
+    handleGenerateTransmittal,
+    projectId,
+    setPreviewData,
+    initialPreviewData
 }) => {
+
+useEffect(() => {
+    if (!showPreview) {
+        // Reset form state ketika preview disembunyikan
+        setPreviewData(initialPreviewData.current);
+    }
+}, [showPreview, setPreviewData, initialPreviewData]);
   const formatDateForInput = (dateStr) => {
     if (!dateStr) return "";
 
@@ -82,10 +91,15 @@ const PreviewTransmittal = ({
       className={`preview-transmittal ${showPreview ? "show" : "remove"}`}
       id="previewTransmittal"
     >
-      <h2>
-        <Icon name="file-csv" />
-        Preview Transmittal
-      </h2>
+      <div className="flex justify-between items-center">
+        <h2>
+          <Icon name="file-csv" />
+          Preview Transmittal
+        </h2>
+        <button className="max-w-[40px] max-h-[44px] bg-gray-200 rounded-md p-2">
+          <Icon name="eye" />
+        </button>
+      </div>
        <div className="field">
            <label htmlFor="previewProjectName">Project Name</label>
             <input
@@ -96,8 +110,10 @@ const PreviewTransmittal = ({
                 readOnly
             />
         </div>
-      {results && results[currentPage - 1] && (
+       {results && results[currentPage - 1] && (
         <div key={results[currentPage - 1]?.id}>
+                    {previewData[results[currentPage - 1]?.id] ? (
+ <>
           <div className="field">
             <label htmlFor={`previewTitle-${currentPage - 1}`}>Title</label>
             <input
@@ -114,6 +130,7 @@ const PreviewTransmittal = ({
               }
             />
           </div>
+          
           <div className="field">
             <label htmlFor={`previewRevision-${currentPage - 1}`}>
               Revision - Date (DD/MM/YYYY)
@@ -171,6 +188,11 @@ const PreviewTransmittal = ({
               }
             />
           </div>
+          </>
+      ) : (<div className="text-red-500">
+        Data tidak tersedia untuk halaman ini
+      </div>
+    )}
           <hr />
         </div>
       )}

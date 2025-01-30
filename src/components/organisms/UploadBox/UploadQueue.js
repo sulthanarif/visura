@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Icon from "../../atoms/Icon";
 import IconWithText from "@/components/molecules/IconWithText";
 
@@ -30,13 +30,30 @@ const UploadQueue = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
-  const calculateTimeEstimate = (fileSize, progress) => {
-    // Assume 1MB takes ~2 seconds to process
-    const baseRate = 1; // seconds per MB
-    const fileSizeInMB = fileSize / (1024 * 1024);
-    const totalEstimatedTime = fileSizeInMB * baseRate;
+  const [remainingTimeDisplay, setRemainingTimeDisplay] = useState({});
+
+  // Stores start times per file name
+  const uploadStartTimes = {};
+
+  const calculateTimeEstimate = (fileSize, progress, fileName) => {
+    // Record start time when progress first becomes non-zero
+    if (progress > 0 && !uploadStartTimes[fileName]) {
+      uploadStartTimes[fileName] = Date.now();
+    }
+
+    // Estimate remaining time (same as before)
+    const averageTimePerPage = 10; // seconds per page
+    const estimatedPages = Math.ceil(fileSize / (100 * 1024));
+    const totalEstimatedTime = estimatedPages * averageTimePerPage;
     const remainingTime = totalEstimatedTime * ((100 - progress) / 100);
 
+    // If finished, show actual time spent
+    if (progress >= 100 && uploadStartTimes[fileName]) {
+      const actualSeconds = Math.floor((Date.now() - uploadStartTimes[fileName]) / 1000);
+      return `Done in ${actualSeconds}s`;
+    }
+
+    // Otherwise, return remaining time estimate
     if (remainingTime < 60) {
       return `${Math.ceil(remainingTime)}s`;
     } else {
@@ -45,6 +62,25 @@ const UploadQueue = ({
       return `${minutes}m ${seconds}s`;
     }
   };
+
+  useEffect(() => {
+    const timer = {};
+    
+    uploadQueueFiles.forEach((item) => {
+      if (item.status === "Processing...") {
+        timer[item.file.name] = setInterval(() => {
+          setRemainingTimeDisplay((prev) => ({
+            ...prev,
+            [item.file.name]: calculateTimeEstimate(item.file.size, item.progress)
+          }));
+        }, 1000);
+      }
+    });
+
+    return () => {
+      Object.values(timer).forEach(clearInterval);
+    };
+  }, [uploadQueueFiles]);
 
   return (
     <div

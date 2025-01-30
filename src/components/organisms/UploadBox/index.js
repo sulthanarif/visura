@@ -6,6 +6,7 @@ import ProjectInput from "./ProjectInput";
 import FileUploadArea from "./FileUploadArea";
 import FileListDisplay from "./FileListDisplay";
 import UploadQueue from "./UploadQueue";
+import ProcessedFilesList from "../../molecules/ProcessedFilesList";
 import PreviewTransmittal from "./PreviewTransmittal";
 import IconWithText from "@/components/molecules/IconWithText";
 import Icon from "@/components/atoms/Icon";
@@ -430,17 +431,19 @@ const UploadBox = () => {
             </Button>
 
             <PreviewTransmittal
-                showPreview={showPreview}
-                 projectName={projectName}
-                results={results}
-                currentPage={currentPage}
-                previewData={previewData}
-                handlePreviewChange={handlePreviewChange}
-                handlePrev={handlePrev}
-                handleNext={handleNext}
-                handleGenerateTransmittal={handleGenerateTransmittal}
-                  projectId={projectId}
-            />
+    showPreview={showPreview}
+    projectName={projectName}
+    results={results}
+    currentPage={currentPage}
+    previewData={previewData}
+    handlePreviewChange={handlePreviewChange}
+    handlePrev={handlePrev}
+    handleNext={handleNext}
+    handleGenerateTransmittal={handleGenerateTransmittal}
+    projectId={projectId}
+    setPreviewData={setPreviewData}
+    initialPreviewData={initialPreviewData}
+/>
              <TransmittalModal
                 isOpen={showTransmittalModal}
                 onClose={handleModalClose}
@@ -452,6 +455,9 @@ const UploadBox = () => {
                         csvFileName: "",
                 }}
             />
+            
+            {projectId && <ProcessedFilesList projectId={projectId} />}
+            
             <UploadQueue
                 showQueue={showQueue}
                 uploadQueueFiles={uploadQueueFiles}
