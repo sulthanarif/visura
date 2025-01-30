@@ -2,11 +2,9 @@ import React, { useState, useRef, useEffect } from "react";
 import Button from "../../atoms/Button";
 import { useUpload } from "@/models/upload";
 import { useRouter } from "next/router";
-import ProjectInput from "./ProjectInput";
 import FileUploadArea from "./FileUploadArea";
 import FileListDisplay from "./FileListDisplay";
 import UploadQueue from "./UploadQueue";
-import ProcessedFilesList from "../../molecules/ProcessedFilesList";
 import PreviewTransmittal from "./PreviewTransmittal";
 import IconWithText from "@/components/molecules/IconWithText";
 import Icon from "@/components/atoms/Icon";
@@ -15,6 +13,7 @@ import axios from "axios";
 import supabase from "@/utils/supabaseClient";
 import { v4 as uuidv4 } from "uuid";
 import { decodeToken } from "@/utils/authHelpers";
+import Input from "@/components/atoms/Input";
 
 const env = require('dotenv').config();
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
@@ -51,7 +50,7 @@ const UploadBox = () => {
     const initialPreviewData = useRef({});
     const [errorMessageModal, setErrorMessageModal] = useState('');
     const [projectId, setProjectId] = useState(null);
-    const [userId, setUserId] = useState(null)
+     const [userId, setUserId] = useState(null)
 
 
     const MAX_FILES = 10;
@@ -59,6 +58,67 @@ const UploadBox = () => {
     // Add to existing state declarations
     const [fileCount, setFileCount] = useState(0);
     const [showTransmittalModal, setShowTransmittalModal] = useState(false);
+
+      useEffect(() => {
+     // Get the token from local storage and decode it
+        const token = localStorage.getItem('token');
+          if (token) {
+              const decodedToken = decodeToken(token);
+            if (decodedToken) {
+                 setUserId(decodedToken.userId)
+             }
+          }
+       }, []);
+
+
+      useEffect(() => {
+          // Check if projectId is passed via router query
+        if (router.query && router.query.projectId) {
+           const { projectId } = router.query;
+            setProjectId(projectId);
+        }
+     }, [router.query]);
+
+
+   useEffect(() => {
+        const fetchOcrData = async () => {
+             if (projectId) {
+                try {
+                   const response = await fetch(`/api/getocrdatabyprojectid?projectIds=${JSON.stringify([projectId])}`);
+                     if (!response.ok) {
+                         throw new Error(`HTTP error! status: ${response.status}`);
+                     }
+                     const data = await response.json();
+                      if(data.length > 0){
+                          setResults(data.map((item, index) => ({ ...item, id: index })));
+                            setPreviewData(prev => {
+                                const newPreview = {}
+                                data.forEach((item, index) => {
+                                   newPreview[index] = {
+                                        project: item.projectName,
+                                        title: item.title,
+                                        revision: item.revision,
+                                        drawingCode: item.drawingCode,
+                                        date: item.date,
+                                        filename: item.filename,
+                                    }
+                                })
+                                 return {...prev, ...newPreview}
+                           });
+                           if(data.length > 0){
+                                setProjectName(data[0].projectName);
+                           }
+                        setShowPreview(true)
+                      }
+
+                } catch (error) {
+                    console.error("Error fetching OCR data:", error);
+                    setErrorMessage("Failed to load OCR data. Please try again later.");
+                }
+            }
+        };
+       fetchOcrData();
+    }, [projectId, setProjectName, setErrorMessage, setResults, setPreviewData, setShowPreview]);
 
 
     useEffect(() => {
@@ -82,14 +142,7 @@ const UploadBox = () => {
 
     useEffect(() => {
         resetState();
-          // Get the token from local storage and decode it
-        const token = localStorage.getItem('token');
-        if (token) {
-            const decodedToken = decodeToken(token);
-            if (decodedToken) {
-               setUserId(decodedToken.userId)
-            }
-        }
+
     }, []);
 
     useEffect(() => {
@@ -188,12 +241,9 @@ const UploadBox = () => {
                return;
              }
 
-          currentProjectId = data?.[0]?.projectId;
-          setProjectId(currentProjectId);
-
-            }
-
-           for (let i = 0; i < filesTemp.length; i++) {
+         
+         }
+          for (let i = 0; i < filesTemp.length; i++) {
             const file = filesTemp[i];
             try {
                 // Update queue status to processing
@@ -353,23 +403,23 @@ const UploadBox = () => {
             link.download = dataRes.csvFileName;
             document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
-            // we can use this cleanup function to remove the file from the server
-             setCleanupStatus("Cleaning up files, please wait...");
-            const cleanupResponse = await fetch("/api/cleanup", {
-                 method: "POST",
-                 headers: { "Content-Type": "application/json" },
-                 body: JSON.stringify({ projectId }),
-             });
+            // document.body.removeChild(link);
+            // // we can use this cleanup function to remove the file from the server
+            //  setCleanupStatus("Cleaning up files, please wait...");
+            // const cleanupResponse = await fetch("/api/cleanup", {
+            //      method: "POST",
+            //      headers: { "Content-Type": "application/json" },
+            //      body: JSON.stringify({ projectId }),
+            //  });
 
-            setShowTransmittalModal(false);
+            // setShowTransmittalModal(false);
 
-            if (!cleanupResponse.ok) {
-                const errorData = await cleanupResponse.json();
-                throw new Error(`Failed to clean up files ${errorData.message || ""}`);
-            }
-            setCleanupStatus("Cleanup completed, refreshing...");
-            router.reload(); // Refresh halaman
+            // if (!cleanupResponse.ok) {
+            //     const errorData = await cleanupResponse.json();
+            //     throw new Error(`Failed to clean up files ${errorData.message || ""}`);
+            // }
+            // setCleanupStatus("Cleanup completed, refreshing...");
+            // router.reload(); // Refresh halaman
         }
         catch (error) {
             console.error("Error during generate transmittal: ", error);
@@ -409,7 +459,18 @@ const UploadBox = () => {
 
     return (
         <div className="upload-box">
-            <ProjectInput projectName={projectName} setProjectName={setProjectName} />
+              <div className="title-container" id="titleContainer">
+                  <h2>
+                      <Icon name="folder" />
+                     Name of Project
+                  </h2>
+                 <Input
+                    placeholder="Enter project name"
+                    type="text"
+                    value={projectName}
+                    onChange={(e) => setProjectName(e.target.value)}
+                 />
+              </div>
             <FileUploadArea handleFileChange={handleFileChange} fileInputRef={fileInputRef} />
              <div className="file-count">
                  {files.length}/{MAX_FILES} files
@@ -430,20 +491,20 @@ const UploadBox = () => {
                 <IconWithText icon="wand-magic-sparkles" text="Start Scan" />
             </Button>
 
-            <PreviewTransmittal
-    showPreview={showPreview}
-    projectName={projectName}
-    results={results}
-    currentPage={currentPage}
-    previewData={previewData}
-    handlePreviewChange={handlePreviewChange}
-    handlePrev={handlePrev}
-    handleNext={handleNext}
-    handleGenerateTransmittal={handleGenerateTransmittal}
-    projectId={projectId}
-    setPreviewData={setPreviewData}
-    initialPreviewData={initialPreviewData}
-/>
+           <PreviewTransmittal
+              showPreview={showPreview}
+              projectName={projectName}
+              results={results}
+              currentPage={currentPage}
+              previewData={previewData}
+              handlePreviewChange={handlePreviewChange}
+              handlePrev={handlePrev}
+              handleNext={handleNext}
+              handleGenerateTransmittal={handleGenerateTransmittal}
+              projectId={projectId}
+               setPreviewData={setPreviewData}
+                initialPreviewData={initialPreviewData}
+            />
              <TransmittalModal
                 isOpen={showTransmittalModal}
                 onClose={handleModalClose}
@@ -455,8 +516,6 @@ const UploadBox = () => {
                         csvFileName: "",
                 }}
             />
-            
-            {projectId && <ProcessedFilesList projectId={projectId} />}
             
             <UploadQueue
                 showQueue={showQueue}

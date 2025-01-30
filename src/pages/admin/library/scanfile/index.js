@@ -1,4 +1,5 @@
-// src/pages/upload-test/index.js
+// src/pages/admin/library/scanfile/index.js
+import React from 'react';
 
 import UploadBox from '../../../../components/organisms/UploadBox';
 

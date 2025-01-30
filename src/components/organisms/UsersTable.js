@@ -1,3 +1,4 @@
+//src/components/organisms/UsersTable.js
 import React from 'react';
 import Icon from '../atoms/Icon';
 import { Badge } from 'flowbite-react';
@@ -12,8 +13,8 @@ const UsersTable = ({ users, currentPage, usersPerPage, handleEditClick, handleD
       <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
           <tr>
             <th scope="col" className="px-4 py-3 border border-orange-300">No</th>
-            <th scope="col" className="px-4 py-3 border border-orange-300">Nomor Pegawai</th>
-            <th scope="col" className="px-4 py-3 border border-orange-300">Nama Pegawai</th>
+            <th scope="col" className="px-4 py-3 border border-orange-300">Employee ID</th>
+            <th scope="col" className="px-4 py-3 border border-orange-300">Name</th>
             <th scope="col" className="px-4 py-3 border border-orange-300">Email</th>
             <th scope="col" className="px-4 py-3 border border-orange-300">Role</th>
             <th scope="col" className="px-4 py-3 border border-orange-300">Email Verified</th>

@@ -1,3 +1,4 @@
+// src/pages/api/users/index.js
 import supabase from "../../../utils/supabaseClient";
 
 export default async function handler(req, res) {
@@ -16,8 +17,6 @@ export default async function handler(req, res) {
 
   const startIndex = (pageNumber - 1) * limitNumber;
   const endIndex = startIndex + limitNumber - 1;
-
-
 
   try {
     let query = supabase

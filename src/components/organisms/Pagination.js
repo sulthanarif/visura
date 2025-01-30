@@ -1,3 +1,4 @@
+//src/components/organisms/Pagination.js
 import React from 'react';
 
 const Pagination = ({ currentPage, usersPerPage, totalUsers, handlePageChange }) => (

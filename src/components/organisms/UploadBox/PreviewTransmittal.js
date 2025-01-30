@@ -2,28 +2,44 @@ import React, { useState, useEffect } from "react";
 import Icon from "../../atoms/Icon";
 import Button from "../../atoms/Button";
 import IconWithText from "@/components/molecules/IconWithText";
-
+import TransmittalPreviewModal from "@/components/molecules/TransmittalDataPreviewModal";
 const PreviewTransmittal = ({
-    showPreview,
-    projectName,
-    results,
-    currentPage,
-    previewData,
-    handlePreviewChange,
-    handlePrev,
-    handleNext,
-    handleGenerateTransmittal,
-    projectId,
-    setPreviewData,
-    initialPreviewData
+  showPreview,
+  projectName,
+  results,
+  currentPage,
+  previewData,
+  handlePreviewChange,
+  handlePrev,
+  handleNext,
+  handleGenerateTransmittal,
+  projectId,
+  setPreviewData,
+  initialPreviewData,
 }) => {
+  const [transmittalModalOpen, setTransmittalModalOpen] = useState(false);
+  const [currentOcrResult, setCurrentOcrResult] = useState(null);
 
-useEffect(() => {
+  useEffect(() => {
     if (!showPreview) {
-        // Reset form state ketika preview disembunyikan
-        setPreviewData(initialPreviewData.current);
+      // Reset form state ketika preview disembunyikan
+      setPreviewData(initialPreviewData.current);
+        setCurrentOcrResult(null)
     }
-}, [showPreview, setPreviewData, initialPreviewData]);
+   else if (results && results.length > 0) {
+        setCurrentOcrResult(results[currentPage -1])
+     }
+  }, [showPreview, setPreviewData, initialPreviewData, results, currentPage]);
+
+
+    useEffect(() => {
+        if (results && results.length > 0) {
+            setCurrentOcrResult(results[currentPage -1])
+         }
+    }, [results, currentPage]);
+
+
+
   const formatDateForInput = (dateStr) => {
     if (!dateStr) return "";
 
@@ -84,9 +100,16 @@ useEffect(() => {
       console.error("Date change error:", error);
     }
   };
+    const handleOpenTransmittalModal = () => {
+        setTransmittalModalOpen(true);
+   };
+     const handleCloseTransmittalModal = () => {
+        setTransmittalModalOpen(false);
+    };
 
 
-  return (
+return (
+  <>
     <div
       className={`preview-transmittal ${showPreview ? "show" : "remove"}`}
       id="previewTransmittal"
@@ -96,112 +119,120 @@ useEffect(() => {
           <Icon name="file-csv" />
           Preview Transmittal
         </h2>
-        <button className="max-w-[40px] max-h-[44px] bg-gray-200 rounded-md p-2">
+        <a
+          className="text-orange-500 cursor-pointer"
+          onClick={handleOpenTransmittalModal}
+        >
           <Icon name="eye" />
-        </button>
+        </a>
       </div>
-       <div className="field">
-           <label htmlFor="previewProjectName">Project Name</label>
-            <input
-              type="text"
-               id="previewProjectName"
-              placeholder="Project Name"
-              value={projectName}
-                readOnly
-            />
-        </div>
-       {results && results[currentPage - 1] && (
-        <div key={results[currentPage - 1]?.id}>
-                    {previewData[results[currentPage - 1]?.id] ? (
- <>
-          <div className="field">
-            <label htmlFor={`previewTitle-${currentPage - 1}`}>Title</label>
-            <input
-              type="text"
-              id={`previewTitle-${currentPage - 1}`}
-              placeholder="Title"
-              value={previewData[results[currentPage - 1]?.id]?.title || ""}
-              onChange={(e) =>
-                handlePreviewChange(
-                  results[currentPage - 1]?.id,
-                  "title",
-                  e.target.value
-                )
-              }
-            />
-          </div>
-          
-          <div className="field">
-            <label htmlFor={`previewRevision-${currentPage - 1}`}>
-              Revision - Date (DD/MM/YYYY)
-            </label>
-            <input
-              type="text"
-              id={`previewRevision-${currentPage - 1}`}
-              placeholder="Revision"
-              value={previewData[results[currentPage - 1]?.id]?.revision || ""}
-              onChange={(e) =>
-                handlePreviewChange(
-                  results[currentPage - 1]?.id,
-                  "revision",
-                  e.target.value
-                )
-              }
-            />
-          </div>
-          <div className="field">
-            <label htmlFor={`previewDrawingCode-${currentPage - 1}`}>
-              Drawing Code
-            </label>
-            <input
-              type="text"
-              id={`previewDrawingCode-${currentPage - 1}`}
-              placeholder="Drawing Code"
-              value={
-                previewData[results[currentPage - 1]?.id]?.drawingCode || ""
-              }
-              onChange={(e) =>
-                handlePreviewChange(
-                  results[currentPage - 1]?.id,
-                  "drawingCode",
-                  e.target.value
-                )
-              }
-            />
-          </div>
-          <div className="field">
-            <label
-              htmlFor={`previewDate-${currentPage - 1}`}
-              style={{ display: "flex", alignItems: "center", gap: "5px" }}
-            >
-              Date
-            </label>
-            <input
-              type="date"
-              id={`previewDate-${currentPage - 1}`}
-              placeholder="Date"
-              value={formatDateForInput(
-                previewData[results[currentPage - 1]?.id]?.date
-              )}
-              onChange={(e) =>
-                handleDateChange(results[currentPage - 1]?.id, e)
-              }
-            />
-          </div>
-          </>
-      ) : (<div className="text-red-500">
-        Data tidak tersedia untuk halaman ini
+      <div className="field">
+        <label htmlFor="previewProjectName">Project Name</label>
+        <input
+          type="text"
+          id="previewProjectName"
+          placeholder="Project Name"
+          value={projectName}
+          readOnly
+        />
       </div>
-    )}
+       {currentOcrResult && (
+        <div key={currentOcrResult?.id}>
+          {previewData[currentOcrResult?.id] ? (
+            <>
+              <div className="field">
+                <label htmlFor={`previewTitle-${currentOcrResult?.id}`}>
+                  Title
+                </label>
+                <input
+                  type="text"
+                  id={`previewTitle-${currentOcrResult?.id}`}
+                  placeholder="Title"
+                  value={previewData[currentOcrResult?.id]?.title || ""}
+                  onChange={(e) =>
+                    handlePreviewChange(
+                      currentOcrResult?.id,
+                      "title",
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+
+              <div className="field">
+                <label htmlFor={`previewRevision-${currentOcrResult?.id}`}>
+                  Revision - Date (DD/MM/YYYY)
+                </label>
+                <input
+                  type="text"
+                  id={`previewRevision-${currentOcrResult?.id}`}
+                  placeholder="Revision"
+                  value={
+                    previewData[currentOcrResult?.id]?.revision || ""
+                  }
+                  onChange={(e) =>
+                    handlePreviewChange(
+                      currentOcrResult?.id,
+                      "revision",
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+              <div className="field">
+                <label htmlFor={`previewDrawingCode-${currentOcrResult?.id}`}>
+                  Drawing Code
+                </label>
+                <input
+                  type="text"
+                  id={`previewDrawingCode-${currentOcrResult?.id}`}
+                  placeholder="Drawing Code"
+                  value={
+                    previewData[currentOcrResult?.id]?.drawingCode || ""
+                  }
+                  onChange={(e) =>
+                    handlePreviewChange(
+                      currentOcrResult?.id,
+                      "drawingCode",
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+              <div className="field">
+                <label
+                  htmlFor={`previewDate-${currentOcrResult?.id}`}
+                  style={{ display: "flex", alignItems: "center", gap: "5px" }}
+                >
+                  Date
+                </label>
+                <input
+                  type="date"
+                  id={`previewDate-${currentOcrResult?.id}`}
+                  placeholder="Date"
+                  value={formatDateForInput(
+                    previewData[currentOcrResult?.id]?.date
+                  )}
+                  onChange={(e) =>
+                    handleDateChange(currentOcrResult?.id, e)
+                  }
+                />
+              </div>
+            </>
+          ) : (
+            <div className="text-red-500">
+              Data tidak tersedia untuk halaman ini
+            </div>
+          )}
           <hr />
         </div>
       )}
       <div className="pagination">
-        <Button id="prevBtn" onClick={handlePrev}>
+        <Button id="prevBtn" onClick={handlePrev}  disabled={currentPage === 1}>
           <Icon name="angle-left" />
         </Button>
         <span id="pageInfo"></span>
-        <Button id="nextBtn" onClick={handleNext}>
+        <Button id="nextBtn" onClick={handleNext}  disabled={currentPage === results.length}>
           <Icon name="angle-right" />
         </Button>
       </div>
@@ -211,7 +242,15 @@ useEffect(() => {
         </Button>
       </div>
     </div>
-  );
+    <TransmittalPreviewModal
+      isOpen={transmittalModalOpen}
+      onClose={handleCloseTransmittalModal}
+      selectedProject={{projectName}}
+      ocrResults={results}
+      currentPage={currentPage}
+    />
+  </>
+);
 };
 
 export default PreviewTransmittal;

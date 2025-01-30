@@ -6,7 +6,7 @@ import { useRouter } from 'next/router';
 function HomePage() {
       const router = useRouter();
       const handleRedirect = () => {
-          router.push('/upload-test');
+          router.push('/upload');
       };
     return (
         

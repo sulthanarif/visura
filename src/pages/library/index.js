@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import LibraryTemplate from '@/components/templates/LibraryTemplate';
 import { decodeToken } from '@/utils/authHelpers';
-import UploadQueueModal from '@/components/molecules/UploadQueueModal';
+
 import TransmittalDataPreviewModal from '@/components/molecules/TransmittalDataPreviewModal';
 import { useRouter } from 'next/router';
+
 
 const LibraryPage = () => {
     const router = useRouter();
@@ -93,7 +94,7 @@ const LibraryPage = () => {
 
    const handlePreviewClick = (project) => {
      router.push({
-           pathname: '/admin/library/scanfile',
+           pathname: '/upload',
           query: {
              projectId: project.projectId
          },

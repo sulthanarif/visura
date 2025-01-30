@@ -1,10 +1,11 @@
-// UsersPage.js
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import UserManagementTemplate from '@/components/templates/UserManagementTemplate';
 import { decodeToken } from '@/utils/authHelpers';
+import { useRouter } from 'next/router';
 
 const UsersPage = () => {
+    const router = useRouter();
     const [users, setUsers] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [usersPerPage, setUsersPerPage] = useState(10);
@@ -73,7 +74,15 @@ const UsersPage = () => {
         setOpenModal('update-modal');
     };
    
-
+     const handleViewProjectsClick = (user) => {
+          router.push({
+              pathname: '/admin/AdminUserProjectsPage',
+               query: {
+                  userId: user.userId,
+                   userName: user.nama_pegawai
+                },
+           });
+    };
     const handleModalClose = () => {
         setOpenModal(null);
         setEditedUserData({
@@ -218,7 +227,7 @@ const UsersPage = () => {
              handleInputChange={handleInputChange}
             handleDeleteConfirm={handleDeleteConfirm}
             handleDeleteCancel={handleDeleteCancel}
-          
+            handleViewProjectsClick={handleViewProjectsClick}
                loggedInUserId={loggedInUserId}
         />
     );

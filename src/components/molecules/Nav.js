@@ -77,7 +77,8 @@ const Nav = ({ user }) => {
                 {
                     label: 'Library',
                     subItems: [
-                        { href: '/admin/library', label: 'All Files' },
+                        { href: '/admin/library', label: 'My Library' },
+                        { href: '/admin/library/projects', label: 'All Projects' },
                         { href: '/admin/library/scanfile', label: 'Scan File' },
                         
                     ],
@@ -87,7 +88,7 @@ const Nav = ({ user }) => {
         {
             role: 'user',
             items: [
-                { href: '/upload-test', label: 'Scan Files' },
+                { href: '/upload', label: 'Scan Files' },
                 { href: '/library', label: 'Library' },
             ],
         },
