@@ -27,10 +27,11 @@ const PreviewTransmittal = ({
     if (!showPreview) {
       // Reset form state ketika preview disembunyikan
       setPreviewData(initialPreviewData.current);
-      setCurrentOcrResult(null);
-    } else if (results && results.length > 0) {
-      setCurrentOcrResult(results[currentPage - 1]);
+        setCurrentOcrResult(null)
     }
+   else if (results && results.length > 0) {
+        setCurrentOcrResult(results[currentPage -1])
+     }
   }, [showPreview, setPreviewData, initialPreviewData, results, currentPage]);
 
 
@@ -39,6 +40,7 @@ const PreviewTransmittal = ({
             setCurrentOcrResult(results[currentPage -1])
          }
     }, [results, currentPage]);
+
 
 
   const formatDateForInput = (dateStr) => {
@@ -74,17 +76,17 @@ const PreviewTransmittal = ({
       return "";
     }
   };
+
  const handleInputChange = async (index, field, value) => {
       handlePreviewChange(results[index]?.id, field, value);
-        setDebouncedValue(prev => ({
-          ...prev,
-            [results[index]?.id]:{
+      setDebouncedValue(prev => ({
+           ...prev,
+           [results[index]?.id]:{
                ...prev[results[index]?.id],
-                 [field]: value
-            }
-       }));
-   };
-
+               [field]: value
+           }
+      }));
+ };
    const debouncedUpdate = useCallback(
         (index, field) => {
            const ocrId = results[index]?.resultId;
@@ -116,7 +118,7 @@ const PreviewTransmittal = ({
                            toast.error(errorData?.message || "Terjadi kesalahan, coba lagi.", {
                                 duration: 5000,
                                 position: "top-center",
-                           });
+                            });
                        }
                 } catch (error) {
                        console.error("Error updating project:", error);
@@ -126,24 +128,24 @@ const PreviewTransmittal = ({
                         });
                     }
            }
-            let timer;
-           clearTimeout(timer)
-          timer = setTimeout(() => {
+           let timer;
+            clearTimeout(timer)
+           timer = setTimeout(() => {
                updateState()
-          }, 500)
+           }, 500)
 
 
     }, [previewData,results,debouncedValue])
+
     useEffect(() => {
-        if(debouncedValue && Object.keys(debouncedValue).length > 0){
-            Object.keys(debouncedValue).forEach(id => {
-                    Object.keys(debouncedValue[id]).forEach(field => {
-                           debouncedUpdate(results.findIndex(result => result.id == id), field)
-                    })
+       if(debouncedValue && Object.keys(debouncedValue).length > 0){
+           Object.keys(debouncedValue).forEach(id => {
+                Object.keys(debouncedValue[id]).forEach(field => {
+                      debouncedUpdate(results.findIndex(result => result.id == id), field)
+               })
            })
        }
    }, [debouncedValue])
-
 
   const handleDateChange = (index, event) => {
     const newDate = event.target.value;
@@ -164,9 +166,9 @@ const PreviewTransmittal = ({
       const currentRevision = previewData[results[index]?.id]?.revision || "";
       const revisionPrefix = currentRevision.split("-")[0] || "";
       const newRevision = `${revisionPrefix}-${revisionDate}`;
+
      handleInputChange(index, "date", displayDate)
      handleInputChange(index, "revision", newRevision)
-
 
     } catch (error) {
       console.error("Date change error:", error);
@@ -191,12 +193,15 @@ return (
           <Icon name="file-csv" />
           Preview Transmittal
         </h2>
+        <div className="flex space-x-2">
+
         <a
           className="text-orange-500 cursor-pointer"
           onClick={handleOpenTransmittalModal}
         >
           <Icon name="eye" />
         </a>
+        </div>
       </div>
       <div className="field">
         <label htmlFor="previewProjectName">Project Name</label>
@@ -221,11 +226,11 @@ return (
                   id={`previewTitle-${currentOcrResult?.id}`}
                   placeholder="Title"
                   value={previewData[currentOcrResult?.id]?.title || ""}
-                    onChange={(e) => handleInputChange(currentPage - 1,
+                    onChange={(e) => handleInputChange(
+                      currentPage - 1,
                       "title",
                       e.target.value
-                    )
-                  }
+                    )}
                 />
               </div>
 
@@ -240,16 +245,16 @@ return (
                   value={
                     previewData[currentOcrResult?.id]?.revision || ""
                   }
-                     onChange={(e) =>
+                  onChange={(e) =>
                     handleInputChange(
                       currentPage - 1,
                       "revision",
                       e.target.value
-                    )
-                  }
+                    )}
                 />
               </div>
-              <div className="field">
+              <div className="flex items-center gap-2">
+              <div className="field flex-1">
                 <label htmlFor={`previewDrawingCode-${currentOcrResult?.id}`}>
                   Drawing Code
                 </label>
@@ -260,14 +265,33 @@ return (
                   value={
                     previewData[currentOcrResult?.id]?.drawingCode || ""
                   }
-                  onChange={(e) =>
-                    handleInputChange(
-                      currentPage - 1,
+                 onChange={(e) =>
+                   handleInputChange(
+                     currentPage - 1,
                       "drawingCode",
                       e.target.value
-                    )
-                  }
+                    )}
                 />
+                </div>
+                <div className="field flex-1">
+                <label htmlFor={`previewDrawingCode-${currentOcrResult?.id}`}>
+                 File Name
+                </label>
+                <input
+                  type="text"
+                  id={`previewDrawingCode-${currentOcrResult?.id}`}
+                  placeholder="File Name"
+                  value={
+                    previewData[currentOcrResult?.id]?.filename || ""
+                  }
+                 onChange={(e) =>
+                   handleInputChange(
+                     currentPage - 1,
+                      "drawingCode",
+                      e.target.value
+                    )}
+                />
+                </div>
               </div>
               <div className="field">
                 <label
@@ -283,7 +307,7 @@ return (
                   value={formatDateForInput(
                     previewData[currentOcrResult?.id]?.date
                   )}
-                  onChange={(e) =>
+                   onChange={(e) =>
                     handleDateChange(currentPage - 1, e)
                   }
                 />
@@ -319,8 +343,8 @@ return (
       ocrResults={results}
       currentPage={currentPage}
     />
-  </>
-);
+    </>
+  );
 };
 
 export default PreviewTransmittal;

@@ -1,8 +1,9 @@
+// pages/api/ocr-results/[ocrId].js
 import supabase from "../../../utils/supabaseClient";
 
 export default async function handler(req, res) {
     const { ocrId } = req.query;
-
+    
     if (!ocrId) {
         return res.status(400).json({ message: "OCR ID is required" });
     }

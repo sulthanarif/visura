@@ -1,17 +1,73 @@
-//src/lib/ocr/server/ocr-process.js
 const Tesseract = require("tesseract.js");
 const sharp = require("sharp");
 const fs = require("fs");
 const path = require("path");
 const pdf2png = require("pdf2png");
+const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
+const { default: axios } = require('axios');
+const QRCode = require('qrcode');
 
 const tempCutDir = path.join(process.cwd(), "src/temp/ocr/cut/part");
+const tempCroppedDir = path.join(process.cwd(), "src/temp/ocr/cut/cropped"); // New path for cropped
 const tempHiDpiDir = path.join(process.cwd(), "src/temp/ocr/hi-dpi");
 const tempRotateDir = path.join(process.cwd(), "src/temp/ocr/rotate");
 const tempCutResultDir = path.join(process.cwd(), "src/temp/ocr/cut");
 const tempDir = path.join(process.cwd(), "src/temp/ocr");
 const outputDir = path.join(process.cwd(), "public/output");
 const targetDPI = 800;
+
+async function generateQRCode(url) {
+    try {
+      return await QRCode.toDataURL(url);
+    } catch (error) {
+      console.error("Error generating QR Code:", error);
+      throw error;
+    }
+  }
+
+
+// Function to embed the QR code in a PDF
+async function embedQRCodeInPdf(pdfPath, qrCodeDataUrl, storageUrl) {
+    try {
+        let pdfDoc;
+        const pdfBytes = await fs.promises.readFile(pdfPath);
+        try {
+            pdfDoc = await PDFDocument.load(pdfBytes);
+        } catch (err) {
+            console.error("Error loading PDF (try with ignoreEncryption):", err.message);
+            pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: false });
+        }
+
+        const pages = pdfDoc.getPages();
+        const firstPage = pages[0];
+
+        // Load QR code image
+        const qrCodeImage = await pdfDoc.embedPng(qrCodeDataUrl);
+
+        // Define where to place the QR code (adjust as needed)
+        const qrCodeWidth = 30;
+        const qrCodeHeight = 30;
+        const x = 62; // Adjust as needed
+         const y = firstPage.getHeight() - qrCodeHeight - 22;
+
+         // Draw QR Code
+        firstPage.drawImage(qrCodeImage, {
+            x,
+            y,
+            width: qrCodeWidth,
+            height: qrCodeHeight,
+        });
+
+
+        // Save the modified PDF
+        const modifiedPdfBytes = await pdfDoc.save();
+        return modifiedPdfBytes;
+
+    } catch (error) {
+        console.error("Error embedding QR code:", error);
+        throw error;
+    }
+}
 
 
 
@@ -26,7 +82,7 @@ async function pdfToPng(pdfPath, tempDir) {
       const defaultPngPath = resp.data;
       const fileName = path.basename(defaultPngPath);
       const tempPngPath = path.join(
-        tempDir, 
+        tempDir,
         `${path.parse(pdfPath).name}-${Date.now()}.png` // Pastikan ekstensi .png
       ); // Simpan di temp dulu
 
@@ -44,8 +100,6 @@ async function pdfToPng(pdfPath, tempDir) {
     });
   });
 }
-
-
 
 // Fungsi untuk meningkatkan DPI
 async function increaseDPI(inputPath, outputPath, dpi) {
@@ -146,7 +200,7 @@ const cropCoordinates = {
   date: { x: 300, y: 1650, width: 700, height: 200 },
 };
 
-async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilename) {
+async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilename, storageUrl) { // <-- Changed Here
   const sanitizeFilename = (filename) => {
     return filename
       .replace(/[^a-zA-Z0-9-_.]/g, '_')
@@ -156,7 +210,7 @@ async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilena
   try {
     // Sanitize filename sebelum digunakan
     const sanitizedFilename = sanitizeFilename(originalFilename); // <-- Gunakan variabel baru
-    
+
     // 1. Convert PDF ke PNG
     const tempPngPath = await pdfToPng(pdfPath, tempDir);
 
@@ -172,8 +226,8 @@ async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilena
       `${outputBaseName}-rotated.png`
     );
     const croppedImagePath = path.join(
-      tempCutResultDir,
-      `${outputBaseName}-cropped.png`
+        tempCroppedDir,
+        `${outputBaseName}-cropped.png` // Save to cropped
     );
 
     // Simpan filename asli
@@ -190,6 +244,7 @@ async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilena
         cropped: croppedImagePath,
         parts: [],
       },
+          isEncrypted: false
     };
 
     // 2. Tingkatkan DPI
@@ -202,7 +257,7 @@ async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilena
     await cropBottomRight(rotatedImagePath, croppedImagePath);
 
     // 5. Crop dan OCR untuk setiap bagian
-    
+
     for (const [key, coords] of Object.entries(cropCoordinates)) {
       const sectionImagePath = path.join(
         tempCutDir,
@@ -248,7 +303,24 @@ async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilena
       console.log(`[${outputBaseName}] Hasil OCR ${key}: ${jsonData[key]}`);
     }
 
+        // 6. Generate QR Code
+      let qrCodeDataUrl;
+      try {
+       qrCodeDataUrl = await generateQRCode(storageUrl);
+       // Embed QR Code ke PDF
+        const modifiedPdfBytes = await embedQRCodeInPdf(pdfPath, qrCodeDataUrl, storageUrl);
+        // 7. Save the modified PDF
+       const modifiedPdfPath = path.join(tempDir, `${outputBaseName}-modified.pdf`);
+         fs.writeFileSync(modifiedPdfPath, modifiedPdfBytes);
+          jsonData.modifiedPdf = modifiedPdfPath;
+      } catch(err) {
+          console.error("Error embedding QR Code into PDF", err)
+            jsonData.isEncrypted = true;
+      }
+
+
     console.log(`[${outputBaseName}] Data berhasil diproses.`);
+
     return jsonData;
   } catch (err) {
     console.error(`[${pdfPath}] Terjadi kesalahan:`, err);
@@ -265,4 +337,5 @@ module.exports = {
   tempDir,
   outputDir,
   targetDPI,
+   tempCroppedDir
 };

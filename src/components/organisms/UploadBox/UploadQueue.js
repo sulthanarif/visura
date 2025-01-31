@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Icon from "../../atoms/Icon";
 import IconWithText from "@/components/molecules/IconWithText";
 
@@ -31,6 +31,8 @@ const UploadQueue = ({
   };
 
   const [remainingTimeDisplay, setRemainingTimeDisplay] = useState({});
+     const intervalRefs = useRef({});
+
 
   // Stores start times per file name
   const uploadStartTimes = {};
@@ -54,7 +56,7 @@ const UploadQueue = ({
     }
 
     // Otherwise, return remaining time estimate
-    if (remainingTime < 60) {
+     if (remainingTime < 60) {
       return `${Math.ceil(remainingTime)}s`;
     } else {
       const minutes = Math.floor(remainingTime / 60);
@@ -63,24 +65,36 @@ const UploadQueue = ({
     }
   };
 
-  useEffect(() => {
+
+    useEffect(() => {
     const timer = {};
-    
-    uploadQueueFiles.forEach((item) => {
-      if (item.status === "Processing...") {
-        timer[item.file.name] = setInterval(() => {
-          setRemainingTimeDisplay((prev) => ({
-            ...prev,
-            [item.file.name]: calculateTimeEstimate(item.file.size, item.progress)
-          }));
-        }, 1000);
-      }
+
+        uploadQueueFiles.forEach((item) => {
+            if (item.status === "Processing...") {
+              timer[item.file.name] = setInterval(() => {
+              setRemainingTimeDisplay((prev) => ({
+                ...prev,
+                [item.file.name]: calculateTimeEstimate(item.file.size, item.progress, item.file.name)
+              }));
+            }, 1000);
+         }
     });
+
 
     return () => {
       Object.values(timer).forEach(clearInterval);
     };
   }, [uploadQueueFiles]);
+
+
+    useEffect(() => {
+      return () => {
+      // Clear intervals when component unmounts or uploadQueueFiles changes
+        if(intervalRefs.current) {
+          Object.values(intervalRefs.current).forEach(clearInterval);
+        }
+       };
+    }, [uploadQueueFiles]);
 
   return (
     <div
@@ -123,7 +137,7 @@ const UploadQueue = ({
                   <div className="text-xs text-gray-600">
                     <span>
                       Remaining time:{" "}
-                      {calculateTimeEstimate(item.file.size, item.progress)}
+                     {calculateTimeEstimate(item.file.size, item.progress, item.file.name) }
                     </span>
                   </div>
                 </div>

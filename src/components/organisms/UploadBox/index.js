@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import Button from "../../atoms/Button";
 import { useUpload } from "@/models/upload";
 import { useRouter } from "next/router";
@@ -14,9 +14,9 @@ import supabase from "@/utils/supabaseClient";
 import { v4 as uuidv4 } from "uuid";
 import { decodeToken } from "@/utils/authHelpers";
 import Input from "@/components/atoms/Input";
+import { toast } from 'react-hot-toast';
 
 const env = require('dotenv').config();
-
 
 const UploadBox = () => {
     const router = useRouter();
@@ -50,7 +50,8 @@ const UploadBox = () => {
     const initialPreviewData = useRef({});
     const [errorMessageModal, setErrorMessageModal] = useState('');
     const [projectId, setProjectId] = useState(null);
-     const [userId, setUserId] = useState(null)
+     const [userId, setUserId] = useState(null);
+      const [debouncedProjectName, setDebouncedProjectName] = useState(projectName);
 
 
     const MAX_FILES = 10;
@@ -73,11 +74,17 @@ const UploadBox = () => {
 
       useEffect(() => {
           // Check if projectId is passed via router query
-        if (router.query && router.query.projectId) {
-           const { projectId } = router.query;
+          if (router.query && router.query.projectId) {
+            const { projectId } = router.query;
             setProjectId(projectId);
-        }
-     }, [router.query]);
+           }
+           if (router.query && router.query.projectName) {
+              const { projectName } = router.query;
+              setDebouncedProjectName(projectName);
+              setProjectName(projectName)
+           }
+
+      }, [router.query]);
 
 
    useEffect(() => {
@@ -90,8 +97,8 @@ const UploadBox = () => {
                      }
                      const data = await response.json();
                       if(data.length > 0){
-                          setResults(data.map((item, index) => ({ ...item, id: index })));
-                            setPreviewData(prev => {
+                           setResults(data.map((item, index) => ({ ...item, id: index })));
+                             setPreviewData(prev => {
                                 const newPreview = {}
                                 data.forEach((item, index) => {
                                    newPreview[index] = {
@@ -101,14 +108,15 @@ const UploadBox = () => {
                                         drawingCode: item.drawingCode,
                                         date: item.date,
                                         filename: item.filename,
+                                        pdf_url: item.pdf_url
                                     }
                                 })
                                  return {...prev, ...newPreview}
                            });
-                           if(data.length > 0){
+                            if (data.length > 0) {
                                 setProjectName(data[0].projectName);
-                           }
-                        setShowPreview(true)
+                             }
+                         setShowPreview(true)
                       }
 
                 } catch (error) {
@@ -200,7 +208,7 @@ const UploadBox = () => {
             setErrorMessage("No files uploaded");
             return;
         }
-         setShowQueue(true);
+          setShowQueue(true);
         const filesTemp = [...files];
         setFiles([]);
 
@@ -241,8 +249,16 @@ const UploadBox = () => {
                return;
              }
 
-         
+          currentProjectId = data?.[0]?.projectId;
+          setProjectId(currentProjectId);
+        }
+          if (!currentProjectId) {
+           setErrorMessage("Failed to create project, try again.")
+               return;
+
          }
+          let updatedResults = [];
+          let updatedPreview = {};
           for (let i = 0; i < filesTemp.length; i++) {
             const file = filesTemp[i];
             try {
@@ -277,25 +293,20 @@ const UploadBox = () => {
                  console.log(data);
 
                 // Update results and preview data if available
-                  if (data.data) {
-                    setResults(prev => {
-                        const newResult = [...prev];
-                        data.data.forEach((item, index) => {
-                            newResult.push({ ...item, id: prev.length + index });
-                            initialPreviewData.current[prev.length + index] = {
+                   if (data.data) {
+                       data.data.forEach((item, index) => {
+                             updatedResults.push({ ...item, id: results.length + index });
+                            updatedPreview[results.length + index] = {
                                 project: projectName,
                                 title: item.title,
                                 revision: item.revision,
                                 drawingCode: item.drawingCode,
                                 date: item.date,
                                 filename: item.filename,
+                                pdf_url: item.pdf_url
                             };
                         });
-                        return newResult;
-                    });
-
-                    setPreviewData(prev => ({ ...prev, ...initialPreviewData.current }));
-                }
+                    }
 
                 // Update queue status to done
                 setUploadQueueFiles(prev =>
@@ -328,9 +339,9 @@ const UploadBox = () => {
                         setCsvFileName(data.csvFileName);
 
                         if (data.uploadQueueFiles?.some(file => file.status === "Failed")) {
-                            setUploadStatus("Processing completed with errors");
+                            toast.error("Processing completed with errors");
                         } else {
-                            setUploadStatus("Upload and scanning successful.");
+                            toast.success("Upload and scanning successful.");
                         }
                     }
 
@@ -352,6 +363,8 @@ const UploadBox = () => {
                  setErrorMessage(`Failed to scan file ${file.name}: ${error.message || ""}`);
             }
           }
+           setResults(prev => [...prev, ...updatedResults]);
+           setPreviewData(prev => ({ ...prev, ...updatedPreview }));
           setIsUploading(false);
           setIsScanning(false);
     };
@@ -393,8 +406,11 @@ const UploadBox = () => {
                     csvFileName: data.csvFileName
                 }),
             });
-            if (!response.ok) throw new Error("Failed to generate transmittal");
-            const dataRes = await response.json();
+            if (!response.ok) {
+                const errorData = await response.json();
+               throw new Error(`Failed to generate transmittal: ${errorData?.message || ""}`);
+           }
+           const dataRes = await response.json();
             setCsvFileName(dataRes.csvFileName);
 
             // download file
@@ -403,27 +419,15 @@ const UploadBox = () => {
             link.download = dataRes.csvFileName;
             document.body.appendChild(link);
             link.click();
-            // document.body.removeChild(link);
-            // // we can use this cleanup function to remove the file from the server
-            //  setCleanupStatus("Cleaning up files, please wait...");
-            // const cleanupResponse = await fetch("/api/cleanup", {
-            //      method: "POST",
-            //      headers: { "Content-Type": "application/json" },
-            //      body: JSON.stringify({ projectId }),
-            //  });
-
-            // setShowTransmittalModal(false);
-
-            // if (!cleanupResponse.ok) {
-            //     const errorData = await cleanupResponse.json();
-            //     throw new Error(`Failed to clean up files ${errorData.message || ""}`);
-            // }
-            // setCleanupStatus("Cleanup completed, refreshing...");
-            // router.reload(); // Refresh halaman
+            document.body.removeChild(link);
         }
         catch (error) {
             console.error("Error during generate transmittal: ", error);
             setCleanupStatus(`Failed to generate transmittal ${error.message || ""}`);
+              toast.error(error.message || "Terjadi kesalahan, coba lagi.", {
+                duration: 5000,
+                position: "top-center",
+              });
         }
     };
 
@@ -455,8 +459,51 @@ const UploadBox = () => {
     useEffect(() => {
         updatePageInfo();
     }, [currentPage, results]);
+    const debouncedUpdateProjectName = useCallback((value) => {
+        setDebouncedProjectName(value);
+    }, [])
 
+   useEffect(() => {
+      if (projectId && debouncedProjectName) {
+          const updateProjectName = async () => {
+               try {
+                  const response = await fetch(`/api/projects/${projectId}`, {
+                     method: 'PUT',
+                      headers: {
+                           'Content-Type': 'application/json',
+                       },
+                      body: JSON.stringify({
+                          projectName: debouncedProjectName,
+                        }),
+                   });
+                   if (response.ok) {
+                           toast.success('Project Name Updated Successfully', {
+                            duration: 5000,
+                             position: "top-center",
+                           });
+                    } else{
+                      const errorData = await response.json();
+                        toast.error(errorData?.message || "Terjadi kesalahan, coba lagi.", {
+                             duration: 5000,
+                             position: "top-center",
+                        });
+                   }
+               } catch (error) {
+                     console.error("Error updating Project Name:", error);
+                    toast.error("Terjadi kesalahan, coba lagi.", {
+                        duration: 5000,
+                        position: "top-center",
+                    });
+               }
+           };
+           let timer;
+          clearTimeout(timer)
+           timer = setTimeout(() => {
+               updateProjectName()
+          }, 500)
 
+     }
+    }, [debouncedProjectName, projectId])
     return (
         <div className="upload-box">
               <div className="title-container" id="titleContainer">
@@ -468,7 +515,10 @@ const UploadBox = () => {
                     placeholder="Enter project name"
                     type="text"
                     value={projectName}
-                    onChange={(e) => setProjectName(e.target.value)}
+                    onChange={(e) => {
+                      setProjectName(e.target.value)
+                       debouncedUpdateProjectName(e.target.value)
+                    }}
                  />
               </div>
             <FileUploadArea handleFileChange={handleFileChange} fileInputRef={fileInputRef} />
