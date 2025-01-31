@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Icon from "../../atoms/Icon";
 import Button from "../../atoms/Button";
 import IconWithText from "@/components/molecules/IconWithText";
 import TransmittalPreviewModal from "@/components/molecules/TransmittalDataPreviewModal";
+import { toast } from 'react-hot-toast';
 const PreviewTransmittal = ({
   showPreview,
   projectName,
@@ -19,16 +20,17 @@ const PreviewTransmittal = ({
 }) => {
   const [transmittalModalOpen, setTransmittalModalOpen] = useState(false);
   const [currentOcrResult, setCurrentOcrResult] = useState(null);
+  const [debouncedValue, setDebouncedValue] = useState({})
+
 
   useEffect(() => {
     if (!showPreview) {
       // Reset form state ketika preview disembunyikan
       setPreviewData(initialPreviewData.current);
-        setCurrentOcrResult(null)
+      setCurrentOcrResult(null);
+    } else if (results && results.length > 0) {
+      setCurrentOcrResult(results[currentPage - 1]);
     }
-   else if (results && results.length > 0) {
-        setCurrentOcrResult(results[currentPage -1])
-     }
   }, [showPreview, setPreviewData, initialPreviewData, results, currentPage]);
 
 
@@ -37,7 +39,6 @@ const PreviewTransmittal = ({
             setCurrentOcrResult(results[currentPage -1])
          }
     }, [results, currentPage]);
-
 
 
   const formatDateForInput = (dateStr) => {
@@ -73,6 +74,76 @@ const PreviewTransmittal = ({
       return "";
     }
   };
+ const handleInputChange = async (index, field, value) => {
+      handlePreviewChange(results[index]?.id, field, value);
+        setDebouncedValue(prev => ({
+          ...prev,
+            [results[index]?.id]:{
+               ...prev[results[index]?.id],
+                 [field]: value
+            }
+       }));
+   };
+
+   const debouncedUpdate = useCallback(
+        (index, field) => {
+           const ocrId = results[index]?.resultId;
+            if (!ocrId) return;
+            const updateData = debouncedValue[results[index]?.id]
+              if(!updateData) return;
+                 const value = updateData[field]
+           const updateState = async () => {
+             try {
+                     const response = await fetch(`/api/ocr-results/${ocrId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                          body: JSON.stringify({
+                             title: previewData[results[index]?.id]?.title,
+                               revision:  previewData[results[index]?.id]?.revision,
+                              drawingCode:  previewData[results[index]?.id]?.drawingCode,
+                            date:  previewData[results[index]?.id]?.date
+                           }),
+                      });
+                       if(response.ok){
+                            toast.success('Data Updated Successfully', {
+                                duration: 5000,
+                                position: "top-center",
+                            });
+                       }else {
+                           const errorData = await response.json();
+                           toast.error(errorData?.message || "Terjadi kesalahan, coba lagi.", {
+                                duration: 5000,
+                                position: "top-center",
+                           });
+                       }
+                } catch (error) {
+                       console.error("Error updating project:", error);
+                        toast.error("Terjadi kesalahan, coba lagi.", {
+                            duration: 5000,
+                            position: "top-center",
+                        });
+                    }
+           }
+            let timer;
+           clearTimeout(timer)
+          timer = setTimeout(() => {
+               updateState()
+          }, 500)
+
+
+    }, [previewData,results,debouncedValue])
+    useEffect(() => {
+        if(debouncedValue && Object.keys(debouncedValue).length > 0){
+            Object.keys(debouncedValue).forEach(id => {
+                    Object.keys(debouncedValue[id]).forEach(field => {
+                           debouncedUpdate(results.findIndex(result => result.id == id), field)
+                    })
+           })
+       }
+   }, [debouncedValue])
+
 
   const handleDateChange = (index, event) => {
     const newDate = event.target.value;
@@ -90,12 +161,13 @@ const PreviewTransmittal = ({
       const revisionDate = `${day}${month}${year}`;
 
       // Update revision with new date
-      const currentRevision = previewData[index]?.revision || "";
+      const currentRevision = previewData[results[index]?.id]?.revision || "";
       const revisionPrefix = currentRevision.split("-")[0] || "";
       const newRevision = `${revisionPrefix}-${revisionDate}`;
+     handleInputChange(index, "date", displayDate)
+     handleInputChange(index, "revision", newRevision)
 
-      handlePreviewChange(index, "date", displayDate);
-      handlePreviewChange(index, "revision", newRevision);
+
     } catch (error) {
       console.error("Date change error:", error);
     }
@@ -149,9 +221,7 @@ return (
                   id={`previewTitle-${currentOcrResult?.id}`}
                   placeholder="Title"
                   value={previewData[currentOcrResult?.id]?.title || ""}
-                  onChange={(e) =>
-                    handlePreviewChange(
-                      currentOcrResult?.id,
+                    onChange={(e) => handleInputChange(currentPage - 1,
                       "title",
                       e.target.value
                     )
@@ -170,9 +240,9 @@ return (
                   value={
                     previewData[currentOcrResult?.id]?.revision || ""
                   }
-                  onChange={(e) =>
-                    handlePreviewChange(
-                      currentOcrResult?.id,
+                     onChange={(e) =>
+                    handleInputChange(
+                      currentPage - 1,
                       "revision",
                       e.target.value
                     )
@@ -191,8 +261,8 @@ return (
                     previewData[currentOcrResult?.id]?.drawingCode || ""
                   }
                   onChange={(e) =>
-                    handlePreviewChange(
-                      currentOcrResult?.id,
+                    handleInputChange(
+                      currentPage - 1,
                       "drawingCode",
                       e.target.value
                     )
@@ -214,7 +284,7 @@ return (
                     previewData[currentOcrResult?.id]?.date
                   )}
                   onChange={(e) =>
-                    handleDateChange(currentOcrResult?.id, e)
+                    handleDateChange(currentPage - 1, e)
                   }
                 />
               </div>

@@ -26,11 +26,11 @@ const AdminProjectManagementTemplate = ({
     endDate,
     selectedUser
 }) => (
-    <section className="p-4 sm:p-6 transition-colors duration-300">
-        <div className="mx-auto max-w-screen-xl px-4 lg:px-12">
-            <div className="bg-white dark:bg-gray-800 shadow-lg sm:rounded-xl overflow-hidden border-none transition-all duration-300">
+    <section className="p-3 sm:p-5">
+        <div className="mx-auto max-w-screen-xl px-4 lg:px-12 border-none">
+            <div className="bg-white dark:bg-gray-800 relative shadow-none sm:rounded-xl overflow-hidden rounded-xl border-none">
                 <SectionHeader title="Admin Project Management" onSearchChange={handleSearchChange}>
-                    <div className="flex items-center mt-4 md:mt-0 flex-1 md:justify-end space-x-3">
+                    <div className="flex flex-col items-start mt-4 md:mt-0 md:flex-row md:items-center flex-1 md:justify-end space-y-3 md:space-y-0 md:space-x-3">
                         <select
                             id="user-filter"
                             onChange={handleUserFilterChange}
@@ -51,6 +51,7 @@ const AdminProjectManagementTemplate = ({
                             onChange={handleStartDateChange}
                             value={startDate}
                         />
+                        <p>To</p>
                         <input
                             type="date"
                             id="end-date"
@@ -61,7 +62,7 @@ const AdminProjectManagementTemplate = ({
                     </div>
                 </SectionHeader>
 
-                <div className="px-2 sm:px-10 py-2 bg-white dark:bg-gray-800">
+                <div className="px-2 sm:px-10 py-2 bg-white dark:bg-gray-800 overflow-x-auto">
                     <LibraryTable
                         projects={projects}
                         currentPage={currentPage}

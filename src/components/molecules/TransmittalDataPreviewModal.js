@@ -13,65 +13,38 @@ const TransmittalDataPreviewModal = ({
     const currentOcrResult = ocrResults?.find(ocr => ocr.id === currentPage - 1);
 
     const formatDateForInput = (dateStr) => {
-        if (!dateStr) return "";
-    
-        try {
-          // Check if date is already in YYYY-MM-DD format
-          if (dateStr.includes("-")) return dateStr;
-    
-          // Parse DD/MM/YYYY format
-          if (dateStr.includes("/")) {
-            const parts = dateStr.split("/");
-            if (parts.length !== 3) return "";
-    
-            const [day, month, year] = parts;
-            // Validate parts exist before using padStart
-            if (!day || !month || !year) return "";
-    
-            return `${year}-${month.toString().padStart(2, "0")}-${day
-              .toString()
-              .padStart(2, "0")}`;
-          } else if (dateStr.length === 8) {
-            const day = dateStr.substring(0, 2);
-            const month = dateStr.substring(2, 4);
-            const year = dateStr.substring(4, 8);
-    
-            return `${year}-${month}-${day}`;
-          }
-    
-          return "";
-        } catch (error) {
-          console.error("Date parsing error:", error);
-          return "";
+      if (!dateStr) return "";
+  
+      try {
+        // Check if date is already in YYYY-MM-DD format
+        if (dateStr.includes("-")) return dateStr;
+  
+        // Parse DD/MM/YYYY format
+        if (dateStr.includes("/")) {
+          const parts = dateStr.split("/");
+          if (parts.length !== 3) return "";
+  
+          const [day, month, year] = parts;
+          // Validate parts exist before using padStart
+          if (!day || !month || !year) return "";
+  
+          return `${year}-${month.toString().padStart(2, "0")}-${day
+            .toString()
+            .padStart(2, "0")}`;
+        } else if (dateStr.length === 8) {
+          const day = dateStr.substring(0, 2);
+          const month = dateStr.substring(2, 4);
+          const year = dateStr.substring(4, 8);
+  
+          return `${year}-${month}-${day}`;
         }
-      };
-
-      const handleDateChange = (index, event) => {
-        const newDate = event.target.value;
-        if (!newDate) return;
-    
-        try {
-          const dateObj = new Date(newDate);
-          if (isNaN(dateObj.getTime())) return; // Invalid date
-    
-          const day = dateObj.getDate().toString().padStart(2, "0");
-          const month = (dateObj.getMonth() + 1).toString().padStart(2, "0");
-          const year = dateObj.getFullYear();
-    
-          const displayDate = `${day}/${month}/${year}`;
-          const revisionDate = `${day}${month}${year}`;
-    
-          // Update revision with new date
-          const currentRevision = previewData[index]?.revision || "";
-          const revisionPrefix = currentRevision.split("-")[0] || "";
-          const newRevision = `${revisionPrefix}-${revisionDate}`;
-    
-          handlePreviewChange(index, "date", displayDate);
-          handlePreviewChange(index, "revision", newRevision);
-        } catch (error) {
-          console.error("Date change error:", error);
-        }
-      };
+  
+        return "";
+      } catch (error) {
+        console.error("Date parsing error:", error);
+        return "";
+      }
+    };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm overflow-y-auto">
@@ -143,8 +116,8 @@ const TransmittalDataPreviewModal = ({
                     <h4 className="text-xl font-semibold text-gray-800 dark:text-white">
                       Date:
                     </h4>
-                       <p className="text-gray-700 dark:text-gray-300">
-                      {currentOcrResult.date ? format(new Date(formatDateForInput(currentOcrResult.date)), "yyyy-MM-dd") : 'N/A'}
+                    <p className="text-gray-700 dark:text-gray-300">
+                      {formatDateForInput(currentOcrResult.date) || "N/A"}
                     </p>
                   </div>
                 </div>

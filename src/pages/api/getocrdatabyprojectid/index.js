@@ -1,4 +1,4 @@
-//src/pages/api/getocrdatabyprojectid/index.js
+// api/getocrdatabyprojectid.js
 import supabase from "../../../utils/supabaseClient";
 
 export default async function handler(req, res) {
@@ -26,7 +26,8 @@ export default async function handler(req, res) {
         let query = supabase
             .from("ocr_results")
             .select(
-                `*,
+                `result_id,
+                *,
                 projects (
                    projectName
                 )
@@ -34,17 +35,16 @@ export default async function handler(req, res) {
             )
            .in('projectId', parsedProjectIds);
 
-
         const { data, error } = await query;
         if (error) {
             console.error("Error fetching OCR results:", error);
             return res.status(500).json({ message: "Failed to fetch OCR results" });
         }
          const ocrResultsWithProjectName = data.map(ocr => ({
+                resultId: ocr.result_id,
               ...ocr,
               projectName: ocr.projects?.projectName
          }))
-
         res.status(200).json(ocrResultsWithProjectName);
     } catch (error) {
         console.error("Error in /api/getocrdatabyprojectid:", error);

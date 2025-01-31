@@ -16,7 +16,7 @@ import { decodeToken } from "@/utils/authHelpers";
 import Input from "@/components/atoms/Input";
 
 const env = require('dotenv').config();
-const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
+
 
 const UploadBox = () => {
     const router = useRouter();
@@ -256,7 +256,7 @@ const UploadBox = () => {
                 formData.append("pdfFile", file);
                
 
-                const response = await fetch(`${SERVER_URL}/api/ocr?projectId=${currentProjectId}`, {
+                const response = await fetch(`/api/ocr?projectId=${currentProjectId}`, {
                     method: "POST",
                     body: formData,
                 });
@@ -382,7 +382,7 @@ const UploadBox = () => {
     const confirmGenerateTransmittal = async (data) => {
        try {
             const transmittalData = Object.values(previewData);
-            const response = await fetch(`${SERVER_URL}/api/generate-transmittal`, {
+            const response = await fetch(`/api/generate-transmittal`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
