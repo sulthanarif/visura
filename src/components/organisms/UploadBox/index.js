@@ -250,15 +250,24 @@ const UploadBox = () => {
              }
 
           currentProjectId = data?.[0]?.projectId;
-          setProjectId(currentProjectId);
-        }
+         setProjectId(currentProjectId);
+              if(currentProjectId){
+                  router.push({
+                      pathname: router.pathname,
+                      query: { ...router.query, projectId: currentProjectId, projectName: projectName },
+                  });
+              }
+        } else {
+            router.push({
+                  pathname: router.pathname,
+                 query: { ...router.query, projectId: currentProjectId, projectName: projectName },
+               });
+         }
           if (!currentProjectId) {
            setErrorMessage("Failed to create project, try again.")
                return;
 
          }
-          let updatedResults = [];
-          let updatedPreview = {};
           for (let i = 0; i < filesTemp.length; i++) {
             const file = filesTemp[i];
             try {
@@ -292,11 +301,15 @@ const UploadBox = () => {
                 const data = await responseData;
                  console.log(data);
 
+                 
+
                 // Update results and preview data if available
-                   if (data.data) {
-                       data.data.forEach((item, index) => {
-                             updatedResults.push({ ...item, id: results.length + index });
-                            updatedPreview[results.length + index] = {
+                  if (data.data) {
+                    setResults(prev => {
+                        const newResult = [...prev];
+                        data.data.forEach((item, index) => {
+                            newResult.push({ ...item, id: prev.length + index });
+                            initialPreviewData.current[prev.length + index] = {
                                 project: projectName,
                                 title: item.title,
                                 revision: item.revision,
@@ -306,7 +319,11 @@ const UploadBox = () => {
                                 pdf_url: item.pdf_url
                             };
                         });
-                    }
+                        return newResult;
+                    });
+
+                    setPreviewData(prev => ({ ...prev, ...initialPreviewData.current }));
+                }
 
                 // Update queue status to done
                 setUploadQueueFiles(prev =>
@@ -363,8 +380,6 @@ const UploadBox = () => {
                  setErrorMessage(`Failed to scan file ${file.name}: ${error.message || ""}`);
             }
           }
-           setResults(prev => [...prev, ...updatedResults]);
-           setPreviewData(prev => ({ ...prev, ...updatedPreview }));
           setIsUploading(false);
           setIsScanning(false);
     };
@@ -407,7 +422,7 @@ const UploadBox = () => {
                 }),
             });
             if (!response.ok) {
-                const errorData = await response.json();
+               const errorData = await response.json();
                throw new Error(`Failed to generate transmittal: ${errorData?.message || ""}`);
            }
            const dataRes = await response.json();
@@ -420,6 +435,22 @@ const UploadBox = () => {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            // we can use this cleanup function to remove the file from the server
+            //  setCleanupStatus("Cleaning up files, please wait...");
+            // const cleanupResponse = await fetch("/api/cleanup", {
+            //      method: "POST",
+            //      headers: { "Content-Type": "application/json" },
+            //      body: JSON.stringify({ projectId }),
+            //  });
+
+            // setShowTransmittalModal(false);
+
+            // if (!cleanupResponse.ok) {
+            //     const errorData = await cleanupResponse.json();
+            //     throw new Error(`Failed to clean up files ${errorData.message || ""}`);
+            // }
+            // setCleanupStatus("Cleanup completed, refreshing...");
+           // router.reload(); // Refresh halaman
         }
         catch (error) {
             console.error("Error during generate transmittal: ", error);
