@@ -344,12 +344,12 @@ const ocrController = {
 
         const drawingDataRows = transmittalData.map((item, index) => {
           const drawingNumber = item.filename;
-          const drawingName = item.drawing || "";
+          const title = item.title || "";
           const drawingCode = item.drawingCode || "";
           const drawingRevision = item.revision;
           return `${
             index + 1
-          },${drawingNumber},${drawingName},${drawingCode},A2,${drawingRevision}`;
+          },${drawingNumber},${title},${drawingCode},A2,${drawingRevision}`;
         });
 
         csvContent += drawingDataRows.join("\n");
