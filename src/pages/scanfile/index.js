@@ -1,4 +1,4 @@
-// src/pages/upload/index.js
+// src/pages/scanfile/index.js
 
 import UploadBox from '../../components/organisms/UploadBox/index';
 

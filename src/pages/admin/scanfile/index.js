@@ -1,7 +1,7 @@
-// src/pages/admin/library/scanfile/index.js
+// src/pages/admin/scanfile/index.js
 import React from 'react';
 
-import UploadBox from '../../../../components/organisms/UploadBox';
+import UploadBox from '../../../components/organisms/UploadBox';
 
 
 const ScanFilePage =()=> {

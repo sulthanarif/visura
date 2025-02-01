@@ -72,14 +72,13 @@ const Nav = ({ user }) => {
         {
             role: 'admin',
             items: [
-                { href: '/admin', label: 'Dashboard' },
                 { href: '/admin/users', label: 'Users' },
+                { href: '/admin/scanfile', label: 'Scan Files' },
                 {
                     label: 'Library',
                     subItems: [
-                        { href: '/admin/library', label: 'My Library' },
+                        { href: '/admin/library/myprojects', label: 'My Projects' },
                         { href: '/admin/library/projects', label: 'All Projects' },
-                        { href: '/admin/library/scanfile', label: 'Scan File' },
                         
                     ],
                 },
@@ -88,8 +87,8 @@ const Nav = ({ user }) => {
         {
             role: 'user',
             items: [
-                { href: '/upload', label: 'Scan Files' },
-                { href: '/library', label: 'Library' },
+                { href: '/scanfile', label: 'Scan Files' },
+                { href: '/myprojects', label: 'My Projects' },
             ],
         },
     ];

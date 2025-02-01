@@ -34,7 +34,7 @@ const LoginPage = () => {
         if (user.role === "admin") {
             router.push("/admin");
         } else if (user.role === "user") {
-            router.push("/upload");
+            router.push("/scanfile");
         } else {
             router.push("/");
         }

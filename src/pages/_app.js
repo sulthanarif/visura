@@ -51,7 +51,7 @@ export default function App({ Component, pageProps }) {
 
         // Redirect admin to /admin if trying to access non-admin routes
         if (decoded.role === 'admin' && !isAdminPage) {
-          router.push('/admin');
+          router.push('/admin/scanfile');
           return;
         }
 
