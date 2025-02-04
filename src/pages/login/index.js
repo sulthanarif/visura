@@ -32,7 +32,7 @@ const LoginPage = () => {
           setErrorMessage("");
          const { user } = response;
         if (user.role === "admin") {
-            router.push("/admin");
+            router.push("/admin/scanfile");
         } else if (user.role === "user") {
             router.push("/scanfile");
         } else {
