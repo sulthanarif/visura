@@ -93,7 +93,7 @@ const LibraryPage = () => {
 
    const handlePreviewClick = (project) => {
      router.push({
-           pathname: '/admin/library/scanfile',
+           pathname: '/admin/scanfile',
           query: {
              projectId: project.projectId
          },
