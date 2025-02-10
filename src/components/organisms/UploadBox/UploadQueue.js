@@ -1,5 +1,4 @@
-// src/components/organisms/UploadBox/UploadQueue.js
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Icon from "../../atoms/Icon";
 import IconWithText from "@/components/molecules/IconWithText";
 
@@ -9,6 +8,7 @@ const UploadQueue = ({
   uploadQueueRef,
   uploadQueueFileListContainerRef,
 }) => {
+  
   const getProgressColor = (status) => {
     switch (status) {
       case "Done":
@@ -30,14 +30,33 @@ const UploadQueue = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
-  const calculateTimeEstimate = (fileSize, progress) => {
-    // Assume 1MB takes ~2 seconds to process
-    const baseRate = 1; // seconds per MB
-    const fileSizeInMB = fileSize / (1024 * 1024);
-    const totalEstimatedTime = fileSizeInMB * baseRate;
+  const [remainingTimeDisplay, setRemainingTimeDisplay] = useState({});
+     const intervalRefs = useRef({});
+
+
+  // Stores start times per file name
+  const uploadStartTimes = {};
+
+  const calculateTimeEstimate = (fileSize, progress, fileName) => {
+    // Record start time when progress first becomes non-zero
+    if (progress > 0 && !uploadStartTimes[fileName]) {
+      uploadStartTimes[fileName] = Date.now();
+    }
+
+    // Estimate remaining time (same as before)
+    const averageTimePerPage = 10; // seconds per page
+    const estimatedPages = Math.ceil(fileSize / (100 * 1024));
+    const totalEstimatedTime = estimatedPages * averageTimePerPage;
     const remainingTime = totalEstimatedTime * ((100 - progress) / 100);
 
-    if (remainingTime < 60) {
+    // If finished, show actual time spent
+    if (progress >= 100 && uploadStartTimes[fileName]) {
+      const actualSeconds = Math.floor((Date.now() - uploadStartTimes[fileName]) / 1000);
+      return `Done in ${actualSeconds}s`;
+    }
+
+    // Otherwise, return remaining time estimate
+     if (remainingTime < 60) {
       return `${Math.ceil(remainingTime)}s`;
     } else {
       const minutes = Math.floor(remainingTime / 60);
@@ -45,6 +64,37 @@ const UploadQueue = ({
       return `${minutes}m ${seconds}s`;
     }
   };
+
+
+    useEffect(() => {
+    const timer = {};
+
+        uploadQueueFiles.forEach((item) => {
+            if (item.status === "Processing...") {
+              timer[item.file.name] = setInterval(() => {
+              setRemainingTimeDisplay((prev) => ({
+                ...prev,
+                [item.file.name]: calculateTimeEstimate(item.file.size, item.progress, item.file.name)
+              }));
+            }, 1000);
+         }
+    });
+
+
+    return () => {
+      Object.values(timer).forEach(clearInterval);
+    };
+  }, [uploadQueueFiles]);
+
+
+    useEffect(() => {
+      return () => {
+      // Clear intervals when component unmounts or uploadQueueFiles changes
+        if(intervalRefs.current) {
+          Object.values(intervalRefs.current).forEach(clearInterval);
+        }
+       };
+    }, [uploadQueueFiles]);
 
   return (
     <div
@@ -87,7 +137,7 @@ const UploadQueue = ({
                   <div className="text-xs text-gray-600">
                     <span>
                       Remaining time:{" "}
-                      {calculateTimeEstimate(item.file.size, item.progress)}
+                     {calculateTimeEstimate(item.file.size, item.progress, item.file.name) }
                     </span>
                   </div>
                 </div>

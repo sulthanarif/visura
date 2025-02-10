@@ -1,9 +1,9 @@
-// src/pages/upload-test/index.js
+// src/pages/scanfile/index.js
 
 import UploadBox from '../../components/organisms/UploadBox/index';
 
 
-const UploadPageTest =()=> {
+const UploadPage =()=> {
     return (
             <div className="container">
                 <UploadBox/>
@@ -12,4 +12,4 @@ const UploadPageTest =()=> {
     );
 }
 
-export default UploadPageTest;
+export default UploadPage;

@@ -1,12 +1,13 @@
 // components/organisms/Header.js
 import React, { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
-import Icon from '../atoms/Icon';
-import ProfileCard from '../molecules/ProfileCard';
 import { useRouter } from 'next/router';
 import { decodeToken } from '../../utils/authHelpers';
-import ProfileModalTailwind from '../molecules/ProfileModal';
+import ProfileModal from '../molecules/ProfileModal';
 import ChangePasswordModal from '../molecules/ChangePasswordModal';
+import Logo from '../molecules/Logo';
+import Nav from '../molecules/Nav';
+import ProfileSection from '../molecules/ProfileSection';
+
 
 const Header = () => {
     const [showProfile, setShowProfile] = useState(false);
@@ -16,6 +17,8 @@ const Header = () => {
     const [user, setUser] = useState(null);
     const [updateTrigger, setUpdateTrigger] = useState(0);
     const router = useRouter();
+    const [isNavOpen, setIsNavOpen] = useState(false);
+
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -78,61 +81,41 @@ const Header = () => {
         localStorage.removeItem('token');
         router.push('/login');
     };
-
-    const renderNavItems = () => {
-        if (user?.role === 'admin') {
-            return (
-                <>
-                    <a href="/admin">Dashboard</a>
-                    <a href="/admin/users">Users</a>
-                    <a href="/admin/library">Library</a>
-                </>
-            );
-        } else if (user?.role === 'user') {
-            return (
-                <>
-                    <a href="/upload-test">Scan Files</a>
-                    <a href="/library">Library</a>
-                </>
-            );
-        }
-        return null;
+     const toggleNav = () => {
+        setIsNavOpen(!isNavOpen);
+        const nav = document.querySelector('nav');
+        nav.classList.toggle('hidden');
     };
-
     return (
-        <header className="header relative">
-            <Image
-                alt="Summarecon Logo"
-                height={40}
-                src="/assets/Summarecon_Agung 1.svg"
-                width={150}
-            />
-            <nav>
-                {renderNavItems()}
-            </nav>
-            <div
-                ref={profileRef}
-                className="relative"
-            >
-                <div
-                    className="user-info cursor-pointer hover:bg-gray-100 rounded-lg p-2 transition-colors"
-                    onClick={() => setShowProfile(!showProfile)}
-                >
-                    <Icon name='user-circle'/>
-                    <span>Halo, {user?.nama_pegawai || 'Guest'}</span>
-                </div>
+        <header className="relative flex flex-col sm:flex-row items-center justify-between p-4 bg-white">
+            {/* Logo Section */}
+             <Logo onMenuToggle={toggleNav} />
 
-                {showProfile && (
-                    <div className="absolute right-1 mt-4 w-100 rounded-lg shadow-xl transition-all duration-200 ease-in-out transform origin-top">
-                        <ProfileCard user={user} onLogout={handleLogout} onProfileClick={handleProfileClick} onPasswordChangeClick={handlePasswordChangeClick} />
-                    </div>
-                )}
-            </div>
-            {showProfileModal && (
-                <ProfileModalTailwind user={user} onClose={handleModalClose} onUpdateUser={handleUpdateUser} />
+
+            {/* Navigation Section */}
+            <Nav user={user}  />
+
+            {/* Profile Section */}
+            <ProfileSection
+                    user={user}
+                    showProfile={showProfile}
+                    setShowProfile={setShowProfile}
+                    profileRef={profileRef}
+                    handleLogout={handleLogout}
+                    handleProfileClick={handleProfileClick}
+                    handlePasswordChangeClick={handlePasswordChangeClick}
+                />
+
+            {/* Modals */}
+           {showProfileModal && (
+                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <ProfileModal user={user} onClose={handleModalClose} onUpdateUser={handleUpdateUser} />
+                 </div>
             )}
             {showPasswordModal && (
-                <ChangePasswordModal user={user} onClose={handlePasswordModalClose} onPasswordUpdated={handlePasswordUpdated} />
+                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <ChangePasswordModal user={user} onClose={handlePasswordModalClose} onPasswordUpdated={handlePasswordUpdated} />
+                 </div>
             )}
         </header>
     );

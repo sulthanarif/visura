@@ -10,6 +10,7 @@
 !.yarn/releases
 !.yarn/versions
 
+vercel.json*
 
 # testing
 /coverage
@@ -40,3 +41,19 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# uploads
+/src/temp/ocr/*
+/src/temp/ocr/cut/*
+/src/temp/ocr/cut/part/*
+/src/temp/ocr/hi-dpi/*
+/src/temp/ocr/rotate/*
+
+/src/temp/upload/*
+
+/public/output/*.csv
+
+!/src/temp/ocr/cut/
+!/src/temp/ocr/cut/part/
+!/src/temp/ocr/hi-dpi/
+!/src/temp/ocr/rotate/

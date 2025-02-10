@@ -4,16 +4,15 @@ import { useRouter } from 'next/router';
 import DefaultLayout from "@/components/templates/DefaultLayout";
 import AdminLayout from "@/components/templates/AdminLayout";
 import { Toaster } from 'react-hot-toast';
+import LoadingRefresh from "@/components/atoms/LoadingRefresh";
 import { useEffect, useState } from 'react';
 import { decodeToken } from '@/utils/authHelpers';
 
-
 export default function App({ Component, pageProps }) {
   const router = useRouter();
-    const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState(null);
-    const [isTokenValid, setIsTokenValid] = useState(false);
-
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [isTokenValid, setIsTokenValid] = useState(false);
 
   // Auth pages that don't need layout
   const isAuthPage = 
@@ -26,7 +25,6 @@ export default function App({ Component, pageProps }) {
 
   // Admin pages that use AdminLayout
   const isAdminPage = router.pathname.startsWith('/admin');
-
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -47,8 +45,19 @@ export default function App({ Component, pageProps }) {
 
         // Check admin access
         if (isAdminPage && decoded.role !== 'admin') {
-          toast.error('Anda tidak memiliki akses ke halaman ini');
-          router.push('/');
+          router.push('/403'); // Redirect to forbidden page if not admin
+          return;
+        }
+
+        // Redirect admin to /admin if trying to access non-admin routes
+        if (decoded.role === 'admin' && !isAdminPage) {
+          router.push('/admin/scanfile');
+          return;
+        }
+
+        // Redirect user to home if trying to access admin routes
+        if (decoded.role !== 'admin' && isAdminPage) {
+          router.push('/403'); // Redirect to forbidden page if not admin
           return;
         }
 
@@ -75,17 +84,18 @@ export default function App({ Component, pageProps }) {
   }, [isTokenValid, router, loading, isAuthPage]);
 
     if(loading) {
-        return <div>Loading ...</div>;
+        return (
+            <LoadingRefresh />
+        );
     }
-
 
   return (
     <>
       {/* Toaster for notifications */}
       <Toaster
-  position="top-center"
-  reverseOrder={false}
-/>
+        position="top-center"
+        reverseOrder={false}
+      />
 
       {/* Conditional Layout Rendering */}
       {isAuthPage ? (
@@ -101,7 +111,6 @@ export default function App({ Component, pageProps }) {
              <Component {...pageProps} />
          </DefaultLayout>
       ) : null
-        
       }
     </>
   );

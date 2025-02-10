@@ -1,3 +1,4 @@
+//src/pages/api/auth/login.js
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import supabase from "../../../utils/supabaseClient";
