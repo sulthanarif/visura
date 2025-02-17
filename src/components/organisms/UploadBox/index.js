@@ -156,12 +156,10 @@ const UploadBox = () => {
     useEffect(() => {
         if (files.length > 0) {
             if (fileListContainerRef.current) {
-                console.log("useEffect: adding show class");
                 fileListContainerRef.current.classList.add("show");
             }
         } else {
             if (fileListContainerRef.current) {
-                console.log("useEffect: removing show class");
                 fileListContainerRef.current.classList.remove("show");
             }
         }
@@ -299,9 +297,6 @@ const UploadBox = () => {
                     }
 
                 const data = await responseData;
-                 console.log(data);
-
-                 
 
                 // Update results and preview data if available
                   if (data.data) {

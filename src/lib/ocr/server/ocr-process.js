@@ -69,8 +69,6 @@ async function embedQRCodeInPdf(pdfPath, qrCodeDataUrl, storageUrl) {
     }
 }
 
-
-
 // Fungsi untuk convert PDF ke PNG
 async function pdfToPng(pdfPath, tempDir) {
   return new Promise((resolve, reject) => {
@@ -91,7 +89,6 @@ async function pdfToPng(pdfPath, tempDir) {
           console.error("Error moving PNG to temp:", err);
           return reject(err);
         }
-        console.log(`PNG saved to temp: ${tempPngPath}`);
         if (pdf2png.cleanup) {
           pdf2png.cleanup();
         }
@@ -114,14 +111,11 @@ async function increaseDPI(inputPath, outputPath, dpi) {
       { fit: "contain" }
     )
     .toFile(outputPath);
-
-  console.log(`[${inputPath}] DPI berhasil ditingkatkan menjadi ${dpi}.`);
 }
 
 // Fungsi untuk rotate image
 async function rotateImage(inputPath, outputPath, angle) {
   await sharp(inputPath).rotate(angle).toFile(outputPath);
-  console.log(`[${inputPath}] Gambar berhasil di-rotate ${angle} derajat.`);
 }
 
 // Fungsi untuk crop image 20% di pojok kanan bawah
@@ -140,10 +134,6 @@ async function cropBottomRight(inputPath, outputPath) {
       height: cropHeight,
     })
     .toFile(outputPath);
-
-  console.log(
-    `[${inputPath}] Gambar berhasil di-crop 20% di pojok kanan bawah.`
-  );
 }
 
 // Fungsi untuk mengoreksi hasil OCR khusus bagian title
@@ -276,7 +266,6 @@ async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilena
       const {
         data: { text },
       } = await Tesseract.recognize(sectionImagePath, "eng", {
-        logger: (m) => console.log(`[${outputBaseName}-${key}]`, m),
       });
       switch (key) {
         case "revision":
@@ -298,11 +287,7 @@ async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilena
           jsonData[key] = cleanText(text.trim()); // Simpan hasil tanpa koreksi untuk bagian lain
           break;
       }
-
-      console.log(`[${outputBaseName}] Teks ${key} berhasil diekstrak.`);
-      console.log(`[${outputBaseName}] Hasil OCR ${key}: ${jsonData[key]}`);
     }
-
         // 6. Generate QR Code
       let qrCodeDataUrl;
       try {
@@ -317,10 +302,6 @@ async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilena
           console.error("Error embedding QR Code into PDF", err)
             jsonData.isEncrypted = true;
       }
-
-
-    console.log(`[${outputBaseName}] Data berhasil diproses.`);
-
     return jsonData;
   } catch (err) {
     console.error(`[${pdfPath}] Terjadi kesalahan:`, err);

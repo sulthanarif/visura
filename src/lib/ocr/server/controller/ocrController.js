@@ -118,9 +118,6 @@ const ocrController = {
                 const pdfStorageUrl = supabase.storage
                     .from("ocr-storage")
                     .getPublicUrl(pdfStoragePath).data.publicUrl;
-
-                 console.log("Supabase PDF URL:", pdfStorageUrl);
-
                   if (!pdfStorageUrl || typeof pdfStorageUrl !== 'string' ) {
                       console.error("Invalid pdfStorageUrl:", pdfStorageUrl);
                        uploadQueueFiles[fileIndex].status = "Failed";
