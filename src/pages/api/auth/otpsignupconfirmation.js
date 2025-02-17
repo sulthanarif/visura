@@ -21,7 +21,6 @@ export default async function handler(req, res) {
     });
 
     if (otpError) {
-      console.log("OTP verification error:", otpError);
       return res.status(401).json({
         message: "OTP tidak valid atau sudah kedaluwarsa. Silakan coba lagi.",
       });

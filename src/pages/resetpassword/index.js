@@ -16,10 +16,7 @@ const ResetPassword = () => {
       if (!email || typeof email !== 'string') return;
   
       try {
-        const response = await fetchEmployeeData(email);
-  
-        console.log("Response from fetchEmployeeData:", response);  
-  
+        const response = await fetchEmployeeData(email);  
         if (response.ok && response.nomor_pegawai) {
           setNomorPegawai(response.nomor_pegawai);
         } else {
