@@ -11,9 +11,6 @@ const NavItem = ({ href, label, subItems }) => {
       setDropdownVisible(true);
   };
 
-
-
-
     const handleDropdownMouseEnter = () => {
          setDropdownVisible(true);
      };
