@@ -413,7 +413,8 @@ const UploadBox = () => {
                     projectName: data.projectName,
                     documentName: data.documentName,
                     transmittalNumber: data.transmittalNumber,
-                    csvFileName: data.csvFileName
+                    csvFileName: data.csvFileName,
+                    isTemplate: data.isTemplate
                 }),
             });
             if (!response.ok) {

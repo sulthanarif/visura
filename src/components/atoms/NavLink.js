@@ -10,7 +10,7 @@ const NavLink = ({ href, children }) => {
         <a
             href={href}
             className={`px-4 py-2 rounded-md transition-colors duration-200 flex items-center ${
-                isActive ? 'text-black font-semibold' : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                isActive ? 'text-black font-semibold' : 'text-gray-700 hover:text-[#E17218] hover:bg-[#EBA801]/10'
             }`}
         >
             {children}

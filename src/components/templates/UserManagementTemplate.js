@@ -65,11 +65,12 @@ const UserManagementTemplate = ({
         <ModalConfirmation
            isOpen={deleteModalOpen}
             icon="exclamation-triangle"
-            title={`Hapus akun ${userToDelete?.nama_pegawai}?`}
-             message={`Data yang dihapus tidak dapat dikembalikan.`}
+            title={`Delete an user ${userToDelete?.nama_pegawai}?`}
+             message={`This action cannot be undone. Are you sure you want to delete user ${userToDelete?.nama_pegawai}?`}
             onConfirm={handleDeleteConfirm}
             onCancel={handleDeleteCancel}
-            confirmText="Ya, Hapus"
+            confirmText="Yup, delete it"
+            cancelText="No, keep it"
          />
     </section>
 );

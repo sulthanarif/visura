@@ -47,14 +47,14 @@ const LibraryTemplate = ({
     </div>
 
     <ModalConfirmation
-      isOpen={deleteModalOpen}
-      icon="exclamation-triangle"
-      title={`Hapus project ${projectToDelete?.projectName}?`}
-      message={`Data yang dihapus tidak dapat dikembalikan.`}
-      onConfirm={handleDeleteConfirm}
-      onCancel={handleDeleteCancel}
-      confirmText="Ya, Hapus"
-    />
+            isOpen={deleteModalOpen}
+            icon="exclamation-triangle"
+            title={`Delete project ${projectToDelete?.projectName}?`}
+            message={`This action cannot be undone. Are you sure you want to delete project ${projectToDelete?.projectName}?`}
+            onConfirm={handleDeleteConfirm}
+            onCancel={handleDeleteCancel}
+            confirmText="Yup, delete it"
+        />
   </section>
 );
 
