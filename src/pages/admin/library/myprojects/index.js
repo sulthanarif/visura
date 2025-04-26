@@ -19,8 +19,6 @@ const LibraryPage = () => {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [projectToDelete, setProjectToDelete] = useState(null);
     const [loggedInUserId, setLoggedInUserId] = useState(null);
-    const [uploadQueueModalOpen, setUploadQueueModalOpen] = useState(false);
-    const [uploadQueueImages, setUploadQueueImages] = useState([]);
     const [previewModalOpen, setPreviewModalOpen] = useState(false);
     const [selectedProject, setSelectedProject] = useState(null);
      const [ocrResults, setOcrResults] = useState([])
@@ -164,21 +162,6 @@ const LibraryPage = () => {
     const handleDeleteCancel = () => {
         setDeleteModalOpen(false);
         setProjectToDelete(null);
-    };
-
-  const handleOpenUploadQueue = (images) => {
-      setUploadQueueImages(images)
-      setUploadQueueModalOpen(true);
-  }
-
-  const handleCloseUploadQueue = () => {
-    setUploadQueueModalOpen(false);
-    setUploadQueueImages([]);
-  };
-  const handleDeleteImageFromQueue = (index) => {
-        const updatedImages = [...uploadQueueImages];
-        updatedImages.splice(index, 1);
-       setUploadQueueImages(updatedImages);
     };
 
     return (
