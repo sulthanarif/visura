@@ -9,7 +9,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "PUT") {
-        const { role, email_verified } = req.body;
+        const {nama_pegawai,nomor_pegawai, role, email_verified } = req.body;
 
         try {
              if (!role) {
@@ -18,7 +18,7 @@ export default async function handler(req, res) {
 
             const { error } = await supabase
                .from('users')
-               .update({ role, email_verified })
+               .update({ nama_pegawai,nomor_pegawai,role, email_verified })
                .eq('userId', userId);
 
             if(error){

@@ -35,30 +35,75 @@ const ocrController = {
         }
       }
 
-      const form = formidable({ multiples: true, uploadDir: tempDir });
+      const form = formidable({ 
+        multiples: true, 
+        uploadDir: tempDir,
+        maxFileSize: 10 * 1024 * 1024, // 10MB max file size
+        filter: (part) => {
+          return part.name === 'pdfFile' && 
+                (part.mimetype === 'application/pdf' || 
+                part.originalFilename.toLowerCase().endswith('.pdf'));
+        }
+      });
+      
       return new Promise((resolve, reject) => {
         form.parse(req, async (err, _, files) => {
           if (err) {
             console.error("Form parsing error:", err);
+            let errorMessage = "Failed to parse form data.";
+            
+            // Customize error message based on error type
+            if (err.code === 'LIMIT_FILE_SIZE') {
+              errorMessage = "File size exceeds the 10MB limit.";
+            } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+              errorMessage = "Invalid file type. Only PDF files are allowed.";
+            }
+            
             return reject(
-              res.status(500).json({ message: "Failed to parse form data." })
+              res.status(400).json({ message: errorMessage })
             );
           }
+          
           if (!files.pdfFile || files.pdfFile.length === 0) {
             return reject(
               res.status(400).json({ message: "No file uploaded" })
             );
           }
+          
           const pdfFiles = Array.isArray(files.pdfFile)
             ? files.pdfFile
             : [files.pdfFile];
+            
+          // Validate file types more carefully
+          for (const file of pdfFiles) {
+            const fileExtension = path.extname(file.originalFilename).toLowerCase();
+            
+            if (fileExtension !== '.pdf') {
+              return reject(
+                res.status(400).json({ 
+                  message: `Invalid file type: ${file.originalFilename}. Only PDF files are allowed.` 
+                })
+              );
+            }
+            
+            if (file.size > 10 * 1024 * 1024) {
+              return reject(
+                res.status(400).json({ 
+                  message: `File too large: ${file.originalFilename}. Maximum file size is 10MB.` 
+                })
+              );
+            }
+          }
+          
           const uploadQueueFiles = pdfFiles.map((file, index) => ({
             id: index,
             file: {
               name: file.originalFilename,
+              size: file.size
             },
             status: "Waiting...",
           }));
+          
           resolve({
             pdfFiles,
             uploadQueueFiles,
@@ -70,6 +115,7 @@ const ocrController = {
       throw error;
     }
   },
+  
   processUpload: async (req, res) => {
     res.setHeader("Content-Type", "application/json");
     try {
@@ -93,7 +139,12 @@ const ocrController = {
         const fileIndex = uploadQueueFiles.findIndex(
           (queueFile) => queueFile.file.name === originalFilename
         );
+        
         try {
+          // Update status to processing
+          uploadQueueFiles[fileIndex].status = "Processing...";
+          uploadQueueFiles[fileIndex].progress = 5;
+          
           const sanitizedPdfName = originalFilename
             .replace(/[^a-zA-Z0-9-_.]/g, "_")
             .replace(/\s+/g, "_");
@@ -120,6 +171,9 @@ const ocrController = {
             continue;
           }
 
+          // Update progress as we go through each step
+          uploadQueueFiles[fileIndex].progress = 20;
+          
           result = await processPDF(
             pdfPath,
             tempDir,
@@ -128,7 +182,9 @@ const ocrController = {
             originalFilename,
             pdfStorageUrl
           );
-
+          
+          uploadQueueFiles[fileIndex].progress = 60;
+          
           const modifiedPdfBuffer = result.modifiedPdf
             ? fs.readFileSync(result.modifiedPdf)
             : null;
@@ -243,12 +299,12 @@ const ocrController = {
           }
 
           uploadQueueFiles[fileIndex].status = "Done";
+          uploadQueueFiles[fileIndex].progress = 100;
           allResults.push(result);
 
           const { data: insertData, error: insertError } = await supabase
             .from("ocr_results")
-            .insert([
-              {
+            .insert([{
                 projectId: projectId,
                 filename: result.filename,
                 title: result.title,
@@ -276,7 +332,23 @@ const ocrController = {
             }
           }
         } catch (e) {
+          console.error(`Error processing file ${originalFilename}:`, e);
           uploadQueueFiles[fileIndex].status = "Failed";
+          
+          // Set appropriate error message based on error type
+          if (e.message.includes("extract_area") || e.message.includes("bad extract area")) {
+            uploadQueueFiles[fileIndex].error = "Failed to analyze document structure. The PDF may be encrypted, damaged, or in an unsupported format.";
+          } else if (e.message.includes("sharp")) {
+            uploadQueueFiles[fileIndex].error = "Image processing failed. The document might be corrupted or in an unsupported format.";
+          } else if (e.message.includes("Tesseract")) {
+            uploadQueueFiles[fileIndex].error = "Text recognition failed. The document may have poor quality or unrecognizable text.";
+          } else if (e.message.includes("load") || e.message.includes("decrypt")) {
+            uploadQueueFiles[fileIndex].error = "This PDF is password-protected or encrypted. Please remove security restrictions and try again.";
+          } else if (e.message.includes("size") || e.message.includes("large")) {
+            uploadQueueFiles[fileIndex].error = "File size exceeds processing limits. Please try a smaller file.";
+          } else {
+            uploadQueueFiles[fileIndex].error = e.message || "Processing failed with an unknown error";
+          }
         } finally {
           try {
             await fs.promises.unlink(pdfPath);
@@ -288,6 +360,13 @@ const ocrController = {
           }
         }
       }
+
+      // Sort the upload queue to place failed items at the top
+      uploadQueueFiles.sort((a, b) => {
+        if (a.status === "Failed" && b.status !== "Failed") return -1;
+        if (a.status !== "Failed" && b.status === "Failed") return 1;
+        return 0;
+      });
 
       res.status(200).json({
         message: "Files processed successfully",

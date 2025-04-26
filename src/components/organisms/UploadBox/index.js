@@ -188,85 +188,152 @@ const UploadBox = () => {
       e.preventDefault();
       const newFiles = Array.from(e.target.files);
 
-      // Check if adding new files would exceed limit
+      // Check maximum file count
       if (files.length + newFiles.length > MAX_FILES) {
+          toast.error(`Maximum ${MAX_FILES} files allowed`, {
+            duration: 5000,
+            position: "top-center",
+          });
           setErrorMessage(`Maximum ${MAX_FILES} files allowed`);
           return;
       }
 
-      handleAddFile(newFiles);
-      setFileCount(files.length + newFiles.length);
-      setErrorMessage("");
+      // Validate file types and sizes
+      const invalidFiles = [];
+      const oversizedFiles = [];
+      const validFiles = [];
+
+      newFiles.forEach(file => {
+        const fileExtension = file.name.toLowerCase().split('.').pop();
+        if (fileExtension !== 'pdf') {
+          invalidFiles.push(file.name);
+        } else if (file.size > 10 * 1024 * 1024) { // 10MB
+          oversizedFiles.push(file.name);
+        } else {
+          validFiles.push(file);
+        }
+      });
+
+      if (invalidFiles.length > 0) {
+        toast.error(`Invalid file type(s): ${invalidFiles.join(', ')}. Only PDF files are allowed.`, {
+          duration: 5000,
+          position: "top-center",
+        });
+        setErrorMessage("Only PDF files are allowed");
+      }
+
+      if (oversizedFiles.length > 0) {
+        toast.error(`File(s) too large: ${oversizedFiles.join(', ')}. Maximum file size is 10MB.`, {
+          duration: 5000,
+          position: "top-center",
+        });
+        setErrorMessage("Maximum file size is 10MB");
+      }
+
+      if (validFiles.length > 0) {
+        handleAddFile(validFiles);
+        setFileCount(files.length + validFiles.length);
+        setErrorMessage("");
+      }
     };
 
     const handleScanButton = async (e) => {
         e.preventDefault();
 
         if (files.length === 0) {
+            toast.error("No files uploaded", {
+              duration: 5000,
+              position: "top-center",
+            });
             setErrorMessage("No files uploaded");
             return;
         }
-          setShowQueue(true);
+        
+        if (!projectName.trim()) {
+            toast.error("Project name is required", {
+              duration: 5000,
+              position: "top-center",
+            });
+            setErrorMessage("Project name is required");
+            return;
+        }
+        
+        setShowQueue(true);
         const filesTemp = [...files];
         setFiles([]);
 
-           // Initialize queue items
+        // Initialize queue items
         const queueItems = filesTemp.map(file => ({
             file: {
                 name: file.name,
-                size: file.size  // Add file size to queue item
+                size: file.size
             },
             status: "Waiting...",
             progress: 0
         }));
-          setUploadQueueFiles(queueItems);
-
-
-           // Check if a project name is provided
-        if (!projectName.trim()) {
-            setErrorMessage("Project name is required");
-            setShowQueue(false);
-            setFiles(filesTemp); // Restore files in case of error
-            return;
-        }
+        setUploadQueueFiles(queueItems);
 
         let currentProjectId = projectId;
 
-         // Create a new project if projectId is not set
+        // Create a new project if projectId is not set
         if (!currentProjectId) {
-             const { data, error } = await supabase
-              .from("projects")
-              .insert([{ projectName, userId }]) // include userId here
-              .select();
+            try {
+                const { data, error } = await supabase
+                .from("projects")
+                .insert([{ projectName, userId }]) 
+                .select();
 
-             if (error) {
-               console.error("Error creating project:", error);
-               setErrorMessage(`Failed to create project ${error.message}`);
-              setShowQueue(false);
-               setFiles(filesTemp);
-               return;
-             }
+                if (error) {
+                    toast.error(`Failed to create project: ${error.message}`, {
+                        duration: 5000,
+                        position: "top-center",
+                    });
+                    console.error("Error creating project:", error);
+                    setErrorMessage(`Failed to create project ${error.message}`);
+                    setShowQueue(false);
+                    setFiles(filesTemp);
+                    return;
+                }
 
-          currentProjectId = data?.[0]?.projectId;
-         setProjectId(currentProjectId);
-              if(currentProjectId){
-                  router.push({
-                      pathname: router.pathname,
-                      query: { ...router.query, projectId: currentProjectId, projectName: projectName },
-                  });
-              }
+                currentProjectId = data?.[0]?.projectId;
+                setProjectId(currentProjectId);
+                
+                if(currentProjectId){
+                    router.push({
+                        pathname: router.pathname,
+                        query: { ...router.query, projectId: currentProjectId, projectName: projectName },
+                    });
+                }
+            } catch (error) {
+                toast.error(`Failed to create project: ${error.message}`, {
+                    duration: 5000,
+                    position: "top-center",
+                });
+                console.error("Error creating project:", error);
+                setErrorMessage(`Failed to create project: ${error.message}`);
+                setShowQueue(false);
+                setFiles(filesTemp);
+                return;
+            }
         } else {
             router.push({
-                  pathname: router.pathname,
-                 query: { ...router.query, projectId: currentProjectId, projectName: projectName },
-               });
-         }
-          if (!currentProjectId) {
-           setErrorMessage("Failed to create project, try again.")
-               return;
-
-         }
-          for (let i = 0; i < filesTemp.length; i++) {
+                pathname: router.pathname,
+                query: { ...router.query, projectId: currentProjectId, projectName: projectName },
+            });
+        }
+          
+        if (!currentProjectId) {
+            toast.error("Failed to create project, try again.", {
+                duration: 5000,
+                position: "top-center",
+            });
+            setErrorMessage("Failed to create project, try again.")
+            setShowQueue(false);
+            setFiles(filesTemp);
+            return;
+        }
+          
+        for (let i = 0; i < filesTemp.length; i++) {
             const file = filesTemp[i];
             try {
                 // Update queue status to processing
@@ -275,6 +342,7 @@ const UploadBox = () => {
                         idx === i ? { ...item, status: "Processing...", progress: 0 } : item
                     )
                 );
+                
                 const formData = new FormData();
                 formData.append("pdfFile", file);
                
@@ -284,25 +352,70 @@ const UploadBox = () => {
                     body: formData,
                 });
 
-                const responseData = await response.json();
-
-                  if (!response.ok) {
+                // Process errors from the request
+                if (!response.ok) {
+                    let errorMsg = "Processing failed";
+                    try {
+                        const errorData = await response.json();
+                        errorMsg = errorData.message || errorMsg;
+                    } catch (e) {
+                        errorMsg = `Error: ${response.status} ${response.statusText}`;
+                    }
+                    
                     setUploadQueueFiles(prev =>
                         prev.map((item, idx) =>
-                            idx === i ? { ...item, status: "Failed", progress: 100 } : item
+                            idx === i ? { 
+                                ...item, 
+                                status: "Failed", 
+                                progress: 0,
+                                error: errorMsg 
+                            } : item
                         )
                     );
-                    setUploadStatus(`${responseData.message}`);
-                     continue;
-                    }
+                    
+                    toast.error(`Failed to process ${file.name}: ${errorMsg}`, {
+                        duration: 5000,
+                        position: "top-center",
+                    });
+                    
+                    continue;
+                }
 
-                const data = await responseData;
+                const responseData = await response.json();
+                
+                // Update the queue item with the latest status from the server
+                if (responseData.uploadQueueFiles && responseData.uploadQueueFiles.length > 0) {
+                    const matchingQueueItem = responseData.uploadQueueFiles.find(
+                        qItem => qItem.file.name === file.name
+                    );
+                    
+                    if (matchingQueueItem) {
+                        setUploadQueueFiles(prev =>
+                            prev.map((item, idx) =>
+                                idx === i ? { 
+                                    ...item, 
+                                    status: matchingQueueItem.status, 
+                                    error: matchingQueueItem.error || item.error,
+                                    progress: matchingQueueItem.status === "Done" ? 100 : 0
+                                } : item
+                            )
+                        );
+                        
+                        // Show toast for failures
+                        if (matchingQueueItem.status === "Failed") {
+                            toast.error(`Failed to process ${file.name}: ${matchingQueueItem.error || "Unknown error"}`, {
+                                duration: 5000,
+                                position: "top-center",
+                            });
+                        }
+                    }
+                }
 
                 // Update results and preview data if available
-                  if (data.data) {
+                  if (responseData.data) {
                     setResults(prev => {
                         const newResult = [...prev];
-                        data.data.forEach((item, index) => {
+                        responseData.data.forEach((item, index) => {
                             newResult.push({ ...item, id: prev.length + index });
                             initialPreviewData.current[prev.length + index] = {
                                 project: projectName,
@@ -320,25 +433,13 @@ const UploadBox = () => {
                     setPreviewData(prev => ({ ...prev, ...initialPreviewData.current }));
                 }
 
-                // Update queue status to done
-                setUploadQueueFiles(prev =>
-                    prev.map((item, idx) =>
-                        idx === i ? { ...item, status: "Done", progress: 100 } : item
-                    )
-                );
-
-                   // Check if any file processing failed or succeeded
-                    if (data.uploadQueueFiles) {
-                        const hasFailed = data.uploadQueueFiles.some(file => file.status === "Failed");
-                        const hasDone = data.uploadQueueFiles.some(file => file.status === "Done");
+                // Check if any file processing failed or succeeded
+                    if (responseData.uploadQueueFiles) {
+                        const hasFailed = responseData.uploadQueueFiles.some(file => file.status === "Failed");
+                        const hasDone = responseData.uploadQueueFiles.some(file => file.status === "Done");
 
                          if (hasFailed) {
                             setErrorMessage("Some files failed to process");
-                            setUploadQueueFiles(prev =>
-                                prev.map((item, idx) =>
-                                    idx === i ? { ...item, status: "Failed", progress: 100 } : item
-                                )
-                            );
                         }
 
                          if (hasDone) {
@@ -346,33 +447,47 @@ const UploadBox = () => {
                         }
                     }
 
-                     // Handle success message
-                    if (data.csvFileName) {
-                        setCsvFileName(data.csvFileName);
+                // Handle success message
+                if (responseData.csvFileName) {
+                    setCsvFileName(responseData.csvFileName);
 
-                        if (data.uploadQueueFiles?.some(file => file.status === "Failed")) {
-                            toast.error("Processing completed with errors");
-                        } else {
-                            toast.success("Upload and scanning successful.");
-                        }
+                    if (responseData.uploadQueueFiles?.some(file => file.status === "Failed")) {
+                        toast.error("Processing completed with errors", {
+                            duration: 5000,
+                            position: "top-center",
+                        });
+                    } else {
+                        toast.success("Upload and scanning successful.", {
+                            duration: 5000,
+                            position: "top-center",
+                        });
                     }
+                }
 
             } catch (error) {
-                 console.error(`Error processing file ${file.name}:`, error);
+                console.error(`Error processing file ${file.name}:`, error);
 
+                // Update the queue with the error
                 setUploadQueueFiles(prev =>
                     prev.map((item, idx) =>
                         idx === i
                             ? {
                                   ...item,
                                   status: "Failed",
-                                  error: error.message,
+                                  error: error.message || "An unknown error occurred",
                                   progress: 0,
                               }
                             : item
                     )
                 );
-                 setErrorMessage(`Failed to scan file ${file.name}: ${error.message || ""}`);
+                
+                // Display toast with error
+                toast.error(`Failed to process ${file.name}: ${error.message || "Unknown error"}`, {
+                    duration: 5000,
+                    position: "top-center",
+                });
+                
+                setErrorMessage(`Failed to scan file ${file.name}: ${error.message || ""}`);
             }
           }
           setIsUploading(false);
@@ -562,8 +677,8 @@ const UploadBox = () => {
                 <IconWithText icon="info-circle" text="Maximum 10 files allowed and 10MB per file. Only PDF files are allowed." />
             </div>
 
-            <p className="upload-status" id="uploadStatus">{uploadStatus}</p>
-            <p className="error-message" id="errorMessage">{errorMessage}</p>
+          
+          
             <Button onClick={handleScanButton} id="scanButton">
                 <IconWithText icon="wand-magic-sparkles" text="Start Scan" />
             </Button>
