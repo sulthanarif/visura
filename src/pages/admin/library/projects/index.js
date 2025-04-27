@@ -50,7 +50,7 @@ const ProjectsPage = () => {
     const fetchUsers = async () => {
         setIsLoading(true); // Atur isLoading menjadi true sebelum pengambilan data
         try {
-            const response = await fetch(`/api/users`);
+            const response = await fetch(`/api/admin/users`);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }

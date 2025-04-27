@@ -17,6 +17,7 @@ const PreviewTransmittal = ({
   projectId,
   setPreviewData,
   initialPreviewData,
+  setResults, // Add this prop to receive the setResults function
 }) => {
   const [transmittalModalOpen, setTransmittalModalOpen] = useState(false);
   const [currentOcrResult, setCurrentOcrResult] = useState(null);
@@ -182,167 +183,191 @@ const PreviewTransmittal = ({
     };
 
 
-return (
-  <>
-    <div
-      className={`preview-transmittal ${showPreview ? "show" : "remove"}`}
-      id="previewTransmittal"
-    >
-      <div className="flex justify-between items-center">
-        <h2>
-          <Icon name="file-csv" />
-          Preview Transmittal
-        </h2>
-        <div className="flex space-x-2">
+  // Handle deletion of a result
+  const handleDeleteResult = (resultId) => {
+    // Update the results array
+    const updatedResults = results.filter(result => result.id !== resultId);
+    
+    // Update previewData to remove deleted entry
+    const updatedPreviewData = { ...previewData };
+    delete updatedPreviewData[resultId];
+    
+    // Update state
+    setPreviewData(updatedPreviewData);
+    
+    // If we're displaying the deleted item, navigate to another page
+    if (currentPage > updatedResults.length) {
+      handlePrev();
+    }
+    
+    // Propagate the changes up if setResults prop exists
+    if (setResults) {
+      setResults(updatedResults);
+    }
+  };
 
-        <a
-          className="text-orange-500 cursor-pointer"
-          onClick={handleOpenTransmittalModal}
-        >
-          <Icon name="eye" />
-        </a>
+  return (
+    <>
+      <div
+        className={`preview-transmittal ${showPreview ? "show" : "remove"}`}
+        id="previewTransmittal"
+      >
+        <div className="flex justify-between items-center">
+          <h2>
+            <Icon name="file-csv" />
+            Preview Transmittal
+          </h2>
+          <div className="flex space-x-2">
+
+          <a
+            className="text-orange-500 cursor-pointer"
+            onClick={handleOpenTransmittalModal}
+          >
+            <Icon name="eye" />
+          </a>
+          </div>
         </div>
-      </div>
-      <div className="field">
-        <label htmlFor="previewProjectName">Project Name</label>
-        <input
-          type="text"
-          id="previewProjectName"
-          placeholder="Project Name"
-          value={projectName}
-          readOnly
-        />
-      </div>
-       {currentOcrResult && (
-        <div key={currentOcrResult?.id}>
-          {previewData[currentOcrResult?.id] ? (
-            <>
-              <div className="field">
-                <label htmlFor={`previewTitle-${currentOcrResult?.id}`}>
-                  Title
-                </label>
-                <input
-                  type="text"
-                  id={`previewTitle-${currentOcrResult?.id}`}
-                  placeholder="Title"
-                  value={previewData[currentOcrResult?.id]?.title || ""}
-                    onChange={(e) => handleInputChange(
-                      currentPage - 1,
-                      "title",
-                      e.target.value
-                    )}
-                />
-              </div>
-
-              <div className="field">
-                <label htmlFor={`previewRevision-${currentOcrResult?.id}`}>
-                  Revision - Date (DD/MM/YYYY)
-                </label>
-                <input
-                  type="text"
-                  id={`previewRevision-${currentOcrResult?.id}`}
-                  placeholder="Revision"
-                  value={
-                    previewData[currentOcrResult?.id]?.revision || ""
-                  }
-                  onChange={(e) =>
-                    handleInputChange(
-                      currentPage - 1,
-                      "revision",
-                      e.target.value
-                    )}
-                />
-              </div>
-              <div className="flex items-center gap-2">
-              <div className="field flex-1">
-                <label htmlFor={`previewDrawingCode-${currentOcrResult?.id}`}>
-                  Drawing Code
-                </label>
-                <input
-                  type="text"
-                  id={`previewDrawingCode-${currentOcrResult?.id}`}
-                  placeholder="Drawing Code"
-                  value={
-                    previewData[currentOcrResult?.id]?.drawingCode || ""
-                  }
-                 onChange={(e) =>
-                   handleInputChange(
-                     currentPage - 1,
-                      "drawingCode",
-                      e.target.value
-                    )}
-                />
+        <div className="field">
+          <label htmlFor="previewProjectName">Project Name</label>
+          <input
+            type="text"
+            id="previewProjectName"
+            placeholder="Project Name"
+            value={projectName}
+            readOnly
+          />
+        </div>
+         {currentOcrResult && (
+          <div key={currentOcrResult?.id}>
+            {previewData[currentOcrResult?.id] ? (
+              <>
+                <div className="field">
+                  <label htmlFor={`previewTitle-${currentOcrResult?.id}`}>
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    id={`previewTitle-${currentOcrResult?.id}`}
+                    placeholder="Title"
+                    value={previewData[currentOcrResult?.id]?.title || ""}
+                      onChange={(e) => handleInputChange(
+                        currentPage - 1,
+                        "title",
+                        e.target.value
+                      )}
+                  />
                 </div>
+
+                <div className="field">
+                  <label htmlFor={`previewRevision-${currentOcrResult?.id}`}>
+                    Revision - Date (DD/MM/YYYY)
+                  </label>
+                  <input
+                    type="text"
+                    id={`previewRevision-${currentOcrResult?.id}`}
+                    placeholder="Revision"
+                    value={
+                      previewData[currentOcrResult?.id]?.revision || ""
+                    }
+                    onChange={(e) =>
+                      handleInputChange(
+                        currentPage - 1,
+                        "revision",
+                        e.target.value
+                      )}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
                 <div className="field flex-1">
-                <label htmlFor={`previewDrawingCode-${currentOcrResult?.id}`}>
-                 File Name
-                </label>
-                <input
-                  type="text"
-                  id={`previewDrawingCode-${currentOcrResult?.id}`}
-                  placeholder="File Name"
-                  value={
-                    previewData[currentOcrResult?.id]?.filename || ""
-                  }
-                 onChange={(e) =>
-                   handleInputChange(
-                     currentPage - 1,
-                      "drawingCode",
-                      e.target.value
-                    )}
-                />
-                </div>
-              </div>
-              <div className="field">
-                <label
-                  htmlFor={`previewDate-${currentOcrResult?.id}`}
-                  style={{ display: "flex", alignItems: "center", gap: "5px" }}
-                >
-                  Date
-                </label>
-                <input
-                  type="date"
-                  id={`previewDate-${currentOcrResult?.id}`}
-                  placeholder="Date"
-                  value={formatDateForInput(
-                    previewData[currentOcrResult?.id]?.date
-                  )}
+                  <label htmlFor={`previewDrawingCode-${currentOcrResult?.id}`}>
+                    Drawing Code
+                  </label>
+                  <input
+                    type="text"
+                    id={`previewDrawingCode-${currentOcrResult?.id}`}
+                    placeholder="Drawing Code"
+                    value={
+                      previewData[currentOcrResult?.id]?.drawingCode || ""
+                    }
                    onChange={(e) =>
-                    handleDateChange(currentPage - 1, e)
-                  }
-                />
+                     handleInputChange(
+                       currentPage - 1,
+                        "drawingCode",
+                        e.target.value
+                      )}
+                  />
+                  </div>
+                  <div className="field flex-1">
+                  <label htmlFor={`previewDrawingCode-${currentOcrResult?.id}`}>
+                   File Name
+                  </label>
+                  <input
+                    type="text"
+                    id={`previewDrawingCode-${currentOcrResult?.id}`}
+                    placeholder="File Name"
+                    value={
+                      previewData[currentOcrResult?.id]?.filename || ""
+                    }
+                   onChange={(e) =>
+                     handleInputChange(
+                       currentPage - 1,
+                        "drawingCode",
+                        e.target.value
+                      )}
+                  />
+                  </div>
+                </div>
+                <div className="field">
+                  <label
+                    htmlFor={`previewDate-${currentOcrResult?.id}`}
+                    style={{ display: "flex", alignItems: "center", gap: "5px" }}
+                  >
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    id={`previewDate-${currentOcrResult?.id}`}
+                    placeholder="Date"
+                    value={formatDateForInput(
+                      previewData[currentOcrResult?.id]?.date
+                    )}
+                     onChange={(e) =>
+                      handleDateChange(currentPage - 1, e)
+                    }
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="text-red-500">
+                Data tidak tersedia untuk halaman ini
               </div>
-            </>
-          ) : (
-            <div className="text-red-500">
-              Data tidak tersedia untuk halaman ini
-            </div>
-          )}
-          <hr />
+            )}
+            <hr />
+          </div>
+        )}
+        <div className="pagination">
+          <Button id="prevBtn" onClick={handlePrev}  disabled={currentPage === 1}>
+            <Icon name="angle-left" />
+          </Button>
+          <span id="pageInfo"></span>
+          <Button id="nextBtn" onClick={handleNext}  disabled={currentPage === results.length}>
+            <Icon name="angle-right" />
+          </Button>
         </div>
-      )}
-      <div className="pagination">
-        <Button id="prevBtn" onClick={handlePrev}  disabled={currentPage === 1}>
-          <Icon name="angle-left" />
-        </Button>
-        <span id="pageInfo"></span>
-        <Button id="nextBtn" onClick={handleNext}  disabled={currentPage === results.length}>
-          <Icon name="angle-right" />
-        </Button>
+        <div className="button-container">
+          <Button onClick={handleGenerateTransmittal}>
+            <IconWithText icon="file-csv" text="Generate Transmittal" />
+          </Button>
+        </div>
       </div>
-      <div className="button-container">
-        <Button onClick={handleGenerateTransmittal}>
-          <IconWithText icon="file-csv" text="Generate Transmittal" />
-        </Button>
-      </div>
-    </div>
-    <TransmittalPreviewModal
-      isOpen={transmittalModalOpen}
-      onClose={handleCloseTransmittalModal}
-      selectedProject={{projectName}}
-      ocrResults={results}
-      currentPage={currentPage}
-    />
+      <TransmittalPreviewModal
+        isOpen={transmittalModalOpen}
+        onClose={handleCloseTransmittalModal}
+        selectedProject={{projectName}}
+        ocrResults={results}
+        currentPage={currentPage}
+        onDeleteResult={handleDeleteResult} // Add the callback
+      />
     </>
   );
 };

@@ -694,10 +694,12 @@ const UploadBox = () => {
               handleNext={handleNext}
               handleGenerateTransmittal={handleGenerateTransmittal}
               projectId={projectId}
-               setPreviewData={setPreviewData}
-                initialPreviewData={initialPreviewData}
+              setPreviewData={setPreviewData}
+              initialPreviewData={initialPreviewData}
+              setResults={setResults} // Pass setResults to PreviewTransmittal
             />
-             <TransmittalModal
+            
+            <TransmittalModal
                 isOpen={showTransmittalModal}
                 onClose={handleModalClose}
                 onSubmit={confirmGenerateTransmittal}
