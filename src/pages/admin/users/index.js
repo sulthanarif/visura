@@ -44,7 +44,7 @@ const UsersPage = () => {
     const fetchUsers = async () => {
         setIsLoading(true); // Atur isLoading menjadi true sebelum pengambilan data
         try {
-            const response = await fetch(`/api/users?page=${currentPage}&limit=${usersPerPage}&search=${searchTerm}`);
+            const response = await fetch(`/api/admin/users?page=${currentPage}&limit=${usersPerPage}&search=${searchTerm}`);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -109,7 +109,7 @@ const UsersPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch(`/api/users/${editedUserData.userId}`, {
+            const response = await fetch(`/api/admin/users/${editedUserData.userId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -176,7 +176,7 @@ const UsersPage = () => {
 
     const handleDeleteConfirm = async () => {
         try {
-            const response = await fetch(`/api/users/${userToDelete.userId}`, {
+            const response = await fetch(`/api/admin/users/${userToDelete.userId}`, {
                 method: 'DELETE',
             });
 

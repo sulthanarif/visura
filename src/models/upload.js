@@ -7,16 +7,29 @@ export const useUpload = () => {
   const [projectName, setProjectName] = useState("");
   const handleAddFile = (newFiles) => {
     if (files.length + newFiles.length > 10) {
-      setErrorMessage("Maksimal 10 file yang dapat diunggah.");
+      setErrorMessage("Maximum 10 files allowed.");
       return;
     }
-    newFiles.forEach((file) => {
+    
+    const validFiles = [];
+    
+    for (const file of newFiles) {
       if (file.size > 10 * 1024 * 1024) {
-        setErrorMessage(`File ${file.name} melebihi 10MB!`);
+        setErrorMessage(`File ${file.name} exceeds 10MB!`);
       } else {
-        setFiles((prevFiles) => [...prevFiles, file]);
+        // Check if file is a PDF
+        const fileExtension = file.name.toLowerCase().split('.').pop();
+        if (fileExtension !== 'pdf') {
+          setErrorMessage(`File ${file.name} is not a PDF. Only PDF files are allowed.`);
+        } else {
+          validFiles.push(file);
+        }
       }
-    });
+    }
+    
+    if (validFiles.length > 0) {
+      setFiles(prevFiles => [...prevFiles, ...validFiles]);
+    }
   };
 
   const handleRemoveFile = (fileToRemove) => {

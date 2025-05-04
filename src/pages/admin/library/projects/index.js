@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import AdminProjectManagementTemplate from '@/components/templates/AdminProjectManagementTemplate';
 import { decodeToken } from '@/utils/authHelpers';
-import UploadQueueModal from '@/components/molecules/UploadQueueModal';
 import TransmittalDataPreviewModal from '@/components/molecules/TransmittalDataPreviewModal';
 
 import { router } from 'next/router';
@@ -18,8 +17,6 @@ const ProjectsPage = () => {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [projectToDelete, setProjectToDelete] = useState(null);
     const [loggedInUserId, setLoggedInUserId] = useState(null);
-    const [uploadQueueModalOpen, setUploadQueueModalOpen] = useState(false);
-    const [uploadQueueImages, setUploadQueueImages] = useState([]);
     const [previewModalOpen, setPreviewModalOpen] = useState(false);
     const [selectedProject, setSelectedProject] = useState(null);
     const [ocrResults, setOcrResults] = useState([]);
@@ -53,7 +50,7 @@ const ProjectsPage = () => {
     const fetchUsers = async () => {
         setIsLoading(true); // Atur isLoading menjadi true sebelum pengambilan data
         try {
-            const response = await fetch(`/api/users`);
+            const response = await fetch(`/api/admin/users`);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -218,15 +215,6 @@ const ProjectsPage = () => {
         setProjectToDelete(null);
     };
 
-  const handleOpenUploadQueue = (images) => {
-      setUploadQueueImages(images)
-      setUploadQueueModalOpen(true);
-  }
-
-  const handleCloseUploadQueue = () => {
-    setUploadQueueModalOpen(false);
-    setUploadQueueImages([]);
-  };
   const handleDeleteImageFromQueue = (index) => {
         const updatedImages = [...uploadQueueImages];
         updatedImages.splice(index, 1);
@@ -258,12 +246,6 @@ const ProjectsPage = () => {
             isLoading={isLoading} 
         >
         
-                <UploadQueueModal
-                isOpen={uploadQueueModalOpen}
-                images={uploadQueueImages}
-                onClose={handleCloseUploadQueue}
-                onDeleteImage={handleDeleteImageFromQueue}
-              />
            <TransmittalDataPreviewModal
                 isOpen={previewModalOpen}
                 onClose={handleClosePreviewModal}

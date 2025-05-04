@@ -1,5 +1,5 @@
-// src/pages/api/users/index.js
-import supabase from "../../../utils/supabaseClient";
+// src/pages/api/admin/users/index.js
+import supabase from "../../../../utils/supabaseClient";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
 
     res.status(200).json(usersWithTotal);
   } catch (error) {
-    console.error("Error in /api/users:", error);
+    console.error("Error in /api/admin/users:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 }

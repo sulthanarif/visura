@@ -1,5 +1,5 @@
-//src/pages/api/users/[userId].js
-import supabase from "../../../utils/supabaseClient";
+//src/pages/api/admin/users/[userId].js
+import supabase from "../../../../utils/supabaseClient";
 
 export default async function handler(req, res) {
     const { userId } = req.query;
@@ -9,7 +9,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "PUT") {
-        const { role, email_verified } = req.body;
+        const {nama_pegawai,nomor_pegawai, role, email_verified } = req.body;
 
         try {
              if (!role) {
@@ -18,7 +18,7 @@ export default async function handler(req, res) {
 
             const { error } = await supabase
                .from('users')
-               .update({ role, email_verified })
+               .update({ nama_pegawai,nomor_pegawai,role, email_verified })
                .eq('userId', userId);
 
             if(error){
@@ -27,7 +27,7 @@ export default async function handler(req, res) {
             }
            res.status(200).json({ message: 'User updated successfully' });
         } catch (error) {
-             console.error("Error in /api/users/[userId]:", error);
+             console.error("Error in /api/admin/users/[userId]:", error);
             res.status(500).json({ message: "Internal server error" });
        }
     } else if (req.method === "DELETE") {
@@ -44,7 +44,7 @@ export default async function handler(req, res) {
 
             res.status(200).json({ message: "User deleted successfully" });
         } catch (error) {
-            console.error("Error in DELETE /api/users/[userId]:", error);
+            console.error("Error in DELETE /api/admin/users/[userId]:", error);
             res.status(500).json({ message: "Internal server error" });
         }
     }
