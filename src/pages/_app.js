@@ -28,29 +28,30 @@ export default function App({ Component, pageProps }) {
   // Admin pages that use AdminLayout
   const isAdminPage = router.pathname.startsWith('/admin');
 
-    useEffect(() => {
-        // Function to perform the redirect based on user role and current path
-        const performRedirect = () => {
-            if (router.pathname === '/') {
-                const token = localStorage.getItem('token');
-                if (token) {
-                    const decoded = decodeToken(token);
-                    if (decoded && decoded.role === 'admin') {
-                        router.push('/admin/scanfile');
-                    } else {
-                        router.push('/scanfile');
-                    }
-                } else {
-                    // If there's no token, redirect to login or handle as needed
-                    router.push('/login');
-                }
-            }
-        };
+  useEffect(() => {
+    // Function to perform the redirect based on user role and current path
+    const performRedirect = () => {
+      if (router.pathname === '/') {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const decoded = decodeToken(token);
+          if (decoded && decoded.role === 'admin') {
+            router.push('/admin/scanfile');
+          } else if (decoded) {
+            router.push('/scanfile');
+          }
+        } else {
+          // If there's no token, redirect to login or handle as needed
+          router.push('/login');
+        }
+      }
+    };
 
-        // Call the redirect function on initial load or when the route changes
-        performRedirect();
-    }, [router]);
-
+    // Only redirect on the homepage
+    if (router.pathname === '/') {
+      performRedirect();
+    }
+  }, [router.pathname]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -59,13 +60,26 @@ export default function App({ Component, pageProps }) {
         const token = localStorage.getItem('token');
         
         if (!token) {
-          if (!isAuthPage && router.pathname !== '/') { // Allow access to '/' if no token
+          if (!isAuthPage && router.pathname !== '/') {
             router.push('/login');
           }
+          setIsTokenValid(false);
+          setUser(null);
           return;
         }
 
         const decoded = decodeToken(token);
+        
+        if (!decoded) {
+          localStorage.removeItem('token'); // Clear invalid token
+          setIsTokenValid(false);
+          setUser(null);
+          if (!isAuthPage && router.pathname !== '/') {
+            router.push('/login');
+          }
+          return;
+        }
+        
         setUser(decoded);
         setIsTokenValid(true);
 
@@ -75,11 +89,12 @@ export default function App({ Component, pageProps }) {
           return;
         }
 
-
       } catch (error) {
         console.error('Auth check failed:', error);
+        localStorage.removeItem('token'); // Clear problematic token
         setIsTokenValid(false);
-        if (!isAuthPage && router.pathname !== '/') { // Allow access to '/' if auth check fails
+        setUser(null);
+        if (!isAuthPage && router.pathname !== '/') {
           router.push('/login');
         }
       } finally {
@@ -90,19 +105,11 @@ export default function App({ Component, pageProps }) {
     checkAuth();
   }, [router.pathname]);
 
-  useEffect(() => {
-      if(!isAuthPage && !loading){
-           if (!isTokenValid && router.pathname !== '/') { // Allow access to '/' even if token is invalid
-               router.push('/login');
-           } 
-      }
-  }, [isTokenValid, router, loading, isAuthPage]);
-
-    if(loading) {
-        return (
-            <LoadingRefresh />
-        );
-    }
+  if(loading) {
+    return (
+      <LoadingRefresh />
+    );
+  }
 
   return (
     <>
@@ -116,15 +123,15 @@ export default function App({ Component, pageProps }) {
       {isAuthPage ? (
         <Component {...pageProps} />
       ) : isAdminPage ? (
-           isTokenValid && user?.role === 'admin' ? (
-              <AdminLayout>
-                 <Component {...pageProps} />
-              </AdminLayout>
-           ): null
-      ) :  isTokenValid ? (
-         <DefaultLayout>
-             <Component {...pageProps} />
-         </DefaultLayout>
+        isTokenValid && user?.role === 'admin' ? (
+          <AdminLayout>
+            <Component {...pageProps} />
+          </AdminLayout>
+        ) : null
+      ) : isTokenValid ? (
+        <DefaultLayout>
+          <Component {...pageProps} />
+        </DefaultLayout>
       ) : null
       }
     </>

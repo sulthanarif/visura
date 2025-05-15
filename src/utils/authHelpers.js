@@ -11,7 +11,7 @@ export const login = async ({ pegawaiNumber, password }) => {
 
     if (response.ok) {
       localStorage.setItem("token", data.token);
-        const tokenData = decodeToken(data.token);
+      const tokenData = decodeToken(data.token);
       return { ok: true, message: data.message, user: tokenData };
     }
     return { ok: false, message: data.message };
