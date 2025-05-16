@@ -42,7 +42,7 @@ const ocrController = {
         filter: (part) => {
           return part.name === 'pdfFile' && 
                 (part.mimetype === 'application/pdf' || 
-                part.originalFilename.toLowerCase().endswith('.pdf'));
+                part.originalFilename.toLowerCase().endsWith('.pdf'));
         }
       });
       
@@ -148,6 +148,21 @@ const ocrController = {
           const sanitizedPdfName = originalFilename
             .replace(/[^a-zA-Z0-9-_.]/g, "_")
             .replace(/\s+/g, "_");
+          
+          // First, process the PDF to verify it can be processed successfully
+          uploadQueueFiles[fileIndex].progress = 20;
+          
+          result = await processPDF(
+            pdfPath,
+            tempDir,
+            outputDir,
+            targetDPI,
+            originalFilename
+          );
+          
+          uploadQueueFiles[fileIndex].progress = 60;
+          
+          // Only proceed with uploads if processing was successful
           const pdfStoragePath = `pdf/${uuidv4()}-${sanitizedPdfName}`;
           const pdfFileBuffer = fs.readFileSync(pdfPath);
 
@@ -162,28 +177,21 @@ const ocrController = {
             console.error("Gagal upload PDF:", pdfError);
             throw new Error("Upload PDF gagal");
           }
+          
           const pdfStorageUrl = supabase.storage
             .from("ocr-storage")
             .getPublicUrl(pdfStoragePath).data.publicUrl;
+          
           if (!pdfStorageUrl || typeof pdfStorageUrl !== "string") {
             console.error("Invalid pdfStorageUrl:", pdfStorageUrl);
             uploadQueueFiles[fileIndex].status = "Failed";
+            // Clean up local files before continuing to next file
+            await cleanupLocalProcessedFiles(pdfPath, result);
             continue;
           }
 
-          // Update progress as we go through each step
-          uploadQueueFiles[fileIndex].progress = 20;
-          
-          result = await processPDF(
-            pdfPath,
-            tempDir,
-            outputDir,
-            targetDPI,
-            originalFilename,
-            pdfStorageUrl
-          );
-          
-          uploadQueueFiles[fileIndex].progress = 60;
+          // Store the URL in the result object
+          result.pdfStorageUrl = pdfStorageUrl;
           
           const modifiedPdfBuffer = result.modifiedPdf
             ? fs.readFileSync(result.modifiedPdf)
@@ -349,14 +357,24 @@ const ocrController = {
           } else {
             uploadQueueFiles[fileIndex].error = e.message || "Processing failed with an unknown error";
           }
+          
+          // Cleanup all local files when processing fails
+          await cleanupLocalProcessedFiles(pdfPath, result);
         } finally {
           try {
-            await fs.promises.unlink(pdfPath);
-            if (result && result.modifiedPdf) {
+            // Delete original PDF file if it exists
+            if (fs.existsSync(pdfPath)) {
+              await fs.promises.unlink(pdfPath);
+              console.log(`Successfully deleted original PDF: ${pdfPath}`);
+            }
+            
+            // Delete modified PDF if it exists
+            if (result && result.modifiedPdf && fs.existsSync(result.modifiedPdf)) {
               await fs.promises.unlink(result.modifiedPdf);
+              console.log(`Successfully deleted modified PDF: ${result.modifiedPdf}`);
             }
           } catch (e) {
-            console.error("Error clean up file:", e);
+            console.error("Error cleaning up file:", e);
           }
         }
       }
@@ -528,6 +546,66 @@ const ocrController = {
     }
   },
 };
+
+// Helper function to clean up all locally processed files when processing fails
+async function cleanupLocalProcessedFiles(pdfPath, result) {
+  try {
+    // Clean up any processed images if they exist
+    if (result && result.images) {
+      const allImagePaths = [
+        result.images.original,
+        result.images.hidpi,
+        result.images.rotated,
+        result.images.cropped,
+        ...(result.images.parts || []),
+      ].filter(Boolean);
+
+      // Delete all images
+      for (const imagePath of allImagePaths) {
+        if (imagePath && fs.existsSync(imagePath)) {
+          await fs.promises.unlink(imagePath);
+          console.log(`Cleaned up failed processing image: ${imagePath}`);
+        }
+      }
+    }
+
+    // Clean up any temporary files in the temp directories
+    const cleanupDirectory = async (dir) => {
+      if (fs.existsSync(dir)) {
+        const files = fs.readdirSync(dir);
+        
+        for (const file of files) {
+          const filePath = path.join(dir, file);
+          
+          try {
+            // Get file stats to check if it's a directory
+            const stats = fs.statSync(filePath);
+            
+            if (stats.isFile()) {
+              // Remove file
+              await fs.promises.unlink(filePath);
+            }
+          } catch (err) {
+            console.error(`Error cleaning up file ${filePath}:`, err);
+          }
+        }
+      }
+    };
+    
+    // Clean up all the temp directories
+    await Promise.all([
+      cleanupDirectory(tempDir),
+      cleanupDirectory(tempCutDir),
+      cleanupDirectory(tempHiDpiDir),
+      cleanupDirectory(tempRotateDir),
+      cleanupDirectory(tempCutResultDir),
+      cleanupDirectory(tempCroppedDir),
+    ]);
+    
+  } catch (error) {
+    console.error("Error during cleanup of failed processing:", error);
+  }
+}
 
 function generateTemplateContent(drawingDataRows, projectName, documentName, transmittalNumber) {
   const now = new Date();
