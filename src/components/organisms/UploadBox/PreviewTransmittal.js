@@ -298,12 +298,12 @@ const PreviewTransmittal = ({
                   />
                   </div>
                   <div className="field flex-1">
-                  <label htmlFor={`previewDrawingCode-${currentOcrResult?.id}`}>
+                  <label htmlFor={`previewFileName-${currentOcrResult?.id}`}>
                    File Name
                   </label>
                   <input
                     type="text"
-                    id={`previewDrawingCode-${currentOcrResult?.id}`}
+                    id={`previewFileName-${currentOcrResult?.id}`}
                     placeholder="File Name"
                     value={
                       previewData[currentOcrResult?.id]?.filename || ""
@@ -311,7 +311,7 @@ const PreviewTransmittal = ({
                    onChange={(e) =>
                      handleInputChange(
                        currentPage - 1,
-                        "drawingCode",
+                        "filename",
                         e.target.value
                       )}
                   />

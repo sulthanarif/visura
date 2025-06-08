@@ -60,7 +60,44 @@ const UploadBox = () => {
     const [fileCount, setFileCount] = useState(0);
     const [showTransmittalModal, setShowTransmittalModal] = useState(false);
 
-      useEffect(() => {
+    // Add function to fetch OCR data
+    const fetchOcrData = async (projectIdToFetch) => {
+        if (projectIdToFetch) {
+            try {
+                const response = await fetch(`/api/getocrdatabyprojectid?projectIds=${JSON.stringify([projectIdToFetch])}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                if (data.length > 0) {
+                    setResults(data.map((item, index) => ({ ...item, id: index })));
+                    const newPreviewData = {};
+                    data.forEach((item, index) => {
+                        newPreviewData[index] = {
+                            project: item.projectName,
+                            title: item.title,
+                            revision: item.revision,
+                            drawingCode: item.drawingCode,
+                            date: item.date,
+                            filename: item.filename,
+                            pdf_url: item.pdf_url
+                        };
+                    });
+                    setPreviewData(newPreviewData);
+                    initialPreviewData.current = { ...newPreviewData };
+                    if (data.length > 0) {
+                        setProjectName(data[0].projectName);
+                    }
+                    setShowPreview(true);
+                }
+            } catch (error) {
+                console.error("Error fetching OCR data:", error);
+                setErrorMessage("Failed to load OCR data. Please try again later.");
+            }
+        }
+    };
+
+    useEffect(() => {
      // Get the token from local storage and decode it
         const token = localStorage.getItem('token');
           if (token) {
@@ -88,45 +125,13 @@ const UploadBox = () => {
 
 
    useEffect(() => {
-        const fetchOcrData = async () => {
+        const fetchOcrDataEffect = async () => {
              if (projectId) {
-                try {
-                   const response = await fetch(`/api/getocrdatabyprojectid?projectIds=${JSON.stringify([projectId])}`);
-                     if (!response.ok) {
-                         throw new Error(`HTTP error! status: ${response.status}`);
-                     }
-                     const data = await response.json();
-                      if(data.length > 0){
-                           setResults(data.map((item, index) => ({ ...item, id: index })));
-                             setPreviewData(prev => {
-                                const newPreview = {}
-                                data.forEach((item, index) => {
-                                   newPreview[index] = {
-                                        project: item.projectName,
-                                        title: item.title,
-                                        revision: item.revision,
-                                        drawingCode: item.drawingCode,
-                                        date: item.date,
-                                        filename: item.filename,
-                                        pdf_url: item.pdf_url
-                                    }
-                                })
-                                 return {...prev, ...newPreview}
-                           });
-                            if (data.length > 0) {
-                                setProjectName(data[0].projectName);
-                             }
-                         setShowPreview(true)
-                      }
-
-                } catch (error) {
-                    console.error("Error fetching OCR data:", error);
-                    setErrorMessage("Failed to load OCR data. Please try again later.");
-                }
+                await fetchOcrData(projectId);
             }
         };
-       fetchOcrData();
-    }, [projectId, setProjectName, setErrorMessage, setResults, setPreviewData, setShowPreview]);
+       fetchOcrDataEffect();
+    }, [projectId, setProjectName, setErrorMessage]);
 
 
     useEffect(() => {
@@ -413,24 +418,28 @@ const UploadBox = () => {
 
                 // Update results and preview data if available
                   if (responseData.data) {
-                    setResults(prev => {
-                        const newResult = [...prev];
-                        responseData.data.forEach((item, index) => {
-                            newResult.push({ ...item, id: prev.length + index });
-                            initialPreviewData.current[prev.length + index] = {
-                                project: projectName,
-                                title: item.title,
-                                revision: item.revision,
-                                drawingCode: item.drawingCode,
-                                date: item.date,
-                                filename: item.filename,
-                                pdf_url: item.pdf_url
-                            };
-                        });
-                        return newResult;
+                    const newResults = [...results];
+                    const newPreviewData = { ...previewData };
+                    
+                    responseData.data.forEach((item, index) => {
+                        const resultId = newResults.length + index;
+                        newResults.push({ ...item, id: resultId });
+                        
+                        newPreviewData[resultId] = {
+                            project: projectName,
+                            title: item.title,
+                            revision: item.revision,
+                            drawingCode: item.drawingCode,
+                            date: item.date,
+                            filename: item.filename,
+                            pdf_url: item.pdf_url
+                        };
+                        
+                        initialPreviewData.current[resultId] = { ...newPreviewData[resultId] };
                     });
-
-                    setPreviewData(prev => ({ ...prev, ...initialPreviewData.current }));
+                    
+                    setResults(newResults);
+                    setPreviewData(newPreviewData);
                 }
 
                 // Check if any file processing failed or succeeded
@@ -490,6 +499,11 @@ const UploadBox = () => {
                 setErrorMessage(`Failed to scan file ${file.name}: ${error.message || ""}`);
             }
           }
+          // Refetch data after all files are processed to ensure UI is in sync
+          if (currentProjectId) {
+              await fetchOcrData(currentProjectId);
+          }
+          
           setIsUploading(false);
           setIsScanning(false);
     };
