@@ -18,6 +18,9 @@ const targetDPI = 800;
 
 async function generateQRCode(url) {
     try {
+      if (!url || typeof url !== 'string' || url.trim() === '') {
+        throw new Error('Valid URL string required');
+      }
       return await QRCode.toDataURL(url);
     } catch (error) {
       console.error("Error generating QR Code:", error);
@@ -291,13 +294,18 @@ async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilena
         // 6. Generate QR Code
       let qrCodeDataUrl;
       try {
-       qrCodeDataUrl = await generateQRCode(storageUrl);
-       // Embed QR Code ke PDF
-        const modifiedPdfBytes = await embedQRCodeInPdf(pdfPath, qrCodeDataUrl, storageUrl);
-        // 7. Save the modified PDF
-       const modifiedPdfPath = path.join(tempDir, `${outputBaseName}-modified.pdf`);
-         fs.writeFileSync(modifiedPdfPath, modifiedPdfBytes);
-          jsonData.modifiedPdf = modifiedPdfPath;
+       if (storageUrl && typeof storageUrl === 'string' && storageUrl.trim() !== '') {
+         qrCodeDataUrl = await generateQRCode(storageUrl);
+         // Embed QR Code ke PDF
+          const modifiedPdfBytes = await embedQRCodeInPdf(pdfPath, qrCodeDataUrl, storageUrl);
+          // 7. Save the modified PDF
+         const modifiedPdfPath = path.join(tempDir, `${outputBaseName}-modified.pdf`);
+           fs.writeFileSync(modifiedPdfPath, modifiedPdfBytes);
+            jsonData.modifiedPdf = modifiedPdfPath;
+       } else {
+         console.warn("StorageUrl is not provided or invalid, skipping QR code generation");
+         jsonData.isEncrypted = false; // Set to false since it's not an encryption issue
+       }
       } catch(err) {
           console.error("Error embedding QR Code into PDF", err)
             jsonData.isEncrypted = true;

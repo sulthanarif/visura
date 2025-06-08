@@ -152,17 +152,7 @@ const ocrController = {
           // First, process the PDF to verify it can be processed successfully
           uploadQueueFiles[fileIndex].progress = 20;
           
-          result = await processPDF(
-            pdfPath,
-            tempDir,
-            outputDir,
-            targetDPI,
-            originalFilename
-          );
-          
-          uploadQueueFiles[fileIndex].progress = 60;
-          
-          // Only proceed with uploads if processing was successful
+          // First upload the PDF to get the storage URL
           const pdfStoragePath = `pdf/${uuidv4()}-${sanitizedPdfName}`;
           const pdfFileBuffer = fs.readFileSync(pdfPath);
 
@@ -190,6 +180,20 @@ const ocrController = {
             continue;
           }
 
+          uploadQueueFiles[fileIndex].progress = 40;
+          
+          // Now process the PDF with the storage URL
+          result = await processPDF(
+            pdfPath,
+            tempDir,
+            outputDir,
+            targetDPI,
+            originalFilename,
+            pdfStorageUrl
+          );
+          
+          uploadQueueFiles[fileIndex].progress = 60;
+          
           // Store the URL in the result object
           result.pdfStorageUrl = pdfStorageUrl;
           
