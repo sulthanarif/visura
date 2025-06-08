@@ -111,20 +111,20 @@ const PreviewTransmittal = ({
                       });
                        if(response.ok){
                             toast.success('Data Updated Successfully', {
-                                duration: 5000,
+                                duration: 2000,
                                 position: "top-center",
                             });
                        }else {
                            const errorData = await response.json();
                            toast.error(errorData?.message || "Terjadi kesalahan, coba lagi.", {
-                                duration: 5000,
+                                duration: 2000,
                                 position: "top-center",
                             });
                        }
                 } catch (error) {
                        console.error("Error updating project:", error);
                         toast.error("Terjadi kesalahan, coba lagi.", {
-                            duration: 5000,
+                            duration: 2000,
                             position: "top-center",
                         });
                     }
@@ -133,7 +133,7 @@ const PreviewTransmittal = ({
             clearTimeout(timer)
            timer = setTimeout(() => {
                updateState()
-           }, 500)
+           }, 200)
 
 
     }, [previewData,results,debouncedValue])
@@ -220,7 +220,7 @@ const PreviewTransmittal = ({
           <div className="flex space-x-2">
 
           <a
-            className="text-orange-500 cursor-pointer"
+            className="text-orange-200 cursor-pointer"
             onClick={handleOpenTransmittalModal}
           >
             <Icon name="eye" />
@@ -338,7 +338,7 @@ const PreviewTransmittal = ({
                 </div>
               </>
             ) : (
-              <div className="text-red-500">
+              <div className="text-red-200">
                 Data tidak tersedia untuk halaman ini
               </div>
             )}
