@@ -87,7 +87,7 @@ const ResetPasswordPage = ({
 
             <div className="mt-1 flex justify-start ml-4 mb-2">
               <img
-                src="/assets/Summarecon_Scanner.svg"
+                src="/assets/visura_logo.png"
                 alt="Logo Scanner"
                 className="w-31 h-15"
               />
