@@ -44,8 +44,8 @@ const SignupPage = () => {
   };
 
   return (
-<div style={{ 
-    height: "100vh",
+    <div style={{ 
+    height: "100vh", 
     overflowY: "auto" 
   }}>
     <SignupComponent onSubmit={handleSignup} errorMessage={errorMessage} />
