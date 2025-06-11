@@ -143,7 +143,10 @@ const ResetPassword = () => {
   };
 
   return (
-    <div>
+    <div style={{ 
+    height: "100vh", 
+    overflowY: "auto" 
+  }}>
       <ResetPasswordPage
         onSubmit={handleResetPassword}
         onResend={handleResendOTP}
