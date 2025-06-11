@@ -28,6 +28,11 @@ const TransmittalDataPreviewModal = ({
     setActiveFileIndex(currentPage - 1);
   }, [currentPage]);
 
+  useEffect(() => {
+    // Reset section view when switching files
+    setCurrentSection("original");
+  }, [activeFileIndex]);
+
   const currentOcrResult = ocrResults?.[activeFileIndex];
 
   const formatDateForInput = (dateStr) => {
@@ -159,20 +164,15 @@ const TransmittalDataPreviewModal = ({
         onDeleteResult(currentOcrResult.id);
       }
 
-      // Navigate to another file if available
-      if (ocrResults.length > 1) {
-        if (activeFileIndex === ocrResults.length - 1) {
-          navigateToPrevFile();
-        } else {
-          navigateToNextFile();
-        }
-      } else {
+      // Close modal if no files left or navigate to another file
+      if (ocrResults.length <= 1) {
         onClose(); // Close modal if no files left
+      } else {
+        // Navigate to another file if available
+        if (activeFileIndex === ocrResults.length - 1) {
+          setActiveFileIndex(Math.max(0, activeFileIndex - 1));
+        }
       }
-
-      // Remove the deleted result from the array (this would ideally trigger a refresh in the parent)
-      // This is just a visual update - the parent component should refresh data
-      ocrResults.splice(activeFileIndex, 1);
       
     } catch (error) {
       console.error("Error deleting OCR result:", error);
