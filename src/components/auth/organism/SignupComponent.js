@@ -72,13 +72,13 @@ const SignupComponent = ({
           </div>
 
           <div className="flex flex-col items-start justify-start">
-            <div className="mb-1 ml-4">
+            {/* <div className="mb-1 ml-4">
               <img
                 src="/assets/Summarecon_Agung 1.svg"
                 alt="Logo Summarecon Agung"
                 className="w-50 h-20"
               />
-            </div>
+            </div> */}
 
             <div className="mt-1 flex justify-start ml-4 mb-2">
               <img

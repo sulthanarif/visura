@@ -220,11 +220,11 @@ const PreviewTransmittal = ({
           <div className="flex space-x-2">
 
           <a
-            className="text-orange-200 cursor-pointer"
-            onClick={handleOpenTransmittalModal}
-          >
-            <Icon name="eye" />
-          </a>
+              className="text-orange-200 cursor-pointer hover:text-orange-400 transition-colors duration-150"
+              onClick={handleOpenTransmittalModal}
+            >
+              <Icon name="eye" />
+            </a>
           </div>
         </div>
         <div className="field">

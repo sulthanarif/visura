@@ -73,13 +73,13 @@ const LoginComponent = ({
           </div>
 
           <div className="flex flex-col items-start justify-start">
-            <div className="mb-1 ml-4">
+            {/* <div className="mb-1 ml-4">
               <img
                 src="/assets/Summarecon_Agung 1.svg"
                 alt="Logo Summarecon Agung"
                 className="w-50 h-20"
               />
-            </div>
+            </div> */}
 
             <div className="ml-5 mt-2">
               <h1 className="text-2xl text-left">Selamat Datang!</h1>
