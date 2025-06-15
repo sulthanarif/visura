@@ -1,128 +1,18 @@
-import {
-  processPDF,
-  tempCutDir,
-  tempHiDpiDir,
-  tempRotateDir,
-  tempCutResultDir,
-  tempDir,
-  outputDir,
-  targetDPI,
-  tempCroppedDir,
-} from "../ocr-process";
+import { processPDF, tempDir, outputDir, targetDPI } from "../ocr-process";
 import fs from "fs";
-import path from "path";
-import formidable from "formidable";
-import supabase from "@/utils/supabaseClient";
-import { fileTypeFromBuffer } from "file-type";
-import { v4 as uuidv4 } from "uuid";
+import { 
+  uploadService, 
+  storageService, 
+  qrService, 
+  transmittalService, 
+  cleanupService 
+} from "../services";
 
 const ocrController = {
-  handleFormData: async (req, res) => {
-    try {
-      const directories = [
-        outputDir,
-        tempDir,
-        tempCutDir,
-        tempHiDpiDir,
-        tempRotateDir,
-        tempCutResultDir,
-        tempCroppedDir,
-      ];
-
-      for (const dir of directories) {
-        if (!fs.existsSync(dir)) {
-          await fs.promises.mkdir(dir, { recursive: true });
-        }
-      }
-
-      const form = formidable({ 
-        multiples: true, 
-        uploadDir: tempDir,
-        maxFileSize: 10 * 1024 * 1024, // 10MB max file size
-        filter: (part) => {
-          return part.name === 'pdfFile' && 
-                (part.mimetype === 'application/pdf' || 
-                part.originalFilename.toLowerCase().endsWith('.pdf'));
-        }
-      });
-      
-      return new Promise((resolve, reject) => {
-        form.parse(req, async (err, _, files) => {
-          if (err) {
-            console.error("Form parsing error:", err);
-            let errorMessage = "Failed to parse form data.";
-            
-            // Customize error message based on error type
-            if (err.code === 'LIMIT_FILE_SIZE') {
-              errorMessage = "File size exceeds the 10MB limit.";
-            } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-              errorMessage = "Invalid file type. Only PDF files are allowed.";
-            }
-            
-            return reject(
-              res.status(400).json({ message: errorMessage })
-            );
-          }
-          
-          if (!files.pdfFile || files.pdfFile.length === 0) {
-            return reject(
-              res.status(400).json({ message: "No file uploaded" })
-            );
-          }
-          
-          const pdfFiles = Array.isArray(files.pdfFile)
-            ? files.pdfFile
-            : [files.pdfFile];
-            
-          // Validate file types more carefully
-          for (const file of pdfFiles) {
-            const fileExtension = path.extname(file.originalFilename).toLowerCase();
-            
-            if (fileExtension !== '.pdf') {
-              return reject(
-                res.status(400).json({ 
-                  message: `Invalid file type: ${file.originalFilename}. Only PDF files are allowed.` 
-                })
-              );
-            }
-            
-            if (file.size > 10 * 1024 * 1024) {
-              return reject(
-                res.status(400).json({ 
-                  message: `File too large: ${file.originalFilename}. Maximum file size is 10MB.` 
-                })
-              );
-            }
-          }
-          
-          const uploadQueueFiles = pdfFiles.map((file, index) => ({
-            id: index,
-            file: {
-              name: file.originalFilename,
-              size: file.size
-            },
-            status: "Waiting...",
-          }));
-          
-          resolve({
-            pdfFiles,
-            uploadQueueFiles,
-          });
-        });
-      });
-    } catch (error) {
-      console.error("Error creating output directory:", error);
-      throw error;
-    }
-  },
-  
-  processUpload: async (req, res) => {
+  handleFormData: uploadService.handleFormData,  processUpload: async (req, res) => {
     res.setHeader("Content-Type", "application/json");
     try {
-      const { pdfFiles, uploadQueueFiles } = await ocrController.handleFormData(
-        req,
-        res
-      );
+      const { pdfFiles, uploadQueueFiles } = await ocrController.handleFormData(req, res);
       const projectId = req.query.projectId;
 
       if (!projectId) {
@@ -145,44 +35,20 @@ const ocrController = {
           uploadQueueFiles[fileIndex].status = "Processing...";
           uploadQueueFiles[fileIndex].progress = 5;
           
-          const sanitizedPdfName = originalFilename
-            .replace(/[^a-zA-Z0-9-_.]/g, "_")
-            .replace(/\s+/g, "_");
-          
-          // First, process the PDF to verify it can be processed successfully
+          // Upload PDF to storage first
           uploadQueueFiles[fileIndex].progress = 20;
+          const pdfStorageUrl = await storageService.uploadPdf(pdfPath, originalFilename);
           
-          // First upload the PDF to get the storage URL
-          const pdfStoragePath = `pdf/${uuidv4()}-${sanitizedPdfName}`;
-          const pdfFileBuffer = fs.readFileSync(pdfPath);
-
-          const { data: pdfUploadData, error: pdfError } = await supabase.storage
-            .from("ocr-storage")
-            .upload(pdfStoragePath, pdfFileBuffer, {
-              contentType: "application/pdf",
-              upsert: true,
-            });
-
-          if (pdfError) {
-            console.error("Gagal upload PDF:", pdfError);
-            throw new Error("Upload PDF gagal");
-          }
-          
-          const pdfStorageUrl = supabase.storage
-            .from("ocr-storage")
-            .getPublicUrl(pdfStoragePath).data.publicUrl;
-          
-          if (!pdfStorageUrl || typeof pdfStorageUrl !== "string") {
+          if (!pdfStorageUrl) {
             console.error("Invalid pdfStorageUrl:", pdfStorageUrl);
             uploadQueueFiles[fileIndex].status = "Failed";
-            // Clean up local files before continuing to next file
-            await cleanupLocalProcessedFiles(pdfPath, result);
+            await cleanupService.cleanupLocalProcessedFiles(pdfPath, result);
             continue;
           }
 
           uploadQueueFiles[fileIndex].progress = 40;
           
-          // Now process the PDF with the storage URL
+          // Process PDF with OCR
           result = await processPDF(
             pdfPath,
             tempDir,
@@ -197,30 +63,27 @@ const ocrController = {
           // Store the URL in the result object
           result.pdfStorageUrl = pdfStorageUrl;
           
-          const modifiedPdfBuffer = result.modifiedPdf
-            ? fs.readFileSync(result.modifiedPdf)
-            : null;
+          // Handle QR code embedding and PDF modification
+          const qrResult = await qrService.processQRCodeEmbedding(
+            pdfPath, 
+            pdfStorageUrl, 
+            tempDir, 
+            `${result.filename}-${Date.now()}`
+          );
+          
+          result.modifiedPdf = qrResult.modifiedPdf;
+          result.isEncrypted = qrResult.isEncrypted;
 
-          if (modifiedPdfBuffer) {
-            const modifiedPdfStoragePath = `pdf/${uuidv4()}-modified-${sanitizedPdfName}`;
-            const { error: modifiedPdfError } = await supabase.storage
-              .from("ocr-storage")
-              .upload(modifiedPdfStoragePath, modifiedPdfBuffer, {
-                contentType: "application/pdf",
-                upsert: true,
-              });
-
-            if (modifiedPdfError) {
-              console.error("Failed to upload modified PDF:", modifiedPdfError);
-              throw new Error("Failed to upload modified PDF");
-            }
-            result.pdf_url = supabase.storage
-              .from("ocr-storage")
-              .getPublicUrl(modifiedPdfStoragePath).data.publicUrl;
+          // Upload modified PDF if it exists
+          let pdf_url;
+          if (result.modifiedPdf && fs.existsSync(result.modifiedPdf)) {
+            const modifiedPdfBuffer = fs.readFileSync(result.modifiedPdf);
+            pdf_url = await storageService.uploadModifiedPdf(modifiedPdfBuffer, originalFilename);
           } else {
-            result.pdf_url = pdfStorageUrl;
+            pdf_url = pdfStorageUrl;
           }
 
+          // Upload all processed images
           const imagesToUpload = [
             result.images.original,
             result.images.hidpi,
@@ -229,120 +92,15 @@ const ocrController = {
             ...result.images.parts,
           ];
 
-          const image_paths = {
-            original: null,
-            hidpi: null,
-            rotated: null,
-            cropped: null,
-            parts: [],
-          };
-
-          const uploadedImages = [];
-
-          for (const imagePath of imagesToUpload) {
-            let storagePath;
-            const fileName = path.basename(imagePath);
-            const fileBuffer = fs.readFileSync(imagePath);
-            if (imagePath.startsWith(tempHiDpiDir)) {
-              storagePath = `png/ocr/hidpi/${fileName}`;
-            } else if (imagePath.startsWith(tempRotateDir)) {
-              storagePath = `png/ocr/rotate/${fileName}`;
-            } else if (imagePath.startsWith(tempCroppedDir)) {
-              storagePath = `png/ocr/cuts/cropped/${fileName}`;
-            } else if (imagePath.startsWith(tempCutDir)) {
-              storagePath = `png/ocr/cuts/part/${fileName}`;
-            } else if (imagePath.startsWith(tempDir)) {
-              storagePath = `png/ocr/original/${fileName}`;
-            } else {
-              console.error(`Unknown image path: ${imagePath}`);
-              continue;
-            }
-
-            const mimeType = await fileTypeFromBuffer(fileBuffer);
-            if (!mimeType || mimeType.mime !== "image/png") {
-              console.error(`Invalid file type: ${storagePath}`);
-              continue;
-            }
-
-            if (!fileName.endsWith(".png")) {
-              const newFileName = `${fileName}.png`;
-              storagePath = storagePath.replace(fileName, newFileName);
-            }
-            const { data: uploadData, error } = await supabase.storage
-              .from("ocr-storage")
-              .upload(storagePath, fileBuffer, {
-                contentType: "image/png",
-                upsert: true,
-              });
-            if (error) {
-              console.error(`Upload gagal: ${storagePath}`, error);
-              continue;
-            }
-
-            const imageUrl = supabase.storage
-              .from("ocr-storage")
-              .getPublicUrl(storagePath).data.publicUrl;
-
-            uploadedImages.push(imagePath);
-
-            if (imagePath.startsWith(tempHiDpiDir)) {
-              image_paths.hidpi = imageUrl;
-            } else if (imagePath.startsWith(tempRotateDir)) {
-              image_paths.rotated = imageUrl;
-            } else if (imagePath.startsWith(tempCroppedDir)) {
-              image_paths.cropped = imageUrl;
-            } else if (imagePath.startsWith(tempCutDir)) {
-              image_paths.parts.push(imageUrl);
-            } else if (imagePath.startsWith(tempDir)) {
-              image_paths.original = imageUrl;
-            }
-          }
-
-          for (const imagePath of uploadedImages) {
-            try {
-              await fs.promises.unlink(imagePath);
-              console.log(`Successfully deleted local image: ${imagePath}`);
-            } catch (err) {
-              console.error(
-                `Error deleting local image ${imagePath}:`,
-                err.message
-              );
-            }
-          }
+          const image_paths = await storageService.uploadImages(imagesToUpload);
 
           uploadQueueFiles[fileIndex].status = "Done";
           uploadQueueFiles[fileIndex].progress = 100;
           allResults.push(result);
 
-          const { data: insertData, error: insertError } = await supabase
-            .from("ocr_results")
-            .insert([{
-                projectId: projectId,
-                filename: result.filename,
-                title: result.title,
-                revision: result.revision,
-                drawingCode: result.drawingCode,
-                date: result.date,
-                image_paths: image_paths,
-                pdf_url: result.pdf_url,
-                isEncrypted: result.isEncrypted || false,
-              },
-            ])
-            .select();
-          if (insertError) {
-            console.error("Error inserting ocr results:", insertError);
-            throw insertError;
-          }
+          // Save OCR results to database
+          await storageService.saveOcrResults(result, projectId, image_paths, pdf_url);
 
-          if (result.isEncrypted) {
-            const { error: updateError } = await supabase
-              .from("ocr_results")
-              .update({ isEncrypted: true })
-              .eq("result_id", insertData[0].result_id);
-            if (updateError) {
-              console.error("Error updating isEncrypted status:", updateError);
-            }
-          }
         } catch (e) {
           console.error(`Error processing file ${originalFilename}:`, e);
           uploadQueueFiles[fileIndex].status = "Failed";
@@ -363,23 +121,10 @@ const ocrController = {
           }
           
           // Cleanup all local files when processing fails
-          await cleanupLocalProcessedFiles(pdfPath, result);
+          await cleanupService.cleanupLocalProcessedFiles(pdfPath, result);
         } finally {
-          try {
-            // Delete original PDF file if it exists
-            if (fs.existsSync(pdfPath)) {
-              await fs.promises.unlink(pdfPath);
-              console.log(`Successfully deleted original PDF: ${pdfPath}`);
-            }
-            
-            // Delete modified PDF if it exists
-            if (result && result.modifiedPdf && fs.existsSync(result.modifiedPdf)) {
-              await fs.promises.unlink(result.modifiedPdf);
-              console.log(`Successfully deleted modified PDF: ${result.modifiedPdf}`);
-            }
-          } catch (e) {
-            console.error("Error cleaning up file:", e);
-          }
+          // Clean up files after processing
+          await cleanupService.cleanupAfterProcessing(pdfPath, result);
         }
       }
 
@@ -402,8 +147,7 @@ const ocrController = {
         error: error.message,
       });
     }
-  },
-  generateTransmittal: async (req, res) => {
+  },  generateTransmittal: async (req, res) => {
     try {
       const {
         transmittalData,
@@ -414,58 +158,21 @@ const ocrController = {
         isTemplate = false, // Default false to raw mode
       } = req.body;
 
-      if (!transmittalData || !projectName || !documentName || !transmittalNumber || !csvFileName) {
-        return res.status(400).json({ message: "Missing required fields for transmittal generation." });
-      }
-
-      // Process the filename - always add -raw suffix for non-template mode
-      let finalCsvName = csvFileName.trim() || "allData";
-      if (!isTemplate) {
-        const baseName = finalCsvName.toLowerCase().endsWith('.csv')
-          ? finalCsvName.slice(0, -4)
-          : finalCsvName;
-        if (!baseName.toLowerCase().endsWith('-raw')) {
-          finalCsvName = baseName + "-raw";
-        }
-      }
-
-      // Ensure .csv extension
-      if (!finalCsvName.toLowerCase().endsWith(".csv")) {
-        finalCsvName += ".csv";
-      }
-      finalCsvName = finalCsvName.replace(/[^a-zA-Z0-9-_.]/g, "_"); // Sanitize filename
-
-      try {
-        await fs.promises.mkdir(outputDir, { recursive: true });
-      } catch (error) {
-        if (error.code !== "EEXIST") {
-          console.error("Error creating output directory:", error);
-          throw error;
-        }
-      }
-
-      const drawingDataRows = transmittalData.map((item, index) => {
-        const drawingNumber = item.filename;
-        const title = item.title || "";
-        const drawingCode = item.drawingCode || "";
-        const drawingRevision = item.revision;
-        return `${index + 1},${drawingNumber},${title},${drawingCode},A2,${drawingRevision}`;
-      }).join("\n");
-
-      // Generate content based on isTemplate
-      const csvContent = isTemplate
-        ? generateTemplateContent(drawingDataRows, projectName, documentName, transmittalNumber)
-        : drawingDataRows;
-
-      fs.writeFileSync(path.join(outputDir, finalCsvName), csvContent, {
-        encoding: "utf-8",
+      const result = await transmittalService.generateTransmittal({
+        transmittalData,
+        projectName,
+        documentName,
+        transmittalNumber,
+        csvFileName,
+        isTemplate
       });
 
-      return res.status(200).json({
-        message: "Transmittal generated successfully.",
-        csvFileName: finalCsvName,
-        isTemplate,
-      });
+      // Set headers for CSV file download
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${result.csvFileName}"`);
+      
+      // Return CSV content directly
+      return res.status(200).send(result.csvContent);
     } catch (error) {
       console.error("Error generating transmittal:", error);
       res.status(500).json({
@@ -473,74 +180,12 @@ const ocrController = {
         error: error.message,
       });
     }
-  },
-  cleanup: async (req, res) => {
+  },cleanup: async (req, res) => {
     const { projectId } = req.body;
 
     try {
-      const { data: filesData, error: filesError } = await supabase
-        .from("ocr_results")
-        .select("filename, image_paths")
-        .eq("projectId", projectId);
-
-      if (filesError) throw filesError;
-
-      const { error: deleteError } = await supabase
-        .from("ocr_results")
-        .delete()
-        .eq("projectId", projectId);
-
-      if (deleteError) throw deleteError;
-
-      if (filesData && filesData.length > 0) {
-        const filesToDelete = filesData.flatMap((file) =>
-          Object.values(file.image_paths).flat()
-        );
-
-        const { error: storageError } = await supabase.storage
-          .from("ocr-storage")
-          .remove(filesToDelete);
-
-        if (storageError) console.error("Storage cleanup error:", storageError);
-      }
-
-      const cleanupLocalFile = async (filePath) => {
-        try {
-          await fs.promises.unlink(filePath);
-        } catch (e) {
-          if (e.code !== "ENOENT") {
-            console.error(
-              `Error cleaning up ${path.basename(filePath)}:`,
-              e.message
-            );
-          }
-        }
-      };
-
-      await Promise.all([
-        ...fs
-          .readdirSync(tempDir)
-          .map((f) => cleanupLocalFile(path.join(tempDir, f))),
-        ...fs
-          .readdirSync(tempHiDpiDir)
-          .map((f) => cleanupLocalFile(path.join(tempHiDpiDir, f))),
-        ...fs
-          .readdirSync(tempRotateDir)
-          .map((f) => cleanupLocalFile(path.join(tempRotateDir, f))),
-        ...fs
-          .readdirSync(tempCutResultDir)
-          .map((f) => cleanupLocalFile(path.join(tempCutResultDir, f))),
-        ...fs
-          .readdirSync(tempCroppedDir)
-          .map((f) => cleanupLocalFile(path.join(tempCroppedDir, f))),
-        ...fs
-          .readdirSync(tempCutDir)
-          .map((f) => cleanupLocalFile(path.join(tempCutDir, f))),
-      ]);
-
-      return res
-        .status(200)
-        .json({ message: "Cleanup completed successfully." });
+      const result = await cleanupService.cleanupProject(projectId);
+      return res.status(200).json(result);
     } catch (error) {
       console.error("Error during cleanup:", error);
       return res.status(500).json({
@@ -550,99 +195,5 @@ const ocrController = {
     }
   },
 };
-
-// Helper function to clean up all locally processed files when processing fails
-async function cleanupLocalProcessedFiles(pdfPath, result) {
-  try {
-    // Clean up any processed images if they exist
-    if (result && result.images) {
-      const allImagePaths = [
-        result.images.original,
-        result.images.hidpi,
-        result.images.rotated,
-        result.images.cropped,
-        ...(result.images.parts || []),
-      ].filter(Boolean);
-
-      // Delete all images
-      for (const imagePath of allImagePaths) {
-        if (imagePath && fs.existsSync(imagePath)) {
-          await fs.promises.unlink(imagePath);
-          console.log(`Cleaned up failed processing image: ${imagePath}`);
-        }
-      }
-    }
-
-    // Clean up any temporary files in the temp directories
-    const cleanupDirectory = async (dir) => {
-      if (fs.existsSync(dir)) {
-        const files = fs.readdirSync(dir);
-        
-        for (const file of files) {
-          const filePath = path.join(dir, file);
-          
-          try {
-            // Get file stats to check if it's a directory
-            const stats = fs.statSync(filePath);
-            
-            if (stats.isFile()) {
-              // Remove file
-              await fs.promises.unlink(filePath);
-            }
-          } catch (err) {
-            console.error(`Error cleaning up file ${filePath}:`, err);
-          }
-        }
-      }
-    };
-    
-    // Clean up all the temp directories
-    await Promise.all([
-      cleanupDirectory(tempDir),
-      cleanupDirectory(tempCutDir),
-      cleanupDirectory(tempHiDpiDir),
-      cleanupDirectory(tempRotateDir),
-      cleanupDirectory(tempCutResultDir),
-      cleanupDirectory(tempCroppedDir),
-    ]);
-    
-  } catch (error) {
-    console.error("Error during cleanup of failed processing:", error);
-  }
-}
-
-function generateTemplateContent(drawingDataRows, projectName, documentName, transmittalNumber) {
-  const now = new Date();
-  const D = now.getDate();
-  const M = now.getMonth() + 1;
-  const Y = now.getFullYear();
-  
-  return `TRANSMITTAL,,,,,,,,,,
-,,,,,,,,,,
-No. Transmittal: ${transmittalNumber},,,,,,,,,,
-PROJECT: ,,,,,,,,,  Received :,${documentName}
-${projectName},,,,,,,,,Date,${D}
-,,,,,,,,,Month,${M}
-PACKAGE :,,,,,,,,,Year,${Y}
-,,,,,,,,,,
-No.,File Name,Drawing Name,Drawing Code,Format,Revision
-${drawingDataRows}
-,,,,,,,,,,
-Prepared by:,,,,,,,,,,Checked by:
-,,,,,,,,,,
-,,,,,,,,,,
-Distributed to :,,,,,,,,,,Copies to :
-,,,,,,,,,,
-1,,,,,,,,,,
-2,,,,,,,,,,
-3,,,,,,,,,,
-,,,,,,,,,,
-Legends,,,,,,,,,,Reason for Issue
-,A   ,:   Approval,,,,,I, : Information,,
-,C   ,:   Copy,,,,,R, : Revision,,
-,CO ,:   Construction,,,,,Ct, : Contract,,
-,D    ,:   Disk,,,,,T, : Tender,,
-Issued by: .....................,,,,,,,,,,`;
-}
 
 export default ocrController;

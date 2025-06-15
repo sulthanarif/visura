@@ -6,16 +6,7 @@ import { toast } from "react-hot-toast";
 import { useRouter } from 'next/router';
 import ModalTemplate from "../templates/ModalTemplate";
 
-/**
- * ChangePasswordModal Component
- * 
- * A modal dialog that allows users to change their password.
- * Includes password validation, confirmation matching, and secure submission.
- * 
- * @param {Object} user - Current user data
- * @param {Function} onClose - Function to call when closing the modal
- * @param {Function} onPasswordUpdated - Callback after successful password update
- */
+
 const ChangePasswordModal = ({ user, onClose, onPasswordUpdated }) => {
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");

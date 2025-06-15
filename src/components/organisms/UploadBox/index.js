@@ -108,20 +108,13 @@ const UploadBox = () => {
           }
        }, []);
 
-
-      useEffect(() => {
-          // Check if projectId is passed via router query
-          if (router.query && router.query.projectId) {
+    useEffect(() => {
+        // Check if projectId is passed via router query
+        if (router.query && router.query.projectId) {
             const { projectId } = router.query;
             setProjectId(projectId);
-           }
-           if (router.query && router.query.projectName) {
-              const { projectName } = router.query;
-              setDebouncedProjectName(projectName);
-              setProjectName(projectName)
-           }
-
-      }, [router.query]);
+        }
+    }, [router.query]);
 
 
    useEffect(() => {
@@ -302,11 +295,10 @@ const UploadBox = () => {
 
                 currentProjectId = data?.[0]?.projectId;
                 setProjectId(currentProjectId);
-                
-                if(currentProjectId){
+                  if(currentProjectId){
                     router.push({
                         pathname: router.pathname,
-                        query: { ...router.query, projectId: currentProjectId, projectName: projectName },
+                        query: { ...router.query, projectId: currentProjectId },
                     });
                 }
             } catch (error) {
@@ -319,11 +311,10 @@ const UploadBox = () => {
                 setShowQueue(false);
                 setFiles(filesTemp);
                 return;
-            }
-        } else {
+            }        } else {
             router.push({
                 pathname: router.pathname,
-                query: { ...router.query, projectId: currentProjectId, projectName: projectName },
+                query: { ...router.query, projectId: currentProjectId },
             });
         }
           
@@ -529,9 +520,7 @@ const UploadBox = () => {
     const handleGenerateTransmittal = () => {
          setErrorMessageModal("");
         setShowTransmittalModal(true);
-    };
-
-    const confirmGenerateTransmittal = async (data) => {
+    };    const confirmGenerateTransmittal = async (data) => {
        try {
             const transmittalData = Object.values(previewData);
             const response = await fetch(`/api/generate-transmittal`, {
@@ -546,36 +535,40 @@ const UploadBox = () => {
                     isTemplate: data.isTemplate
                 }),
             });
-            if (!response.ok) {
-               const errorData = await response.json();
-               throw new Error(`Failed to generate transmittal: ${errorData?.message || ""}`);
-           }
-           const dataRes = await response.json();
-            setCsvFileName(dataRes.csvFileName);
 
-            // download file
+            if (!response.ok) {
+               const errorData = await response.text();
+               throw new Error(`Failed to generate transmittal: ${errorData || "Unknown error"}`);
+            }
+
+            // Get the filename from response headers
+            const contentDisposition = response.headers.get('Content-Disposition');
+            const fileName = contentDisposition ? 
+                contentDisposition.split('filename=')[1].replace(/"/g, '') : 
+                `transmittal-${Date.now()}.csv`;
+
+            // Get CSV content as blob
+            const csvBlob = await response.blob();
+            
+            // Create download link
+            const url = window.URL.createObjectURL(csvBlob);
             const link = document.createElement("a");
-            link.href = `/output/${dataRes.csvFileName}`;
-            link.download = dataRes.csvFileName;
+            link.href = url;
+            link.download = fileName;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            // we can use this cleanup function to remove the file from the server
-            //  setCleanupStatus("Cleaning up files, please wait...");
-            // const cleanupResponse = await fetch("/api/cleanup", {
-            //      method: "POST",
-            //      headers: { "Content-Type": "application/json" },
-            //      body: JSON.stringify({ projectId }),
-            //  });
+            
+            // Clean up the blob URL
+            window.URL.revokeObjectURL(url);
+            
+            setCsvFileName(fileName);
 
-            // setShowTransmittalModal(false);
-
-            // if (!cleanupResponse.ok) {
-            //     const errorData = await cleanupResponse.json();
-            //     throw new Error(`Failed to clean up files ${errorData.message || ""}`);
-            // }
-            // setCleanupStatus("Cleanup completed, refreshing...");
-           // router.reload(); // Refresh halaman
+            // Show success message
+            toast.success("Transmittal generated and downloaded successfully!", {
+                duration: 3000,
+                position: "top-center",
+            });
         }
         catch (error) {
             console.error("Error during generate transmittal: ", error);
