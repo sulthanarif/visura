@@ -3,9 +3,6 @@ const sharp = require("sharp");
 const fs = require("fs");
 const path = require("path");
 const pdf2png = require("pdf2png");
-const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
-const { default: axios } = require('axios');
-const QRCode = require('qrcode');
 
 const tempCutDir = path.join(process.cwd(), "src/temp/ocr/cut/part");
 const tempCroppedDir = path.join(process.cwd(), "src/temp/ocr/cut/cropped"); // New path for cropped
@@ -15,62 +12,6 @@ const tempCutResultDir = path.join(process.cwd(), "src/temp/ocr/cut");
 const tempDir = path.join(process.cwd(), "src/temp/ocr");
 const outputDir = path.join(process.cwd(), "public/output");
 const targetDPI = 800;
-
-async function generateQRCode(url) {
-    try {
-      if (!url || typeof url !== 'string' || url.trim() === '') {
-        throw new Error('Valid URL string required');
-      }
-      return await QRCode.toDataURL(url);
-    } catch (error) {
-      console.error("Error generating QR Code:", error);
-      throw error;
-    }
-  }
-
-
-// Function to embed the QR code in a PDF
-async function embedQRCodeInPdf(pdfPath, qrCodeDataUrl, storageUrl) {
-    try {
-        let pdfDoc;
-        const pdfBytes = await fs.promises.readFile(pdfPath);
-        try {
-            pdfDoc = await PDFDocument.load(pdfBytes);
-        } catch (err) {
-            console.error("Error loading PDF (try with ignoreEncryption):", err.message);
-            pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: false });
-        }
-
-        const pages = pdfDoc.getPages();
-        const firstPage = pages[0];
-
-        // Load QR code image
-        const qrCodeImage = await pdfDoc.embedPng(qrCodeDataUrl);
-
-        // Define where to place the QR code (adjust as needed)
-        const qrCodeWidth = 30;
-        const qrCodeHeight = 30;
-        const x = 62; // Adjust as needed
-         const y = firstPage.getHeight() - qrCodeHeight - 22;
-
-         // Draw QR Code
-        firstPage.drawImage(qrCodeImage, {
-            x,
-            y,
-            width: qrCodeWidth,
-            height: qrCodeHeight,
-        });
-
-
-        // Save the modified PDF
-        const modifiedPdfBytes = await pdfDoc.save();
-        return modifiedPdfBytes;
-
-    } catch (error) {
-        console.error("Error embedding QR code:", error);
-        throw error;
-    }
-}
 
 // Fungsi untuk convert PDF ke PNG
 async function pdfToPng(pdfPath, tempDir) {
@@ -284,32 +225,12 @@ async function processPDF(pdfPath, tempDir, outputDir, targetDPI, originalFilena
             jsonData["revision"] = `${jsonData["revision"]}-${formattedDate}`;
             jsonData["date"] = formattedDate;
           }
-          break;
-
-        default:
+          break;        default:
           jsonData[key] = cleanText(text.trim()); // Simpan hasil tanpa koreksi untuk bagian lain
           break;
       }
     }
-        // 6. Generate QR Code
-      let qrCodeDataUrl;
-      try {
-       if (storageUrl && typeof storageUrl === 'string' && storageUrl.trim() !== '') {
-         qrCodeDataUrl = await generateQRCode(storageUrl);
-         // Embed QR Code ke PDF
-          const modifiedPdfBytes = await embedQRCodeInPdf(pdfPath, qrCodeDataUrl, storageUrl);
-          // 7. Save the modified PDF
-         const modifiedPdfPath = path.join(tempDir, `${outputBaseName}-modified.pdf`);
-           fs.writeFileSync(modifiedPdfPath, modifiedPdfBytes);
-            jsonData.modifiedPdf = modifiedPdfPath;
-       } else {
-         console.warn("StorageUrl is not provided or invalid, skipping QR code generation");
-         jsonData.isEncrypted = false; // Set to false since it's not an encryption issue
-       }
-      } catch(err) {
-          console.error("Error embedding QR Code into PDF", err)
-            jsonData.isEncrypted = true;
-      }
+
     return jsonData;
   } catch (err) {
     console.error(`[${pdfPath}] Terjadi kesalahan:`, err);
