@@ -4,15 +4,16 @@ import { useRouter } from 'next/router';
 import { decodeToken } from '../../utils/authHelpers';
 import ProfileModal from '../molecules/ProfileModal';
 import ChangePasswordModal from '../molecules/ChangePasswordModal';
+import AboutModal from '../molecules/AboutModal';
 import Logo from '../molecules/Logo';
 import Nav from '../molecules/Nav';
 import ProfileSection from '../molecules/ProfileSection';
 
 
-const Header = () => {
-    const [showProfile, setShowProfile] = useState(false);
+const Header = () => {    const [showProfile, setShowProfile] = useState(false);
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [showAboutModal, setShowAboutModal] = useState(false);
     const profileRef = useRef(null);
     const [user, setUser] = useState(null);
     const [updateTrigger, setUpdateTrigger] = useState(0);
@@ -66,11 +67,17 @@ const Header = () => {
 
      const handlePasswordModalClose = () => {
           setShowPasswordModal(false);
-     };
-
-     const handlePasswordUpdated = () => {
+     };     const handlePasswordUpdated = () => {
          localStorage.removeItem('token');
          router.push('/login');
+     };
+
+     const handleAboutClick = () => {
+         setShowAboutModal(true);
+     };
+
+     const handleAboutModalClose = () => {
+         setShowAboutModal(false);
      };
 
     const handleUpdateUser = () => {
@@ -89,13 +96,8 @@ const Header = () => {
     return (
         <header className="relative flex flex-col sm:flex-row items-center justify-between p-4 bg-white">
             {/* Logo Section */}
-             <Logo onMenuToggle={toggleNav} />
-
-
-            {/* Navigation Section */}
-            <Nav user={user}  />
-
-            {/* Profile Section */}
+             <Logo onMenuToggle={toggleNav} />            {/* Navigation Section */}
+            <Nav user={user} />            {/* Profile Section */}
             <ProfileSection
                     user={user}
                     showProfile={showProfile}
@@ -104,9 +106,8 @@ const Header = () => {
                     handleLogout={handleLogout}
                     handleProfileClick={handleProfileClick}
                     handlePasswordChangeClick={handlePasswordChangeClick}
-                />
-
-            {/* Modals */}
+                    handleAboutClick={handleAboutClick}
+                />{/* Modals */}
            {showProfileModal && (
                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                     <ProfileModal user={user} onClose={handleModalClose} onUpdateUser={handleUpdateUser} />
@@ -116,6 +117,9 @@ const Header = () => {
                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                     <ChangePasswordModal user={user} onClose={handlePasswordModalClose} onPasswordUpdated={handlePasswordUpdated} />
                  </div>
+            )}
+            {showAboutModal && (
+                <AboutModal isOpen={showAboutModal} onClose={handleAboutModalClose} />
             )}
         </header>
     );
