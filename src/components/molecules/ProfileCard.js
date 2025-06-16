@@ -13,8 +13,9 @@ import { Badge } from "flowbite-react";
  * @param {Function} onLogout - Function to handle user logout
  * @param {Function} onProfileClick - Function to handle profile edit action
  * @param {Function} onPasswordChangeClick - Function to handle password change action
+ * @param {Function} onAboutClick - Function to handle about modal action
  */
-const ProfileCard = ({ user, onLogout, onProfileClick, onPasswordChangeClick }) => {
+const ProfileCard = ({ user, onLogout, onProfileClick, onPasswordChangeClick, onAboutClick }) => {
     const isThisAdmin = user?.role === "admin";
     
     if (!user) return null;
@@ -73,8 +74,7 @@ const ProfileCard = ({ user, onLogout, onProfileClick, onPasswordChangeClick }) 
                     </div>
                     <Icon name="chevron-right" className="text-gray-400 w-4 h-4" />
                 </button>
-                
-                <button 
+                  <button 
                     onClick={onPasswordChangeClick}
                     className="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-[#E17218]/5 transition-colors duration-200"
                 >
@@ -83,6 +83,19 @@ const ProfileCard = ({ user, onLogout, onProfileClick, onPasswordChangeClick }) 
                             <Icon name="lock" className="text-[#E17218] w-4 h-4" />
                         </div>
                         <span className="font-medium">Change Password</span>
+                    </div>
+                    <Icon name="chevron-right" className="text-gray-400 w-4 h-4" />
+                </button>
+                
+                <button 
+                    onClick={onAboutClick}
+                    className="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-[#E17218]/5 transition-colors duration-200"
+                >
+                    <div className="flex items-center">
+                        <div className="w-8 h-8 rounded-full bg-[#E17218]/10 flex items-center justify-center mr-3">
+                            <Icon name="info" className="text-[#E17218] w-4 h-4" />
+                        </div>
+                        <span className="font-medium">About</span>
                     </div>
                     <Icon name="chevron-right" className="text-gray-400 w-4 h-4" />
                 </button>

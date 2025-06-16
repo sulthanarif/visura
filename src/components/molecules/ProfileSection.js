@@ -11,6 +11,7 @@ const ProfileSection = ({
     handleLogout,
     handleProfileClick,
     handlePasswordChangeClick,
+    handleAboutClick,
 }) => {
     return (
         <div ref={profileRef} className="relative w-full sm:w-auto mt-4 sm:mt-0">
@@ -25,12 +26,12 @@ const ProfileSection = ({
             </div>
 
             {showProfile && (
-                <div className="absolute right-0 sm:right-1 mt-2 w-full sm:w-64 rounded-lg shadow-xl transition-all duration-200 ease-in-out transform origin-top z-50">
-                    <ProfileCard
+                <div className="absolute right-0 sm:right-1 mt-2 w-full sm:w-64 rounded-lg shadow-xl transition-all duration-200 ease-in-out transform origin-top z-50">                    <ProfileCard
                         user={user}
                         onLogout={handleLogout}
                         onProfileClick={handleProfileClick}
                         onPasswordChangeClick={handlePasswordChangeClick}
+                        onAboutClick={handleAboutClick}
                     />
                 </div>
             )}
