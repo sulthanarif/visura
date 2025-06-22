@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Button from "../../atoms/Button";
-import { useUpload } from "@/models/upload";
 import { useRouter } from "next/router";
 import FileUploadArea from "./FileUploadArea";
 import FileListDisplay from "./FileListDisplay";
@@ -21,17 +20,11 @@ const env = require('dotenv').config();
 const UploadBox = () => {
     const router = useRouter();
     const fileInputRef = useRef(null);
-    const {
-        files,
-        handleAddFile,
-        handleRemoveFile,
-        errorMessage,
-        setErrorMessage,
-        projectName,
-        setProjectName,
-        resetState,
-        setFiles,
-    } = useUpload();
+    
+    // Upload state management (previously from useUpload hook)
+    const [files, setFiles] = useState([]);
+    const [errorMessage, setErrorMessage] = useState("");
+    const [projectName, setProjectName] = useState("");
 
     const [showPreview, setShowPreview] = useState(false);
     const [showQueue, setShowQueue] = useState(false);
@@ -55,6 +48,43 @@ const UploadBox = () => {
     const [isDragOverBox, setIsDragOverBox] = useState(false);
     const dragCounterBox = useRef(0);
 
+    // Upload management functions (previously from useUpload hook)
+    const handleAddFile = (newFiles) => {
+        if (files.length + newFiles.length > 10) {
+            setErrorMessage("Maximum 10 files allowed.");
+            return;
+        }
+        
+        const validFiles = [];
+        
+        for (const file of newFiles) {
+            if (file.size > 10 * 1024 * 1024) {
+                setErrorMessage(`File ${file.name} exceeds 10MB!`);
+            } else {
+                // Check if file is a PDF
+                const fileExtension = file.name.toLowerCase().split('.').pop();
+                if (fileExtension !== 'pdf') {
+                    setErrorMessage(`File ${file.name} is not a PDF. Only PDF files are allowed.`);
+                } else {
+                    validFiles.push(file);
+                }
+            }
+        }
+        
+        if (validFiles.length > 0) {
+            setFiles(prevFiles => [...prevFiles, ...validFiles]);
+        }
+    };
+
+    const handleRemoveFile = (fileToRemove) => {
+        setFiles((prevFiles) => prevFiles.filter((file) => file !== fileToRemove));
+    };
+
+    const resetState = () => {
+        setErrorMessage("");
+        setProjectName("");
+        setFiles([]);
+    };
 
     const MAX_FILES = 10;
 
@@ -247,11 +277,10 @@ const UploadBox = () => {
         const fileExtension = file.name.toLowerCase().split('.').pop();
         if (fileExtension !== 'pdf') {
           invalidFiles.push(file.name);
-        } else if (file.size > 10 * 1024 * 1024) { // 10MB
+        } else if (file.size > 10 * 1024 * 1024) // 10MB
           oversizedFiles.push(file.name);
-        } else {
+        else
           validFiles.push(file);
-        }
       });
 
       if (invalidFiles.length > 0) {
