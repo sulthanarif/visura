@@ -58,3 +58,4 @@ next-env.d.ts
 !/src/temp/ocr/cut/part/
 !/src/temp/ocr/hi-dpi/
 !/src/temp/ocr/rotate/
+!vercel.json
