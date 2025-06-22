@@ -1,8 +1,7 @@
 // src/lib/ocr/server/services/transmittalService.js
 
 export const transmittalService = {
- 
-  generateTransmittalContent: (transmittalData, projectName, documentName, transmittalNumber, isTemplate = false) => {
+   generateTransmittalContent: (transmittalData, projectName, documentName, transmittalNumber, isTemplate = false) => {
     try {
       const drawingDataRows = transmittalData.map((item, index) => {
         const drawingNumber = item.filename;
@@ -13,9 +12,13 @@ export const transmittalService = {
       }).join("\n");
 
       // Generate content based on isTemplate
-      const csvContent = isTemplate
-        ? transmittalService.generateTemplateContent(drawingDataRows, projectName, documentName, transmittalNumber)
-        : drawingDataRows;
+      const csvContent = transmittalService.generateTemplateContent(
+        drawingDataRows, 
+        projectName, 
+        documentName, 
+        transmittalNumber, 
+        isTemplate
+      );
 
       return csvContent;
     } catch (error) {
@@ -23,15 +26,14 @@ export const transmittalService = {
       throw error;
     }
   },
-
-
-  generateTemplateContent: (drawingDataRows, projectName, documentName, transmittalNumber) => {
+  generateTemplateContent: (drawingDataRows, projectName, documentName, transmittalNumber, isTemplate = false) => {
     const now = new Date();
     const D = now.getDate();
     const M = now.getMonth() + 1;
     const Y = now.getFullYear();
     
-    return `TRANSMITTAL,,,,,,,,,,
+    // Header dan data (untuk raw dan template)
+    let content = `TRANSMITTAL,,,,,,,,,,
 ,,,,,,,,,,
 No. Transmittal: ${transmittalNumber},,,,,,,,,,
 PROJECT: ,,,,,,,,,  Received :,${documentName}
@@ -40,7 +42,11 @@ ${projectName},,,,,,,,,Date,${D}
 PACKAGE :,,,,,,,,,Year,${Y}
 ,,,,,,,,,,
 No.,File Name,Drawing Name,Drawing Code,Format,Revision
-${drawingDataRows}
+${drawingDataRows}`;
+
+    // Tambahkan footer hanya jika isTemplate = true
+    if (isTemplate) {
+      content += `
 ,,,,,,,,,,
 Prepared by:,,,,,,,,,,Checked by:
 ,,,,,,,,,,
@@ -57,6 +63,9 @@ Legends,,,,,,,,,,Reason for Issue
 ,CO ,:   Construction,,,,,Ct, : Contract,,
 ,D    ,:   Disk,,,,,T, : Tender,,
 Issued by: .....................,,,,,,,,,,`;
+    }
+    
+    return content;
   },
 
  

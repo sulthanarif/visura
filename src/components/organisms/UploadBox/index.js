@@ -50,8 +50,10 @@ const UploadBox = () => {
     const initialPreviewData = useRef({});
     const [errorMessageModal, setErrorMessageModal] = useState('');
     const [projectId, setProjectId] = useState(null);
-     const [userId, setUserId] = useState(null);
-      const [debouncedProjectName, setDebouncedProjectName] = useState(projectName);
+    const [userId, setUserId] = useState(null);
+    const [debouncedProjectName, setDebouncedProjectName] = useState(projectName);
+    const [isDragOverBox, setIsDragOverBox] = useState(false);
+    const dragCounterBox = useRef(0);
 
 
     const MAX_FILES = 10;
@@ -181,9 +183,49 @@ const UploadBox = () => {
         }
     }, [showQueue]);
 
+ const handleBoxDragEnter = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounterBox.current++;
+        if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+            setIsDragOverBox(true);
+        }
+    };
 
-    const handleFileChange = (e) => {
-      e.preventDefault();
+    const handleBoxDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounterBox.current--;
+        if (dragCounterBox.current === 0) {
+            setIsDragOverBox(false);
+        }
+    };
+
+    const handleBoxDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };    const handleBoxDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOverBox(false);
+        dragCounterBox.current = 0;
+
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            // Create a synthetic event object that matches what handleFileChange expects
+            const syntheticEvent = {
+                target: {
+                    files: e.dataTransfer.files
+                }
+            };
+            handleFileChange(syntheticEvent);
+            e.dataTransfer.clearData();
+        }
+    };const handleFileChange = (e) => {
+      // Only call preventDefault for regular form events (not for synthetic drag events)
+      if (e && e.preventDefault && typeof e.preventDefault === 'function') {
+        e.preventDefault();
+      }
+      
       const newFiles = Array.from(e.target.files);
 
       // Check maximum file count
@@ -654,7 +696,21 @@ const UploadBox = () => {
      }
     }, [debouncedProjectName, projectId])
     return (
-        <div className="upload-box">
+          <div 
+            className={`upload-box ${isDragOverBox ? 'drag-over-box' : ''}`}
+            onDragEnter={handleBoxDragEnter}
+            onDragLeave={handleBoxDragLeave}
+            onDragOver={handleBoxDragOver}
+            onDrop={handleBoxDrop}
+        >
+            {isDragOverBox && (
+                <div className="drag-overlay">
+                    <div className="drag-overlay-content">
+                        <Icon name="cloud-upload-alt" />
+                        <p>Drop PDF files anywhere to upload</p>
+                    </div>
+                </div>
+            )}
               <div className="title-container" id="titleContainer">
                   <h2>
                       <Icon name="folder" />
