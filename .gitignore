@@ -1,6 +1,4 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
+# Dependencies
 /node_modules
 /.pnp
 .pnp.*
@@ -10,52 +8,42 @@
 !.yarn/releases
 !.yarn/versions
 
-vercel.json*
-
-# testing
+# Testing
 /coverage
 
-# next.js
+# Next.js
 /.next/
-/out/
+out/
 
-# production
+# Production build
 /build
 
-# misc
+# Configuration and logs
 .DS_Store
 *.pem
+*.tsbuildinfo
+next-env.d.ts
 
-# debug
+# Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# Environment variables
 .env*
 
-# vercel
+# Vercel
 .vercel
+!vercel.json
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-
-# uploads
-/src/temp/ocr/*
-/src/temp/ocr/cut/*
-/src/temp/ocr/cut/part/*
-/src/temp/ocr/hi-dpi/*
-/src/temp/ocr/rotate/*
-
+# Uploads and temporary OCR files
 /src/temp/upload/*
-
+/src/temp/ocr/*
 /public/output/*.csv
 
+# Exceptions to keep OCR folder structure
 !/src/temp/ocr/cut/
 !/src/temp/ocr/cut/part/
 !/src/temp/ocr/hi-dpi/
 !/src/temp/ocr/rotate/
-!vercel.json
