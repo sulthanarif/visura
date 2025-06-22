@@ -14,8 +14,8 @@ import { Badge } from "flowbite-react";
  * @param {function} onClose - Function to call when closing the modal
  */
 const AboutModal = ({ isOpen, onClose }) => {
-    const appVersion = "2.3.3";
-    const lastUpdated = "June 17, 2025";
+    const appVersion = "2.3.5";
+    const lastUpdated = "June 23, 2025";
     const currentYear = new Date().getFullYear();
     const copyrightYear = currentYear > 2024 ? `2024 - ${currentYear}` : "2024";    const features = [
         {
