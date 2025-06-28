@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Button from "../../atoms/Button";
-import { useUpload } from "@/models/upload";
 import { useRouter } from "next/router";
 import FileUploadArea from "./FileUploadArea";
 import FileListDisplay from "./FileListDisplay";
@@ -21,17 +20,11 @@ const env = require('dotenv').config();
 const UploadBox = () => {
     const router = useRouter();
     const fileInputRef = useRef(null);
-    const {
-        files,
-        handleAddFile,
-        handleRemoveFile,
-        errorMessage,
-        setErrorMessage,
-        projectName,
-        setProjectName,
-        resetState,
-        setFiles,
-    } = useUpload();
+    
+    // Upload state management (previously from useUpload hook)
+    const [files, setFiles] = useState([]);
+    const [errorMessage, setErrorMessage] = useState("");
+    const [projectName, setProjectName] = useState("");
 
     const [showPreview, setShowPreview] = useState(false);
     const [showQueue, setShowQueue] = useState(false);
@@ -50,9 +43,48 @@ const UploadBox = () => {
     const initialPreviewData = useRef({});
     const [errorMessageModal, setErrorMessageModal] = useState('');
     const [projectId, setProjectId] = useState(null);
-     const [userId, setUserId] = useState(null);
-      const [debouncedProjectName, setDebouncedProjectName] = useState(projectName);
+    const [userId, setUserId] = useState(null);
+    const [debouncedProjectName, setDebouncedProjectName] = useState(projectName);
+    const [isDragOverBox, setIsDragOverBox] = useState(false);
+    const dragCounterBox = useRef(0);
 
+    // Upload management functions (previously from useUpload hook)
+    const handleAddFile = (newFiles) => {
+        if (files.length + newFiles.length > 10) {
+            setErrorMessage("Maximum 10 files allowed.");
+            return;
+        }
+        
+        const validFiles = [];
+        
+        for (const file of newFiles) {
+            if (file.size > 10 * 1024 * 1024) {
+                setErrorMessage(`File ${file.name} exceeds 10MB!`);
+            } else {
+                // Check if file is a PDF
+                const fileExtension = file.name.toLowerCase().split('.').pop();
+                if (fileExtension !== 'pdf') {
+                    setErrorMessage(`File ${file.name} is not a PDF. Only PDF files are allowed.`);
+                } else {
+                    validFiles.push(file);
+                }
+            }
+        }
+        
+        if (validFiles.length > 0) {
+            setFiles(prevFiles => [...prevFiles, ...validFiles]);
+        }
+    };
+
+    const handleRemoveFile = (fileToRemove) => {
+        setFiles((prevFiles) => prevFiles.filter((file) => file !== fileToRemove));
+    };
+
+    const resetState = () => {
+        setErrorMessage("");
+        setProjectName("");
+        setFiles([]);
+    };
 
     const MAX_FILES = 10;
 
@@ -181,9 +213,49 @@ const UploadBox = () => {
         }
     }, [showQueue]);
 
+ const handleBoxDragEnter = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounterBox.current++;
+        if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+            setIsDragOverBox(true);
+        }
+    };
 
-    const handleFileChange = (e) => {
-      e.preventDefault();
+    const handleBoxDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounterBox.current--;
+        if (dragCounterBox.current === 0) {
+            setIsDragOverBox(false);
+        }
+    };
+
+    const handleBoxDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };    const handleBoxDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOverBox(false);
+        dragCounterBox.current = 0;
+
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            // Create a synthetic event object that matches what handleFileChange expects
+            const syntheticEvent = {
+                target: {
+                    files: e.dataTransfer.files
+                }
+            };
+            handleFileChange(syntheticEvent);
+            e.dataTransfer.clearData();
+        }
+    };const handleFileChange = (e) => {
+      // Only call preventDefault for regular form events (not for synthetic drag events)
+      if (e && e.preventDefault && typeof e.preventDefault === 'function') {
+        e.preventDefault();
+      }
+      
       const newFiles = Array.from(e.target.files);
 
       // Check maximum file count
@@ -205,11 +277,10 @@ const UploadBox = () => {
         const fileExtension = file.name.toLowerCase().split('.').pop();
         if (fileExtension !== 'pdf') {
           invalidFiles.push(file.name);
-        } else if (file.size > 10 * 1024 * 1024) { // 10MB
+        } else if (file.size > 10 * 1024 * 1024) // 10MB
           oversizedFiles.push(file.name);
-        } else {
+        else
           validFiles.push(file);
-        }
       });
 
       if (invalidFiles.length > 0) {
@@ -654,7 +725,21 @@ const UploadBox = () => {
      }
     }, [debouncedProjectName, projectId])
     return (
-        <div className="upload-box">
+          <div 
+            className={`upload-box ${isDragOverBox ? 'drag-over-box' : ''}`}
+            onDragEnter={handleBoxDragEnter}
+            onDragLeave={handleBoxDragLeave}
+            onDragOver={handleBoxDragOver}
+            onDrop={handleBoxDrop}
+        >
+            {isDragOverBox && (
+                <div className="drag-overlay">
+                    <div className="drag-overlay-content">
+                        <Icon name="cloud-upload-alt" />
+                        <p>Drop PDF files anywhere to upload</p>
+                    </div>
+                </div>
+            )}
               <div className="title-container" id="titleContainer">
                   <h2>
                       <Icon name="folder" />

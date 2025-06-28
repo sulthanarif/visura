@@ -104,6 +104,51 @@ input[type="date"] {
     /* For absolute positioning of preview */
 }
 
+.upload-box.drag-over-box {
+    background-color: rgba(111, 197, 255, 0.05);
+}
+
+.drag-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(111, 197, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    border-radius: 12px;
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease;
+}
+
+.drag-overlay-content {
+    text-align: center;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.drag-overlay-content p {
+    margin-top: 10px;
+    font-size: 1.2rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Prevent drag events on child elements when overlay is active */
+.upload-box.drag-over-box * {
+    pointer-events: none;
+}
+
+.drag-overlay * {
+    pointer-events: auto;
+}
 .upload-box h2 {
     font-size: 1.5em;
     margin-bottom: 10px;
